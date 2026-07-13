@@ -3,126 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recharge Mobile - Flinpay</title>
+    <title>Paiement Flinpay</title>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
         }
 
-        .container {
+        .payment-card {
             background: white;
             border-radius: 20px;
-            padding: 40px;
-            max-width: 450px;
-            width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px 35px;
+            transition: transform 0.3s ease;
         }
 
-        .header {
+        .payment-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .payment-header {
             text-align: center;
             margin-bottom: 30px;
         }
 
-        .header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 5px;
+        .payment-header i {
+            font-size: 48px;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 50%;
+            margin-bottom: 15px;
         }
 
-        .header .subtitle {
-            color: #888;
+        .payment-header h1 {
+            font-size: 24px;
+            color: #2d3748;
+            font-weight: 700;
+        }
+
+        .payment-header p {
+            color: #718096;
             font-size: 14px;
-        }
-
-        .header .badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-
-        .amount-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .amount-btn {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s;
-            color: #333;
-        }
-
-        .amount-btn:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .amount-btn.active {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
-
-        .custom-amount {
-            margin-bottom: 20px;
-        }
-
-        .custom-amount label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .input-group {
-            position: relative;
-        }
-
-        .input-group span {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-weight: 600;
-            color: #333;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px 15px 12px 35px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            outline: none;
-        }
-
-        .input-group input:focus {
-            border-color: #667eea;
+            margin-top: 5px;
         }
 
         .form-group {
@@ -131,28 +69,77 @@
 
         .form-group label {
             display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
             font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
         }
 
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+        .form-group .input-wrapper {
+            position: relative;
+        }
+
+        .form-group .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
             font-size: 16px;
-            transition: border-color 0.3s;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
-            background: white;
-        }
-
-        .form-group input:focus, .form-group select:focus {
             border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .pay-btn {
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .amount-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .amount-display span {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .amount-display .amount-value {
+            font-size: 28px;
+            font-weight: 700;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .payment-btn {
             width: 100%;
             padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -162,417 +149,333 @@
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .pay-btn:hover {
+        .payment-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .pay-btn:active {
+        .payment-btn:active {
             transform: translateY(0);
         }
 
-        .pay-btn:disabled {
-            opacity: 0.6;
+        .payment-btn i {
+            font-size: 20px;
+        }
+
+        .payment-btn:disabled {
+            opacity: 0.7;
             cursor: not-allowed;
-            transform: none;
-        }
-
-        .message {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .message.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .message.loading {
-            display: block;
-            background: #e7f3ff;
-            color: #004085;
-            border: 1px solid #b8daff;
-        }
-
-        .message.info {
-            display: block;
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            transform: none !important;
         }
 
         .loader {
-            display: inline-block;
+            display: none;
             width: 20px;
             height: 20px;
-            border: 3px solid #f3f3f3;
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top: 3px solid #667eea;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-            vertical-align: middle;
+            border-top-color: white;
+            animation: spin 0.8s ease infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .payment-info {
-            background: #f8f9fa;
-            padding: 15px;
+        .status-message {
+            margin-top: 20px;
+            padding: 12px 15px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            display: none;
             font-size: 14px;
-            color: #666;
+            font-weight: 500;
         }
 
-        .payment-info strong {
-            color: #333;
+        .status-message.success {
+            display: block;
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
         }
 
-        .secure-badge {
+        .status-message.error {
+            display: block;
+            background: #fed7d7;
+            color: #9b2c2c;
+            border-left: 4px solid #fc8181;
+        }
+
+        .status-message .details {
+            font-weight: 400;
+            margin-top: 5px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .footer-note {
+            margin-top: 20px;
             text-align: center;
-            margin-top: 15px;
+            color: #a0aec0;
             font-size: 12px;
-            color: #999;
-        }
-
-        .secure-badge i {
-            margin-right: 5px;
         }
 
         @media (max-width: 480px) {
-            .container {
-                padding: 20px;
+            .payment-card {
+                padding: 25px 20px;
             }
-            
-            .amount-options {
-                grid-template-columns: repeat(2, 1fr);
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-header h1 {
+                font-size: 20px;
+            }
+
+            .amount-display .amount-value {
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>💰 Recharge Mobile</h1>
-            <p class="subtitle">Effectuez un paiement sécurisé</p>
-            <span class="badge">🔒 Paiement sécurisé</span>
-        </div>
 
-        <div class="amount-options">
-            <button class="amount-btn" data-amount="500">500 F</button>
-            <button class="amount-btn active" data-amount="1000">1 000 F</button>
-            <button class="amount-btn" data-amount="2000">2 000 F</button>
-            <button class="amount-btn" data-amount="5000">5 000 F</button>
-            <button class="amount-btn" data-amount="10000">10 000 F</button>
-            <button class="amount-btn" data-amount="25000">25 000 F</button>
-        </div>
+<div class="payment-card">
+    <div class="payment-header">
+        <i class="fas fa-credit-card"></i>
+        <h1>Paiement sécurisé</h1>
+        <p>Effectuez votre paiement en toute sécurité</p>
+    </div>
 
-        <div class="custom-amount">
-            <label>Montant personnalisé</label>
-            <div class="input-group">
-                <span>F</span>
-                <input type="number" id="customAmount" placeholder="Saisissez un montant" min="50" step="50">
+    <form id="paymentForm">
+        <!-- Montant -->
+        <div class="form-group">
+            <label for="amount">Montant (FCFA)</label>
+            <div class="input-wrapper">
+                <i class="fas fa-money-bill-wave"></i>
+                <input type="number" id="amount" placeholder="Ex: 10000" required min="100" step="100">
             </div>
         </div>
 
+        <!-- Téléphone -->
         <div class="form-group">
-            <label>📱 Numéro de téléphone</label>
-            <input type="tel" id="phoneNumber" placeholder="Ex: 77 123 45 67" maxlength="15">
+            <label for="phone">Numéro de téléphone</label>
+            <div class="input-wrapper">
+                <i class="fas fa-phone"></i>
+                <input type="tel" id="phone" placeholder="Ex: 0700000000" required>
+            </div>
         </div>
 
+        <!-- Client -->
         <div class="form-group">
-            <label>👤 Nom du bénéficiaire</label>
-            <input type="text" id="beneficiary" placeholder="Nom du destinataire (optionnel)">
+            <label for="client_name">Nom du client</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input type="text" id="client_name" placeholder="Ex: Kouamé Diallo" required>
+            </div>
         </div>
 
+        <!-- Pays -->
         <div class="form-group">
-            <label>🏦 Opérateur</label>
-            <select id="operator">
-                <option value="orange">Orange Money</option>
-                <option value="mtn">MTN Mobile Money</option>
-                <option value="wave">Wave</option>
-                <option value="free">Free Money</option>
-            </select>
+            <label for="country">Pays</label>
+            <div class="input-wrapper">
+                <i class="fas fa-globe-africa"></i>
+                <select id="country" required>
+                    <option value="">Sélectionnez un pays</option>
+                    <option value="CI">🇨🇮 Côte d'Ivoire</option>
+                    <option value="SN">🇸🇳 Sénégal</option>
+                    <option value="CM">🇨🇲 Cameroun</option>
+                    <option value="ML">🇲🇱 Mali</option>
+                    <option value="BF">🇧🇫 Burkina Faso</option>
+                    <option value="BJ">🇧🇯 Bénin</option>
+                    <option value="TG">🇹🇬 Togo</option>
+                    <option value="GN">🇬🇳 Guinée</option>
+                    <option value="CI" selected>🇨🇮 Côte d'Ivoire</option>
+                </select>
+            </div>
         </div>
 
-        <div class="payment-info">
-            <p><strong>🔒 Transaction sécurisée</strong></p>
-            <p style="font-size: 12px; margin-top: 5px;">Paiement traité par Flinpay</p>
+        <!-- Affichage montant -->
+        <div class="amount-display">
+            <span>Montant à payer</span>
+            <span class="amount-value" id="displayAmount">0 FCFA</span>
         </div>
 
-        <button class="pay-btn" id="payBtn">💳 Effectuer le paiement</button>
+        <!-- Bouton -->
+        <button type="submit" class="payment-btn" id="payBtn">
+            <span id="btnText"><i class="fas fa-lock"></i> Payer maintenant</span>
+            <span class="loader" id="btnLoader"></span>
+        </button>
+    </form>
 
-        <div class="message" id="message"></div>
-        
-        <div class="secure-badge">
-            <i>🔐</i> Vos données sont cryptées et sécurisées
-        </div>
+    <!-- Message de statut -->
+    <div id="statusMessage" class="status-message"></div>
+
+    <div class="footer-note">
+        <i class="fas fa-shield-alt"></i> Paiement sécurisé via Flinpay
     </div>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // API Configuration
-            const API_KEY = 'fp_live_7b9be8a90d72be85b73ea0c246c6c3926b9731de64709e26';
-            
-            // Essayer différentes URLs possibles
-            const API_URLS = [
-                'https://flinpay.vercel.app/api/payment',
-                'https://flinpay.vercel.app/payment',
-                'https://flinpay.vercel.app/api/v1/payment',
-                'https://flinpay.vercel.app/process-payment'
-            ];
+<script>
+    const API_KEY = 'fp_test_ec7a263529d0345165f204569fd539895bff4fa249d489e6';
+    const BASE_URL = 'https://flinpay.vercel.app';
 
-            let currentApiUrl = API_URLS[0];
+    const form = document.getElementById('paymentForm');
+    const amountInput = document.getElementById('amount');
+    const phoneInput = document.getElementById('phone');
+    const clientNameInput = document.getElementById('client_name');
+    const countrySelect = document.getElementById('country');
+    const displayAmount = document.getElementById('displayAmount');
+    const payBtn = document.getElementById('payBtn');
+    const btnText = document.getElementById('btnText');
+    const btnLoader = document.getElementById('btnLoader');
+    const statusMessage = document.getElementById('statusMessage');
 
-            // DOM Elements
-            const amountBtns = document.querySelectorAll('.amount-btn');
-            const customAmount = document.getElementById('customAmount');
-            const phoneNumber = document.getElementById('phoneNumber');
-            const beneficiary = document.getElementById('beneficiary');
-            const operator = document.getElementById('operator');
-            const payBtn = document.getElementById('payBtn');
-            const message = document.getElementById('message');
+    // Mise à jour dynamique du montant affiché
+    amountInput.addEventListener('input', () => {
+        const val = parseInt(amountInput.value) || 0;
+        displayAmount.textContent = val.toLocaleString() + ' FCFA';
+    });
 
-            let selectedAmount = 1000;
+    // Génération d'un order_id unique
+    function generateOrderId() {
+        const date = new Date();
+        const timestamp = date.getFullYear() +
+            String(date.getMonth() + 1).padStart(2, '0') +
+            String(date.getDate()).padStart(2, '0') +
+            String(date.getHours()).padStart(2, '0') +
+            String(date.getMinutes()).padStart(2, '0') +
+            String(date.getSeconds()).padStart(2, '0');
+        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        return `ORD-${timestamp}-${random}`;
+    }
 
-            // Gestion des boutons de montant
-            amountBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    amountBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    selectedAmount = parseInt(this.dataset.amount);
-                    customAmount.value = '';
-                });
+    // Affichage du message de statut
+    function showStatus(message, type, details = '') {
+        statusMessage.className = `status-message ${type}`;
+        statusMessage.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            ${message}
+            ${details ? `<div class="details">${details}</div>` : ''}
+        `;
+        // Auto-scroll vers le message
+        statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Réinitialisation du statut
+    function clearStatus() {
+        statusMessage.className = 'status-message';
+        statusMessage.innerHTML = '';
+    }
+
+    // Gestion de la soumission du formulaire
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearStatus();
+
+        // Récupération et validation des données
+        const amount = parseInt(amountInput.value);
+        const phone = phoneInput.value.trim();
+        const client_name = clientNameInput.value.trim();
+        const country = countrySelect.value;
+
+        if (!amount || amount < 100) {
+            showStatus('Veuillez saisir un montant valide (minimum 100 FCFA)', 'error');
+            return;
+        }
+
+        if (!phone || phone.length < 8) {
+            showStatus('Veuillez saisir un numéro de téléphone valide', 'error');
+            return;
+        }
+
+        if (!client_name) {
+            showStatus('Veuillez saisir le nom du client', 'error');
+            return;
+        }
+
+        if (!country) {
+            showStatus('Veuillez sélectionner un pays', 'error');
+            return;
+        }
+
+        // Préparation de la requête
+        const order_id = generateOrderId();
+        const payload = {
+            amount: amount,
+            phone: phone,
+            client_name: client_name,
+            order_id: order_id,
+            country: country
+        };
+
+        // Désactivation du bouton
+        payBtn.disabled = true;
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'inline-block';
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/pay`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
             });
 
-            // Gestion du montant personnalisé
-            customAmount.addEventListener('input', function() {
-                amountBtns.forEach(b => b.classList.remove('active'));
-                if (this.value) {
-                    selectedAmount = parseInt(this.value);
-                }
-            });
+            const data = await response.json();
 
-            function showMessage(text, type = 'loading') {
-                message.className = 'message ' + type;
-                message.innerHTML = text;
+            if (response.ok && data.success) {
+                showStatus(
+                    '✅ Paiement initié avec succès !',
+                    'success',
+                    `Référence: ${data.transaction_id || order_id}`
+                );
+                console.log('Réponse API:', data);
+            } else {
+                showStatus(
+                    '❌ Échec du paiement',
+                    'error',
+                    data.message || 'Une erreur est survenue'
+                );
+                console.error('Erreur API:', data);
             }
+        } catch (error) {
+            showStatus(
+                '❌ Erreur de connexion',
+                'error',
+                'Vérifiez votre connexion internet ou réessayez plus tard'
+            );
+            console.error('Erreur réseau:', error);
+        } finally {
+            // Réactivation du bouton
+            payBtn.disabled = false;
+            btnText.style.display = 'inline-flex';
+            btnLoader.style.display = 'none';
+        }
+    });
 
-            function hideMessage() {
-                message.className = 'message';
-                message.innerHTML = '';
-            }
+    // Validation en temps réel du téléphone (uniquement chiffres)
+    phoneInput.addEventListener('input', () => {
+        phoneInput.value = phoneInput.value.replace(/[^0-9+]/g, '');
+    });
 
-            // Fonction pour essayer différentes URLs
-            async function tryApiUrls(paymentData) {
-                for (let url of API_URLS) {
-                    try {
-                        console.log(`Tentative avec: ${url}`);
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Bearer ' + API_KEY,
-                                'X-API-Key': API_KEY,
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify(paymentData),
-                            mode: 'cors' // Important pour CORS
-                        });
+    // Validation en temps réel du montant (uniquement chiffres)
+    amountInput.addEventListener('input', () => {
+        amountInput.value = amountInput.value.replace(/[^0-9]/g, '');
+    });
 
-                        if (response.ok) {
-                            currentApiUrl = url;
-                            return await response.json();
-                        }
-                    } catch (error) {
-                        console.warn(`Échec avec ${url}:`, error.message);
-                        continue;
-                    }
-                }
-                throw new Error('Impossible de contacter le serveur Flinpay');
-            }
+    console.log('🔑 API Key utilisée:', API_KEY);
+    console.log('📡 URL de l\'API:', BASE_URL);
+</script>
 
-            // Fonction de paiement
-            async function processPayment() {
-                // Validation du montant
-                if (!selectedAmount || selectedAmount < 50) {
-                    showMessage('⚠️ Veuillez saisir un montant valide (minimum 50 F)', 'error');
-                    return;
-                }
-
-                // Validation du numéro de téléphone
-                const phone = phoneNumber.value.trim();
-                if (!phone || phone.length < 8) {
-                    showMessage('⚠️ Veuillez saisir un numéro de téléphone valide', 'error');
-                    return;
-                }
-
-                payBtn.disabled = true;
-                payBtn.innerHTML = '<span class="loader"></span> Traitement en cours...';
-                showMessage('⏳ Connexion à Flinpay...', 'loading');
-
-                try {
-                    const paymentData = {
-                        amount: selectedAmount,
-                        currency: 'XOF',
-                        phone: phone,
-                        beneficiary: beneficiary.value.trim() || 'Client',
-                        operator: operator.value,
-                        description: `Recharge de ${selectedAmount} FCFA via ${operator.value}`,
-                        reference: 'RECH-' + Date.now(),
-                        return_url: window.location.href,
-                        callback_url: window.location.href,
-                        api_key: API_KEY
-                    };
-
-                    // Essayer avec différentes URLs
-                    let data;
-                    try {
-                        data = await tryApiUrls(paymentData);
-                    } catch (error) {
-                        // Si toutes les URLs échouent, simuler une réponse pour la démo
-                        console.warn('Mode démo activé - Simulation de réponse');
-                        data = {
-                            success: true,
-                            transaction_id: 'DEMO-' + Date.now(),
-                            message: 'Paiement simulé avec succès',
-                            status: 'success'
-                        };
-                        showMessage(
-                            `⚠️ <strong>Mode Démonstration</strong><br>` +
-                            `Le paiement de ${selectedAmount} FCFA a été simulé.<br>` +
-                            `📱 Téléphone: ${phone}<br>` +
-                            `🆔 Référence: ${data.transaction_id}`,
-                            'info'
-                        );
-                        setTimeout(hideMessage, 5000);
-                        return;
-                    }
-
-                    if (data.success === true || data.status === 'success') {
-                        showMessage(
-                            `✅ Paiement de <strong>${selectedAmount} FCFA</strong> réussi !<br>` +
-                            `📱 Téléphone: ${phone}<br>` +
-                            `🏦 Opérateur: ${operator.options[operator.selectedIndex].text}<br>` +
-                            `🆔 Référence: ${data.transaction_id || data.reference || 'TXN-' + Date.now()}`,
-                            'success'
-                        );
-
-                        setTimeout(() => {
-                            hideMessage();
-                            amountBtns.forEach(b => b.classList.remove('active'));
-                            document.querySelector('.amount-btn[data-amount="1000"]').classList.add('active');
-                            selectedAmount = 1000;
-                            customAmount.value = '';
-                            phoneNumber.value = '';
-                            beneficiary.value = '';
-                        }, 8000);
-                    } else {
-                        throw new Error(data.message || 'Paiement échoué');
-                    }
-
-                } catch (error) {
-                    console.error('Erreur de paiement:', error);
-                    showMessage(
-                        `❌ Erreur lors du paiement<br>` +
-                        `<span style="font-size: 12px;">${error.message || 'Veuillez réessayer plus tard'}</span>`,
-                        'error'
-                    );
-                } finally {
-                    payBtn.disabled = false;
-                    payBtn.innerHTML = '💳 Effectuer le paiement';
-                }
-            }
-
-            payBtn.addEventListener('click', processPayment);
-
-            document.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const activeElement = document.activeElement;
-                    if (activeElement.tagName === 'INPUT') {
-                        processPayment();
-                    }
-                }
-            });
-
-            customAmount.addEventListener('blur', function() {
-                if (!this.value) {
-                    amountBtns.forEach(b => {
-                        if (parseInt(b.dataset.amount) === selectedAmount) {
-                            b.classList.add('active');
-                        }
-                    });
-                }
-            });
-
-            phoneNumber.addEventListener('input', function() {
-                let value = this.value.replace(/\D/g, '');
-                if (value.length > 8) {
-                    value = value.slice(0, 8);
-                }
-                if (value.length > 4) {
-                    value = value.slice(0, 4) + ' ' + value.slice(4);
-                }
-                this.value = value;
-            });
-
-            showMessage('💡 Choisissez un montant, remplissez les champs et validez', 'info');
-            setTimeout(hideMessage, 4000);
-
-            // Test de connexion
-            async function testApiConnection() {
-                try {
-                    const testData = {
-                        test: true,
-                        api_key: API_KEY
-                    };
-                    
-                    for (let url of API_URLS) {
-                        try {
-                            const response = await fetch(url, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Bearer ' + API_KEY
-                                },
-                                body: JSON.stringify(testData)
-                            });
-                            if (response.ok) {
-                                console.log(`✅ Connexion réussie avec ${url}`);
-                                currentApiUrl = url;
-                                return;
-                            }
-                        } catch (e) {
-                            continue;
-                        }
-                    }
-                    console.warn('⚠️ Mode démo - Connexion API simulée');
-                } catch (error) {
-                    console.warn('⚠️ Impossible de contacter Flinpay API:', error.message);
-                }
-            }
-            testApiConnection();
-
-        });
-    </script>
 </body>
 </html>
