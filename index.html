@@ -1,333 +1,533 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PredixBot — Prédictions Sport & eSports</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0d14;color:#e2e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e2535;position:sticky;top:0;background:#0a0d14;z-index:100}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#7c3aed,#00e5ff);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.logo-text{font-size:20px;font-weight:700}.logo-text span{color:#00e5ff}
-.badge{font-size:10px;background:rgba(0,229,255,0.1);color:#00e5ff;border:1px solid rgba(0,229,255,0.3);padding:3px 8px;border-radius:20px}
-main{max-width:680px;margin:0 auto;padding:24px 16px}
-.hero{text-align:center;margin-bottom:28px}
-.hero h1{font-size:32px;font-weight:700;margin-bottom:8px}
-.hero h1 span{background:linear-gradient(90deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{color:#64748b;font-size:15px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.chip{background:#111520;border:1px solid #1e2535;color:#e2e8f0;font-size:13px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s}
-.chip:hover,.chip.active{border-color:#00e5ff;color:#00e5ff;background:rgba(0,229,255,0.08)}
-.card{background:#111520;border:1px solid #1e2535;border-radius:16px;padding:20px;margin-bottom:16px}
-.label{font-size:11px;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
-.row{display:flex;gap:10px;margin-bottom:12px}
-input{flex:1;background:#0a0d14;border:1px solid #1e2535;color:#e2e8f0;font-size:14px;padding:11px 14px;border-radius:10px;outline:none;transition:border-color 0.2s;font-family:inherit}
-input:focus{border-color:#00e5ff}
-input::placeholder{color:#64748b}
-.vs{color:#64748b;font-size:12px;font-weight:700;padding:0 4px;display:flex;align-items:center}
-textarea{width:100%;background:#0a0d14;border:1px solid #1e2535;color:#e2e8f0;font-size:13px;padding:10px 14px;border-radius:10px;outline:none;resize:none;height:70px;margin-bottom:14px;font-family:inherit}
-textarea:focus{border-color:#7c3aed}
-textarea::placeholder{color:#64748b}
-.btn{width:100%;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;font-size:15px;font-weight:600;padding:13px;border-radius:11px;cursor:pointer;transition:opacity 0.2s}
-.btn:hover{opacity:0.9}.btn:disabled{opacity:0.5;cursor:not-allowed}
-.loader{display:none;text-align:center;padding:28px;color:#64748b}
-.loader.show{display:block}
-.dots{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
-.dots span{width:8px;height:8px;background:#00e5ff;border-radius:50%;animation:pulse 1.2s infinite}
-.dots span:nth-child(2){animation-delay:0.2s}.dots span:nth-child(3){animation-delay:0.4s}
-@keyframes pulse{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
-.result{display:none;background:#111520;border:1px solid #1e2535;border-radius:16px;overflow:hidden;margin-bottom:16px;animation:up 0.3s ease}
-.result.show{display:block}
-@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.result-header{padding:16px 20px;background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(0,229,255,0.08));border-bottom:1px solid #1e2535;display:flex;align-items:center;justify-content:space-between}
-.result-title{font-size:16px;font-weight:700}
-.pill{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px}
-.high{background:rgba(0,200,150,0.15);color:#00c896;border:1px solid rgba(0,200,150,0.3)}
-.med{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
-.low{background:rgba(255,69,96,0.15);color:#ff4560;border:1px solid rgba(255,69,96,0.3)}
-.proba{padding:16px 20px;border-bottom:1px solid #1e2535}
-.prow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.plabel{font-size:11px;font-weight:600;width:72px;color:#64748b;text-transform:uppercase}
-.pbar{flex:1;background:#0a0d14;border-radius:6px;height:8px;overflow:hidden}
-.pbar-fill{height:100%;border-radius:6px;transition:width 1s ease}
-.win-bar{background:linear-gradient(90deg,#00c896,#00ff99)}
-.draw-bar{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
-.loss-bar{background:linear-gradient(90deg,#ff4560,#ff6b6b)}
-.ppct{font-size:13px;font-weight:600;width:34px;text-align:right}
-.verdict-section{padding:16px 20px;border-bottom:1px solid #1e2535}
-.verdict{font-size:22px;font-weight:700;margin-bottom:4px}
-.verdict.w{color:#00c896}.verdict.d{color:#f59e0b}.verdict.l{color:#ff4560}
-.cote{font-size:12px;color:#64748b}
-.analysis{padding:16px 20px}
-.analysis-text{font-size:14px;line-height:1.65;color:#94a3b8;margin-bottom:12px}
-.factors{display:flex;flex-direction:column;gap:6px}
-.factor{display:flex;gap:8px;font-size:13px}
-.factor-icon{color:#00e5ff;flex-shrink:0}
-.tg-banner{background:linear-gradient(135deg,rgba(0,136,204,0.15),rgba(0,229,255,0.08));border:1px solid rgba(0,136,204,0.3);border-radius:14px;padding:16px 20px;text-align:center;margin-bottom:16px}
-.tg-banner h3{color:#00e5ff;font-size:16px;margin-bottom:6px}
-.tg-banner p{color:#94a3b8;font-size:13px;margin-bottom:12px}
-.tg-btn{display:inline-block;background:linear-gradient(135deg,#0088cc,#00e5ff);color:#fff;text-decoration:none;padding:10px 24px;border-radius:10px;font-weight:600;font-size:14px}
-.hist-item{background:#111520;border:1px solid #1e2535;border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.hist-match{font-size:13px;font-weight:600}
-.hist-sport{font-size:11px;color:#64748b}
-.hist-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
-footer{text-align:center;padding:20px;color:#64748b;font-size:12px;border-top:1px solid #1e2535;margin-top:8px}
-footer a{color:#00e5ff;text-decoration:none}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recharge Mobile - Flinpay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .amount-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .amount-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .amount-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .amount-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .custom-amount {
+            margin-bottom: 20px;
+        }
+
+        .custom-amount label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group span {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px 12px 35px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #667eea;
+        }
+
+        .pay-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .pay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .pay-btn:active {
+            transform: translateY(0);
+        }
+
+        .pay-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.loading {
+            display: block;
+            background: #e7f3ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .message.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .payment-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .payment-info strong {
+            color: #333;
+        }
+
+        .secure-badge {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .secure-badge i {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .amount-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
-<header>
-  <div class="logo">
-    <div class="logo-icon">🎯</div>
-    <div class="logo-text">Predix<span>Bot</span></div>
-    <span class="badge">AI POWERED</span>
-  </div>
-  <a href="https://t.me/PredixBot" class="tg-btn" style="padding:6px 14px;font-size:12px;border-radius:8px;background:linear-gradient(135deg,#0088cc,#00e5ff);color:#fff;text-decoration:none;font-weight:600">📱 Telegram</a>
-</header>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Recharge Mobile</h1>
+            <p class="subtitle">Effectuez un paiement sécurisé</p>
+            <span class="badge">🔒 Paiement sécurisé</span>
+        </div>
 
-<main>
-  <div class="hero">
-    <h1>Prédictions <span>IA</span><br>Sport & eSports</h1>
-    <p>Analyse intelligente pour tes paris sportifs et gaming.</p>
-  </div>
+        <div class="amount-options">
+            <button class="amount-btn" data-amount="500">500 F</button>
+            <button class="amount-btn active" data-amount="1000">1 000 F</button>
+            <button class="amount-btn" data-amount="2000">2 000 F</button>
+            <button class="amount-btn" data-amount="5000">5 000 F</button>
+            <button class="amount-btn" data-amount="10000">10 000 F</button>
+            <button class="amount-btn" data-amount="25000">25 000 F</button>
+        </div>
 
-  <div class="tg-banner">
-    <h3>📱 Bot Telegram disponible !</h3>
-    <p>Reçois tes prédictions directement sur Telegram avec historique et stats personnelles.</p>
-    <a href="https://t.me/PredixBot" class="tg-btn">Ouvrir @PredixBot</a>
-  </div>
+        <div class="custom-amount">
+            <label>Montant personnalisé</label>
+            <div class="input-group">
+                <span>F</span>
+                <input type="number" id="customAmount" placeholder="Saisissez un montant" min="50" step="50">
+            </div>
+        </div>
 
-  <div class="card">
-    <div class="label">Choisir le sport</div>
-    <div class="chips">
-      <div class="chip active" onclick="selectSport(this,'Football ⚽')">⚽ Football</div>
-      <div class="chip" onclick="selectSport(this,'Basketball 🏀')">🏀 Basketball</div>
-      <div class="chip" onclick="selectSport(this,'Tennis 🎾')">🎾 Tennis</div>
-      <div class="chip" onclick="selectSport(this,'FIFA 🎮')">🎮 FIFA</div>
-      <div class="chip" onclick="selectSport(this,'CS:GO 🔫')">🔫 CS:GO</div>
-      <div class="chip" onclick="selectSport(this,'LoL 🧙')">🧙 LoL</div>
-      <div class="chip" onclick="selectSport(this,'MMA 🥊')">🥊 MMA</div>
-      <div class="chip" onclick="selectSport(this,'Rugby 🏉')">🏉 Rugby</div>
+        <div class="form-group">
+            <label>📱 Numéro de téléphone</label>
+            <input type="tel" id="phoneNumber" placeholder="Ex: 77 123 45 67" maxlength="15">
+        </div>
+
+        <div class="form-group">
+            <label>👤 Nom du bénéficiaire</label>
+            <input type="text" id="beneficiary" placeholder="Nom du destinataire (optionnel)">
+        </div>
+
+        <div class="form-group">
+            <label>🏦 Opérateur</label>
+            <select id="operator">
+                <option value="orange">Orange Money</option>
+                <option value="mtn">MTN Mobile Money</option>
+                <option value="wave">Wave</option>
+                <option value="free">Free Money</option>
+            </select>
+        </div>
+
+        <div class="payment-info">
+            <p><strong>🔒 Transaction sécurisée</strong></p>
+            <p style="font-size: 12px; margin-top: 5px;">Paiement traité par Flinpay</p>
+        </div>
+
+        <button class="pay-btn" id="payBtn">💳 Effectuer le paiement</button>
+
+        <div class="message" id="message"></div>
+        
+        <div class="secure-badge">
+            <i>🔐</i> Vos données sont cryptées et sécurisées
+        </div>
     </div>
-    <div class="label">Entrer le match</div>
-    <div class="row">
-      <input id="t1" placeholder="Équipe 1 / Joueur 1">
-      <span class="vs">VS</span>
-      <input id="t2" placeholder="Équipe 2 / Joueur 2">
-    </div>
-    <textarea id="ctx" placeholder="Contexte optionnel : forme récente, blessés, lieu..."></textarea>
-    <button class="btn" id="btn" onclick="predict()">🎯 Analyser & Prédire</button>
-  </div>
 
-  <div class="loader" id="loader">
-    <div class="dots"><span></span><span></span><span></span></div>
-    <span>Analyse IA en cours...</span>
-  </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // API Configuration
+            const API_KEY = 'fp_live_7b9be8a90d72be85b73ea0c246c6c3926b9731de64709e26';
+            const API_URL = 'https://flinpay.vercel.app/api/payment'; // URL de l'API Flinpay
 
-  <div class="result" id="result">
-    <div class="result-header">
-      <div class="result-title" id="rTitle"></div>
-      <div class="pill" id="rPill"></div>
-    </div>
-    <div class="proba">
-      <div class="prow">
-        <div class="plabel">Victoire 1</div>
-        <div class="pbar"><div class="pbar-fill win-bar" id="bW" style="width:0%"></div></div>
-        <div class="ppct" id="pW" style="color:#00c896"></div>
-      </div>
-      <div class="prow" id="drawRow">
-        <div class="plabel">Nul</div>
-        <div class="pbar"><div class="pbar-fill draw-bar" id="bD" style="width:0%"></div></div>
-        <div class="ppct" id="pD" style="color:#f59e0b"></div>
-      </div>
-      <div class="prow">
-        <div class="plabel">Victoire 2</div>
-        <div class="pbar"><div class="pbar-fill loss-bar" id="bL" style="width:0%"></div></div>
-        <div class="ppct" id="pL" style="color:#ff4560"></div>
-      </div>
-    </div>
-    <div class="verdict-section">
-      <div class="verdict" id="rVerdict"></div>
-      <div class="cote" id="rCote"></div>
-    </div>
-    <div class="analysis">
-      <div class="label">Analyse</div>
-      <div class="analysis-text" id="rAnalyse"></div>
-      <div class="factors" id="rFactors"></div>
-    </div>
-  </div>
+            // DOM Elements
+            const amountBtns = document.querySelectorAll('.amount-btn');
+            const customAmount = document.getElementById('customAmount');
+            const phoneNumber = document.getElementById('phoneNumber');
+            const beneficiary = document.getElementById('beneficiary');
+            const operator = document.getElementById('operator');
+            const payBtn = document.getElementById('payBtn');
+            const message = document.getElementById('message');
 
-  <div id="histSection" style="display:none">
-    <div class="label">Historique</div>
-    <div id="histList"></div>
-  </div>
-</main>
+            let selectedAmount = 1000; // Montant par défaut
 
-<footer>⚡ PredixBot — Powered by IA | <a href="https://t.me/PredixBot">@PredixBot sur Telegram</a></footer>
+            // Gestion des boutons de montant
+            amountBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    amountBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedAmount = parseInt(this.dataset.amount);
+                    customAmount.value = '';
+                });
+            });
 
-<script>
-const STRENGTHS = {
-  "real madrid":95,"manchester city":94,"barcelona":92,"psg":90,"bayern munich":93,
-  "liverpool":91,"arsenal":88,"chelsea":87,"juventus":86,"inter milan":87,
-  "ac milan":85,"atletico madrid":88,"borussia dortmund":86,"napoli":84,
-  "lyon":80,"marseille":79,"cameroun":72,"senegal":78,"maroc":80,"nigeria":76,
-  "france":92,"bresil":91,"argentine":93,"angleterre":90,"espagne":91,
-  "lakers":88,"bulls":75,"warriors":90,"celtics":91,"heat":84,"bucks":89,
-  "djokovic":97,"nadal":94,"alcaraz":92,"sinner":91,"medvedev":90,"swiatek":95,
-  "navi":92,"astralis":90,"faze":91,"g2":89,"vitality":88,
-  "t1":95,"gen.g":90,"jdg":89,"fnatic":83,
-  "mbappe":95,"ronaldo":93,"messi":97,"haaland":94,"salah":90,"vinicius":92,
-  "mcgregor":88,"jones":95,"adesanya":91,"ngannou":93,
-  "all blacks":96,"france":92,"irlande":91,"springboks":93,
-};
+            // Gestion du montant personnalisé
+            customAmount.addEventListener('input', function() {
+                amountBtns.forEach(b => b.classList.remove('active'));
+                if (this.value) {
+                    selectedAmount = parseInt(this.value);
+                }
+            });
 
-const ANALYSES = {
-  Football:[
-    ["Domination territoriale attendue grâce à un pressing haut intense.","Les stats des 5 derniers matchs favorisent cette équipe avec 4 victoires."],
-    ["Match très serré prévu entre ces deux formations.","Le facteur terrain sera décisif."],
-    ["La forme récente est impressionnante avec une série positive.","Une attaque redoutable et une défense solide cette saison."],
-  ],
-  Basketball:[
-    ["Avantage physique et profondeur de banc supérieure.","La défense de zone sera difficile à percer."],
-    ["Duel serré jusqu'au buzzer final.","La victoire se jouera sur les lancers francs."],
-    ["En excellente forme avec 6 victoires consécutives.","Le back-court est le meilleur de la ligue."],
-  ],
-  Tennis:[
-    ["Domine parfaitement sur ce type de surface.","Le service sera une arme décisive."],
-    ["Match indécis entre deux joueurs de niveau similaire.","Le tie-break sera probablement décisif."],
-    ["En grande forme avec 4 titres cette saison.","Le revers long de ligne est inarrêtable."],
-  ],
-  Default:[
-    ["Performance dominante attendue basée sur les statistiques récentes.","L'avantage tactique et physique est confirmé."],
-    ["Match très équilibré entre les deux adversaires.","Tout peut basculer à tout moment."],
-    ["Excellente forme récente et motivation maximale.","Les stats récentes donnent l'avantage sur l'adversaire."],
-  ]
-};
+            // Fonction pour afficher les messages
+            function showMessage(text, type = 'loading') {
+                message.className = 'message ' + type;
+                message.innerHTML = text;
+            }
 
-const TIPS = [
-  "💡 Ne mise jamais plus de 5% de ta bankroll sur un seul pari.",
-  "💡 Les cotes 1.30-1.60 sont plus sûres pour débuter.",
-  "💡 Analyse toujours les confrontations directes avant de miser.",
-  "💡 HIGH confidence ne garantit pas la victoire — le sport reste imprévisible !",
-  "💡 Le meilleur parieur sait quand ne pas parier.",
-];
+            function hideMessage() {
+                message.className = 'message';
+                message.innerHTML = '';
+            }
 
-const NO_DRAW = ["tennis","mma","fifa","cs:go","lol","esports"];
-let sport = "Football ⚽";
-let history = [];
+            // Fonction de paiement
+            async function processPayment() {
+                // Validation du montant
+                if (!selectedAmount || selectedAmount < 50) {
+                    showMessage('⚠️ Veuillez saisir un montant valide (minimum 50 F)', 'error');
+                    return;
+                }
 
-function selectSport(el, s) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active'); sport = s;
-  const nd = NO_DRAW.some(x => s.toLowerCase().includes(x));
-  document.getElementById('drawRow').style.display = nd ? 'none' : 'flex';
-}
+                // Validation du numéro de téléphone
+                const phone = phoneNumber.value.trim();
+                if (!phone || phone.length < 8) {
+                    showMessage('⚠️ Veuillez saisir un numéro de téléphone valide', 'error');
+                    return;
+                }
 
-function getStrength(name) {
-  const k = name.toLowerCase().trim();
-  if (STRENGTHS[k]) return STRENGTHS[k];
-  for (const [key, val] of Object.entries(STRENGTHS)) {
-    if (key.includes(k) || k.includes(key)) return val;
-  }
-  return Math.floor(Math.random() * 25) + 60;
-}
+                // Désactivation du bouton
+                payBtn.disabled = true;
+                payBtn.innerHTML = '<span class="loader"></span> Traitement en cours...';
 
-function predict() {
-  const t1 = document.getElementById('t1').value.trim();
-  const t2 = document.getElementById('t2').value.trim();
-  if (!t1 || !t2) { alert('Entre les deux équipes !'); return; }
+                // Affichage du message de chargement
+                showMessage('⏳ Connexion à Flinpay...', 'loading');
 
-  document.getElementById('btn').disabled = true;
-  document.getElementById('loader').classList.add('show');
-  document.getElementById('result').classList.remove('show');
+                try {
+                    // Préparation des données pour l'API Flinpay
+                    const paymentData = {
+                        amount: selectedAmount,
+                        currency: 'XOF',
+                        phone: phone,
+                        beneficiary: beneficiary.value.trim() || 'Client',
+                        operator: operator.value,
+                        description: `Recharge de ${selectedAmount} FCFA via ${operator.value}`,
+                        reference: 'RECH-' + Date.now(),
+                        return_url: window.location.href,
+                        callback_url: window.location.href,
+                        api_key: API_KEY
+                    };
 
-  setTimeout(() => {
-    const s1 = getStrength(t1), s2 = getStrength(t2);
-    const nd = NO_DRAW.some(x => sport.toLowerCase().includes(x));
-    const noise = Math.floor(Math.random() * 16) - 8;
-    const total = s1 + s2;
-    let raw1 = (s1 / total) * 100 + noise;
-    let raw2 = 100 - raw1;
-    let w1, dr, w2;
+                    // Appel à l'API Flinpay
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + API_KEY,
+                            'X-API-Key': API_KEY
+                        },
+                        body: JSON.stringify(paymentData)
+                    });
 
-    if (nd) {
-      w1 = Math.max(10, Math.min(85, Math.round(raw1)));
-      dr = 0; w2 = 100 - w1;
-    } else {
-      const dc = Math.abs(s1-s2) < 10 ? Math.floor(Math.random()*15)+10 : Math.floor(Math.random()*10)+5;
-      w1 = Math.max(10, Math.min(75, Math.round(raw1*(1-dc/100))));
-      w2 = Math.max(10, Math.min(75, Math.round(raw2*(1-dc/100))));
-      dr = 100 - w1 - w2;
-    }
+                    // Gestion de la réponse
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Erreur lors du paiement');
+                    }
 
-    let verdict, outcome, cote, confClass;
-    if (w1 > w2 && w1 > dr) {
-      verdict = `🏆 ${t1} gagne`; outcome = 0;
-      cote = (100/w1*0.92).toFixed(2); confClass = 'w';
-    } else if (w2 > w1 && w2 > dr) {
-      verdict = `🏆 ${t2} gagne`; outcome = 2;
-      cote = (100/w2*0.92).toFixed(2); confClass = 'l';
-    } else {
-      verdict = "➖ Match Nul"; outcome = 1;
-      cote = (2.8 + Math.random()*0.8).toFixed(2); confClass = 'd';
-    }
+                    const data = await response.json();
 
-    const diff = Math.abs(w1-w2);
-    const conf = diff > 20 ? 'HIGH' : diff > 10 ? 'MEDIUM' : 'LOW';
-    const confLabel = {'HIGH':'🔥 Haute confiance','MEDIUM':'⚡ Confiance moyenne','LOW':'⚠️ Risqué'}[conf];
-    const confPillClass = {'HIGH':'high','MEDIUM':'med','LOW':'low'}[conf];
+                    // Traitement de la réponse
+                    if (data.success === true || data.status === 'success') {
+                        showMessage(
+                            `✅ Paiement de <strong>${selectedAmount} FCFA</strong> réussi !<br>` +
+                            `📱 Téléphone: ${phone}<br>` +
+                            `🏦 Opérateur: ${operator.options[operator.selectedIndex].text}<br>` +
+                            `🆔 Référence: ${data.transaction_id || data.reference || 'TXN-' + Date.now()}<br><br>` +
+                            `📧 Un reçu vous a été envoyé par email.`,
+                            'success'
+                        );
 
-    const sk = sport.split(' ')[0];
-    const pool = ANALYSES[sk] || ANALYSES.Default;
-    const lines = pool[outcome];
-    const analyse = lines.join(' ');
+                        // Réinitialisation après succès
+                        setTimeout(() => {
+                            hideMessage();
+                            amountBtns.forEach(b => b.classList.remove('active'));
+                            document.querySelector('.amount-btn[data-amount="1000"]').classList.add('active');
+                            selectedAmount = 1000;
+                            customAmount.value = '';
+                            phoneNumber.value = '';
+                            beneficiary.value = '';
+                        }, 8000);
+                    } else {
+                        throw new Error(data.message || 'Paiement échoué');
+                    }
 
-    const facteurs = outcome !== 1
-      ? ["✅ Forme récente supérieure (4V/5M)","✅ Meilleur bilan H2H confirmé","⚠️ Fatigue possible du calendrier chargé"]
-      : ["〰️ Équilibre parfait en confrontations directes","〰️ Styles de jeu qui s'annulent","〰️ Prudence tactique attendue"];
+                } catch (error) {
+                    console.error('Erreur de paiement:', error);
+                    showMessage(
+                        `❌ Erreur lors du paiement<br>` +
+                        `<span style="font-size: 12px;">${error.message || 'Veuillez réessayer plus tard'}</span>`,
+                        'error'
+                    );
+                } finally {
+                    // Réactivation du bouton
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '💳 Effectuer le paiement';
+                }
+            }
 
-    document.getElementById('rTitle').textContent = `${t1} vs ${t2}`;
-    const pill = document.getElementById('rPill');
-    pill.textContent = confLabel; pill.className = `pill ${confPillClass}`;
+            // Écouteur d'événement sur le bouton de paiement
+            payBtn.addEventListener('click', processPayment);
 
-    setTimeout(() => {
-      document.getElementById('bW').style.width = w1+'%';
-      document.getElementById('bD').style.width = dr+'%';
-      document.getElementById('bL').style.width = w2+'%';
-    }, 100);
+            // Validation de l'enter sur les champs
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const activeElement = document.activeElement;
+                    if (activeElement.tagName === 'INPUT') {
+                        processPayment();
+                    }
+                }
+            });
 
-    document.getElementById('pW').textContent = w1+'%';
-    document.getElementById('pD').textContent = dr+'%';
-    document.getElementById('pL').textContent = w2+'%';
+            // Gestion du montant personnalisé : si vide, revenir à la sélection
+            customAmount.addEventListener('blur', function() {
+                if (!this.value) {
+                    amountBtns.forEach(b => {
+                        if (parseInt(b.dataset.amount) === selectedAmount) {
+                            b.classList.add('active');
+                        }
+                    });
+                }
+            });
 
-    const v = document.getElementById('rVerdict');
-    v.textContent = verdict; v.className = `verdict ${confClass}`;
-    document.getElementById('rCote').textContent = `Cote estimée : ${cote}`;
-    document.getElementById('rAnalyse').textContent = analyse;
-    document.getElementById('rFactors').innerHTML = facteurs.map(f=>`<div class="factor"><span class="factor-icon">▸</span><span>${f}</span></div>`).join('');
+            // Fonction pour formater le numéro de téléphone
+            phoneNumber.addEventListener('input', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length > 8) {
+                    value = value.slice(0, 8);
+                }
+                if (value.length > 4) {
+                    value = value.slice(0, 4) + ' ' + value.slice(4);
+                }
+                this.value = value;
+            });
 
-    document.getElementById('loader').classList.remove('show');
-    document.getElementById('result').classList.add('show');
-    document.getElementById('btn').disabled = false;
+            // Message d'information initial
+            showMessage('💡 Choisissez un montant, remplissez les champs et validez', 'info');
+            setTimeout(hideMessage, 4000);
 
-    history.unshift({match:`${t1} vs ${t2}`,sport,verdict,conf});
-    if(history.length>5) history.pop();
-    renderHistory();
-  }, 1800);
-}
+            // Test de connexion à l'API
+            async function testApiConnection() {
+                try {
+                    const testResponse = await fetch(API_URL, {
+                        method: 'HEAD',
+                        headers: {
+                            'Authorization': 'Bearer ' + API_KEY
+                        }
+                    });
+                    if (testResponse.ok) {
+                        console.log('✅ Connexion à Flinpay API établie');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Impossible de contacter Flinpay API:', error.message);
+                }
+            }
+            testApiConnection();
 
-function renderHistory() {
-  if (!history.length) return;
-  document.getElementById('histSection').style.display = 'block';
-  const colors = {HIGH:'#00c896',MEDIUM:'#f59e0b',LOW:'#ff4560'};
-  document.getElementById('histList').innerHTML = history.map(h=>`
-    <div class="hist-item">
-      <div><div class="hist-match">${h.match}</div><div class="hist-sport">${h.sport}</div></div>
-      <div class="hist-badge" style="color:${colors[h.conf]};background:${colors[h.conf]}18;border:1px solid ${colors[h.conf]}40">${h.verdict}</div>
-    </div>`).join('');
-}
-</script>
+        });
+    </script>
 </body>
 </html>
