@@ -1,152 +1,278 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Paiement FlinPay</title>
-
-<style>
-body{
-font-family:Arial,sans-serif;
-background:#f4f6f9;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
-}
-
-.card{
-background:#fff;
-padding:25px;
-width:400px;
-border-radius:15px;
-box-shadow:0 10px 25px rgba(0,0,0,.15);
-}
-
-input,select,button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #ccc;
-box-sizing:border-box;
-}
-
-button{
-background:#0066ff;
-color:#fff;
-font-weight:bold;
-border:none;
-cursor:pointer;
-}
-
-button:disabled{
-background:#999;
-cursor:not-allowed;
-}
-
-#result{
-margin-top:20px;
-white-space:pre-wrap;
-font-size:14px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement Flinpay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: #667eea;
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        .message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.loading {
+            display: block;
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        .badge {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #777;
+            margin-top: 4px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .operator-icons {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .operator-icons span {
+            font-size: 13px;
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="card">
-<h2>Paiement FlinPay</h2>
+<div class="container">
+    <h1>💳 Paiement</h1>
+    <p class="subtitle">Paiement sécurisé via Flinpay</p>
 
-<input id="name" placeholder="Nom du client">
+    <form id="paymentForm">
+        <div class="form-group">
+            <label for="client_name">Nom complet</label>
+            <input type="text" id="client_name" placeholder="Kouamé Diallo" required>
+        </div>
 
-<input id="phone" placeholder="Téléphone">
+        <div class="form-group">
+            <label for="phone">Numéro de téléphone</label>
+            <input type="tel" id="phone" placeholder="0700000000" required>
+            <span class="badge">Format sans indicatif (+225)</span>
+        </div>
 
-<input id="amount" type="number" placeholder="Montant">
+        <div class="row">
+            <div class="form-group">
+                <label for="amount">Montant (FCFA)</label>
+                <input type="number" id="amount" placeholder="10000" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="operator">Opérateur</label>
+                <select id="operator" required>
+                    <option value="momo">MTN Mobile Money</option>
+                    <option value="om">Orange Money</option>
+                </select>
+            </div>
+        </div>
 
-<select id="country">
-<option value="CM">Cameroun</option>
-<option value="CI">Côte d'Ivoire</option>
-<option value="SN">Sénégal</option>
-<option value="TG">Togo</option>
-<option value="BJ">Bénin</option>
-</select>
+        <div class="form-group">
+            <label for="order_id">Référence commande</label>
+            <input type="text" id="order_id" placeholder="ORD-001" required>
+        </div>
 
-<button id="btn" onclick="payer()">
-Payer
-</button>
+        <button type="submit" class="btn" id="payBtn">💳 Payer maintenant</button>
+    </form>
 
-<div id="result"></div>
+    <div id="message" class="message"></div>
 
+    <div class="footer">
+        🔒 Paiement sécurisé · Vous recevrez une confirmation par SMS
+    </div>
 </div>
 
 <script>
+    const API_KEY = "fp_live_1f5ff22aadc33946390afa1931072014939f6f7990bb36ac";
+    const BASE_URL = "https://www.flinpay.cfd";
 
-async function payer(){
+    const form = document.getElementById('paymentForm');
+    const messageEl = document.getElementById('message');
+    const payBtn = document.getElementById('payBtn');
 
-const btn=document.getElementById("btn");
-const result=document.getElementById("result");
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-btn.disabled=true;
-btn.innerText="Paiement...";
+        const client_name = document.getElementById('client_name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const amount = parseInt(document.getElementById('amount').value);
+        const operator = document.getElementById('operator').value;
+        const order_id = document.getElementById('order_id').value.trim();
 
-try{
+        // Validation simple
+        if (!client_name || !phone || !amount || !order_id) {
+            showMessage('Veuillez remplir tous les champs.', 'error');
+            return;
+        }
+        if (amount < 1) {
+            showMessage('Le montant doit être supérieur à 0.', 'error');
+            return;
+        }
+        if (!/^[0-9]{10}$/.test(phone)) {
+            showMessage('Numéro invalide (10 chiffres requis).', 'error');
+            return;
+        }
 
-const response=await fetch("https://flinpay.vercel.app/api/pay",{
+        // Désactiver le bouton
+        payBtn.disabled = true;
+        payBtn.textContent = '⏳ Envoi en cours...';
+        showMessage('Envoi de la demande de paiement...', 'loading');
 
-method:"POST",
+        try {
+            const payload = {
+                amount: amount,
+                phone: phone,
+                client_name: client_name,
+                order_id: order_id,
+                country: "CI",
+                operator: operator
+            };
 
-headers:{
-"Authorization":"Bearer fp_live_604114deefebf6bd57ee33acf852e2af7a16e841fe9edeea",
-"Content-Type":"application/json"
-},
+            const response = await fetch(`${BASE_URL}/api/pay`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
 
-body:JSON.stringify({
+            const data = await response.json();
 
-amount:Number(document.getElementById("amount").value),
+            if (response.ok) {
+                showMessage(
+                    `✅ Paiement initié avec succès ! ` +
+                    `Un SMS de confirmation a été envoyé au ${phone}. ` +
+                    `Réf: ${order_id}`,
+                    'success'
+                );
+                form.reset();
+            } else {
+                const errorMsg = data.message || data.error || 'Erreur inconnue';
+                showMessage(`❌ Échec: ${errorMsg}`, 'error');
+            }
+        } catch (error) {
+            showMessage(`❌ Erreur réseau: ${error.message}`, 'error');
+        } finally {
+            payBtn.disabled = false;
+            payBtn.textContent = '💳 Payer maintenant';
+        }
+    });
 
-phone:document.getElementById("phone").value,
-
-client_name:document.getElementById("name").value,
-
-order_id:"ORD-"+Date.now(),
-
-country:document.getElementById("country").value
-
-})
-
-});
-
-const data=await response.json();
-
-console.log(data);
-
-result.innerHTML="<pre>"+JSON.stringify(data,null,2)+"</pre>";
-
-const url=data.payment_url || data.checkout_url || data.url || data.link;
-
-if(url){
-
-result.innerHTML+="<br><br>Redirection...";
-
-setTimeout(()=>{
-window.location.href=url;
-},1000);
-
-}
-
-}catch(e){
-
-result.innerHTML="Erreur : "+e.message;
-
-}
-
-btn.disabled=false;
-btn.innerText="Payer";
-
-}
-
+    function showMessage(text, type) {
+        messageEl.textContent = text;
+        messageEl.className = 'message ' + type;
+        messageEl.style.display = 'block';
+    }
 </script>
 
 </body>
