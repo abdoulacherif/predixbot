@@ -1,277 +1,490 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paiement Flinpay</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flinpay - Paiement Mobile</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #f6f9fc 0%, #e9f1f8 100%);
             padding: 20px;
         }
-        .container {
-            background: #fff;
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 500px;
+
+        .card {
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.12);
+            padding: 40px 32px;
+            max-width: 480px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
         }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 28px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 6px;
-            font-size: 14px;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            outline: none;
-        }
-        input:focus, select:focus {
-            border-color: #667eea;
-        }
-        .row {
+
+        .card-header {
             display: flex;
-            gap: 15px;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 32px;
         }
-        .row .form-group {
-            flex: 1;
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
+
+        .card-header .icon {
+            background: #0b2b4a;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 700;
+            font-size: 22px;
+            letter-spacing: -0.5px;
+        }
+
+        .card-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #0b2b4a;
+            letter-spacing: -0.3px;
+        }
+
+        .card-header .badge {
+            margin-left: auto;
+            background: #eef3f9;
+            color: #1a4b6d;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 30px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e3b55;
+            margin-bottom: 6px;
+            letter-spacing: -0.2px;
+        }
+
+        .form-group .input-wrapper {
+            position: relative;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            background: #f5f9ff;
+            border: 1.5px solid #e2ebf3;
+            border-radius: 16px;
+            outline: none;
+            transition: 0.2s ease;
+            color: #0b2b4a;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #0b2b4a;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(11, 43, 74, 0.06);
+        }
+
+        .form-group .currency {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 600;
+            color: #1e3b55;
+            font-size: 15px;
+            background: #eef3f9;
+            padding: 2px 10px;
+            border-radius: 30px;
+        }
+
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .operator-selector {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .operator-btn {
+            flex: 1;
+            padding: 12px 0;
+            border: 2px solid #e2ebf3;
+            border-radius: 16px;
+            background: #f5f9ff;
+            font-weight: 600;
+            font-size: 15px;
+            color: #1e3b55;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
+            transition: 0.2s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+
+        .operator-btn.active {
+            border-color: #0b2b4a;
+            background: #e7eef9;
+            color: #0b2b4a;
         }
-        .btn:disabled {
+
+        .operator-btn:hover {
+            background: #e7eef9;
+        }
+
+        .operator-btn .emoji {
+            font-size: 20px;
+        }
+
+        .pay-btn {
+            width: 100%;
+            padding: 18px;
+            background: #0b2b4a;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pay-btn:hover {
+            background: #123f63;
+            transform: scale(1.01);
+            box-shadow: 0 8px 24px rgba(11, 43, 74, 0.25);
+        }
+
+        .pay-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        .message {
-            margin-top: 20px;
-            padding: 14px;
-            border-radius: 8px;
-            text-align: center;
+
+        .status-box {
+            margin-top: 24px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: #f5f9ff;
+            border-left: 5px solid #0b2b4a;
+            font-size: 14px;
+            color: #1a3a52;
+            line-height: 1.6;
+            min-height: 70px;
+            word-break: break-word;
+        }
+
+        .status-box .highlight {
             font-weight: 600;
-            display: none;
+            color: #0b2b4a;
         }
-        .message.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+
+        .status-box .error {
+            color: #b13e3e;
         }
-        .message.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+
+        .status-box .success {
+            color: #1f7b4d;
         }
-        .message.loading {
-            display: block;
-            background: #e2e3e5;
-            color: #383d41;
-            border: 1px solid #d6d8db;
-        }
-        .badge {
-            display: inline-block;
-            background: #f0f0f0;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #777;
-            margin-top: 4px;
-        }
-        .footer {
+
+        .footnote {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #6c869c;
             text-align: center;
-            margin-top: 25px;
-            font-size: 13px;
-            color: #aaa;
+            border-top: 1px solid #e2ebf3;
+            padding-top: 20px;
         }
-        .operator-icons {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.7s linear infinite;
         }
-        .operator-icons span {
-            font-size: 13px;
-            background: #f5f5f5;
-            padding: 4px 12px;
-            border-radius: 20px;
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .card { padding: 28px 18px; }
+            .row-2col { grid-template-columns: 1fr; gap: 0; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>💳 Paiement</h1>
-    <p class="subtitle">Paiement sécurisé via Flinpay</p>
+<div class="card" id="app">
+    <div class="card-header">
+        <div class="icon">F</div>
+        <h1>Flinpay</h1>
+        <span class="badge">🔐 sécurisé</span>
+    </div>
 
-    <form id="paymentForm">
+    <form id="paymentForm" autocomplete="off">
+        <!-- Montant -->
         <div class="form-group">
-            <label for="client_name">Nom complet</label>
-            <input type="text" id="client_name" placeholder="Kouamé Diallo" required>
+            <label for="amount">Montant (FCFA)</label>
+            <div class="input-wrapper">
+                <input type="number" id="amount" value="10000" min="1" step="1" required />
+                <span class="currency">XOF</span>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="phone">Numéro de téléphone</label>
-            <input type="tel" id="phone" placeholder="0700000000" required>
-            <span class="badge">Format sans indicatif (+225)</span>
-        </div>
-
-        <div class="row">
+        <!-- Téléphone & Nom -->
+        <div class="row-2col">
             <div class="form-group">
-                <label for="amount">Montant (FCFA)</label>
-                <input type="number" id="amount" placeholder="10000" min="1" required>
+                <label for="phone">Téléphone</label>
+                <input type="tel" id="phone" value="0700000000" placeholder="07 00 00 00 00" required />
             </div>
             <div class="form-group">
-                <label for="operator">Opérateur</label>
-                <select id="operator" required>
-                    <option value="momo">MTN Mobile Money</option>
-                    <option value="om">Orange Money</option>
+                <label for="client_name">Nom client</label>
+                <input type="text" id="client_name" value="Kouamé Diallo" placeholder="Nom complet" required />
+            </div>
+        </div>
+
+        <!-- Pays & Opérateur -->
+        <div class="row-2col">
+            <div class="form-group">
+                <label for="country">Pays</label>
+                <select id="country" required>
+                    <option value="CI" selected>🇨🇮 Côte d'Ivoire</option>
+                    <option value="SN">🇸🇳 Sénégal</option>
+                    <option value="CM">🇨🇲 Cameroun</option>
+                    <option value="ML">🇲🇱 Mali</option>
+                    <option value="BF">🇧🇫 Burkina Faso</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label>Opérateur</label>
+                <div class="operator-selector">
+                    <button type="button" class="operator-btn active" data-operator="momo">
+                        <span class="emoji">📱</span> MTN
+                    </button>
+                    <button type="button" class="operator-btn" data-operator="om">
+                        <span class="emoji">🟠</span> Orange
+                    </button>
+                </div>
+                <input type="hidden" id="operator" value="momo" />
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="order_id">Référence commande</label>
-            <input type="text" id="order_id" placeholder="ORD-001" required>
-        </div>
+        <!-- Order ID (caché mais utilisé) -->
+        <input type="hidden" id="order_id" value="ORD-001" />
 
-        <button type="submit" class="btn" id="payBtn">💳 Payer maintenant</button>
+        <button type="submit" class="pay-btn" id="payBtn">
+            <span>💳 Payer maintenant</span>
+        </button>
     </form>
 
-    <div id="message" class="message"></div>
+    <!-- Zone de statut / réponse -->
+    <div class="status-box" id="statusBox">
+        <span class="highlight">📋 Prêt</span> — Remplissez le formulaire et cliquez sur payer.
+    </div>
 
-    <div class="footer">
-        🔒 Paiement sécurisé · Vous recevrez une confirmation par SMS
+    <div class="footnote">
+        ⚡ Paiement sécurisé · Confirmation directe sur votre téléphone
     </div>
 </div>
 
-";
-    const BASE_URL = "https://www.flinpay.cfd";
+<script>
+    (function() {
+        // ---------- ÉLÉMENTS ----------
+        const form = document.getElementById('paymentForm');
+        const payBtn = document.getElementById('payBtn');
+        const statusBox = document.getElementById('statusBox');
 
-    const form = document.getElementById('paymentForm');
-    const messageEl = document.getElementById('message');
-    const payBtn = document.getElementById('payBtn');
+        const amountInput = document.getElementById('amount');
+        const phoneInput = document.getElementById('phone');
+        const clientNameInput = document.getElementById('client_name');
+        const countrySelect = document.getElementById('country');
+        const operatorHidden = document.getElementById('operator');
+        const orderIdInput = document.getElementById('order_id');
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+        const operatorBtns = document.querySelectorAll('.operator-btn');
 
-        const client_name = document.getElementById('client_name').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const amount = parseInt(document.getElementById('amount').value);
-        const operator = document.getElementById('operator').value;
-        const order_id = document.getElementById('order_id').value.trim();
+        // ---------- GESTION OPÉRATEUR (UI) ----------
+        operatorBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Retirer la classe active sur tous
+                operatorBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                // Mettre à jour le champ caché
+                const op = this.dataset.operator;
+                operatorHidden.value = op;
+            });
+        });
 
-        // Validation simple
-        if (!client_name || !phone || !amount || !order_id) {
-            showMessage('Veuillez remplir tous les champs.', 'error');
-            return;
+        // ---------- GÉNÉRATION ORDER_ID aléatoire (pour l'exemple) ----------
+        function generateOrderId() {
+            const now = new Date();
+            const ts = now.getFullYear().toString().slice(2) +
+                      String(now.getMonth() + 1).padStart(2, '0') +
+                      String(now.getDate()).padStart(2, '0') +
+                      String(now.getHours()).padStart(2, '0') +
+                      String(now.getMinutes()).padStart(2, '0');
+            const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `ORD-${ts}-${rand}`;
         }
-        if (amount < 1) {
-            showMessage('Le montant doit être supérieur à 0.', 'error');
-            return;
-        }
-        if (!/^[0-9]{10}$/.test(phone)) {
-            showMessage('Numéro invalide (10 chiffres requis).', 'error');
-            return;
+
+        // Mettre à jour order_id à chaque soumission (ou on peut le laisser fixe)
+        // On va le générer dynamiquement dans le submit.
+
+        // ---------- FONCTION APPEL API FLINPAY ----------
+        async function initPayment(payload) {
+            // ⚠️ ATTENTION : Cette clé est LIVE — elle sera révoquée après test.
+            const API_KEY = 'fp_live_550243a96137abb0b177dd4ca74458f12df21f0bb637a2f7';
+            const BASE_URL = 'https://www.flinpay.cfd';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/pay`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Gérer les erreurs HTTP (400, 401, 500...)
+                    throw new Error(data.message || `Erreur HTTP ${response.status}`);
+                }
+
+                return data;
+            } catch (error) {
+                // Réseau ou autre
+                throw new Error(error.message || 'Erreur de connexion au serveur');
+            }
         }
 
-        // Désactiver le bouton
-        payBtn.disabled = true;
-        payBtn.textContent = '⏳ Envoi en cours...';
-        showMessage('Envoi de la demande de paiement...', 'loading');
+        // ---------- AFFICHAGE STATUT ----------
+        function setStatus(message, type = 'info') {
+            // type: 'info', 'success', 'error'
+            let icon = '📋';
+            let colorClass = '';
+            if (type === 'success') {
+                icon = '✅';
+                colorClass = 'success';
+            } else if (type === 'error') {
+                icon = '❌';
+                colorClass = 'error';
+            } else {
+                icon = 'ℹ️';
+            }
+            statusBox.innerHTML = `<span class="highlight">${icon}</span> <span class="${colorClass}">${message}</span>`;
+        }
 
-        try {
+        // ---------- SUBMIT ----------
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Récupérer les valeurs
+            const amount = parseInt(amountInput.value.trim(), 10);
+            const phone = phoneInput.value.trim();
+            const client_name = clientNameInput.value.trim();
+            const country = countrySelect.value;
+            const operator = operatorHidden.value; // "momo" ou "om"
+            // Générer un order_id unique (pour l'exemple)
+            const order_id = generateOrderId();
+
+            // Validation basique
+            if (!amount || amount <= 0) {
+                setStatus('Veuillez entrer un montant valide (supérieur à 0).', 'error');
+                return;
+            }
+            if (!phone || phone.length < 8) {
+                setStatus('Veuillez entrer un numéro de téléphone valide.', 'error');
+                return;
+            }
+            if (!client_name || client_name.length < 2) {
+                setStatus('Veuillez entrer le nom du client.', 'error');
+                return;
+            }
+
+            // Désactiver le bouton pendant l'appel
+            payBtn.disabled = true;
+            payBtn.innerHTML = `<span class="loader"></span> Traitement...`;
+            setStatus('⏳ Envoi de la requête...', 'info');
+
+            // Construction du payload
             const payload = {
                 amount: amount,
                 phone: phone,
                 client_name: client_name,
                 order_id: order_id,
-                country: "CI",
-                operator: operator
+                country: country,
+                operator: operator,
             };
 
-            const response = await fetch(`${BASE_URL}/api/pay`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
+            try {
+                // Appel API
+                const result = await initPayment(payload);
 
-            const data = await response.json();
+                // Succès — on affiche la réponse brute (pour le test)
+                const prettyResult = JSON.stringify(result, null, 2);
+                setStatus(`✅ Paiement initié avec succès ! Réponse : ${prettyResult}`, 'success');
 
-            if (response.ok) {
-                showMessage(
-                    `✅ Paiement initié avec succès ! ` +
-                    `Un SMS de confirmation a été envoyé au ${phone}. ` +
-                    `Réf: ${order_id}`,
-                    'success'
-                );
-                form.reset();
-            } else {
-                const errorMsg = data.message || data.error || 'Erreur inconnue';
-                showMessage(`❌ Échec: ${errorMsg}`, 'error');
+                // Optionnel : on peut aussi afficher un message spécifique
+                // if (result.status === 'success') { ... }
+
+            } catch (error) {
+                setStatus(`❌ ${error.message}`, 'error');
+            } finally {
+                // Réactiver le bouton
+                payBtn.disabled = false;
+                payBtn.innerHTML = `<span>💳 Payer maintenant</span>`;
             }
-        } catch (error) {
-            showMessage(`❌ Erreur réseau: ${error.message}`, 'error');
-        } finally {
-            payBtn.disabled = false;
-            payBtn.textContent = '💳 Payer maintenant';
-        }
-    });
+        });
 
-    function showMessage(text, type) {
-        messageEl.textContent = text;
-        messageEl.className = 'message ' + type;
-        messageEl.style.display = 'block';
-    }
+        // ---------- INIT : petit message d'exemple ----------
+        setStatus('📋 Prêt — Remplissez et cliquez sur Payer.', 'info');
+
+        // Pour démonstration : afficher l'order_id généré dans la console
+        console.log('🔑 Clé API live (à révoquer après test) :', 'fp_live_...');
+        console.log('💡 Order ID généré à chaque soumission.');
+    })();
 </script>
 
 </body>
