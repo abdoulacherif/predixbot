@@ -3,269 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Futé — Aperçu app</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>SwiftKash — Mini-jeu Calcul</title>
 <style>
   :root{
-    --navy: #0B1526;
-    --navy-2: #101E36;
-    --card: #16233D;
-    --gold: #F4B93E;
-    --orange: #F2811D;
-    --green: #22C55E;
-    --blue: #2FB6E0;
-    --purple: #B26CE0;
-    --ink: #E9EEF7;
-    --dim: rgba(233,238,247,0.55);
-    --line: rgba(233,238,247,0.10);
+    --navy:#0B1526; --card:#16233D; --gold:#F4B93E; --orange:#F2811D;
+    --green:#22C55E; --red:#EF4444; --ink:#E9EEF7; --dim:rgba(233,238,247,0.55);
   }
   *{ box-sizing:border-box; }
   body{
-    margin:0; min-height:100vh; display:flex; align-items:flex-start; justify-content:center;
-    background:#EDEBE3; padding:40px 16px;
-    font-family:'Manrope', sans-serif;
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:#EDEBE3; font-family:'Segoe UI', system-ui, sans-serif; padding:20px;
   }
-  .display{ font-family:'Baloo 2', sans-serif; }
-  .mono{ font-family:'Space Mono', monospace; }
-
   .phone{
-    width:390px; max-width:100%;
-    background:var(--navy);
-    border-radius:44px;
-    padding:14px;
-    box-shadow:0 40px 80px -20px rgba(0,0,0,0.4);
+    width:380px; max-width:100%; background:var(--navy); border-radius:32px; padding:26px 22px;
+    color:var(--ink); box-shadow:0 30px 60px -15px rgba(0,0,0,0.4); position:relative; overflow:hidden;
+  }
+  h1{ text-align:center; font-size:20px; margin:0 0 4px; }
+  h1 span{ color:var(--gold); }
+  .sub{ text-align:center; font-size:12px; color:var(--dim); margin-bottom:20px; }
+
+  .hud{ display:flex; justify-content:space-between; margin-bottom:16px; }
+  .hud .box{ background:var(--card); border-radius:12px; padding:10px 14px; text-align:center; min-width:80px; }
+  .hud .box .l{ font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; }
+  .hud .box .v{ font-size:20px; font-weight:800; margin-top:2px; }
+  #timerBox .v{ color:var(--gold); }
+  #scoreBox .v{ color:var(--green); }
+
+  .timer-track{ height:6px; background:rgba(233,238,247,0.1); border-radius:100px; overflow:hidden; margin-bottom:22px; }
+  .timer-fill{ height:100%; background:linear-gradient(90deg, var(--orange), var(--gold)); width:100%; transition:width 0.1s linear; }
+
+  #gameArea{ text-align:center; }
+  .question{
+    font-size:38px; font-weight:800; margin:20px 0 26px; min-height:50px;
     color:var(--ink);
   }
-  .screen{
-    background:linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
-    border-radius:32px;
-    overflow:hidden;
-    padding-bottom:18px;
+  .choices{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .choice-btn{
+    background:var(--card); border:1.5px solid rgba(233,238,247,0.12); color:var(--ink);
+    border-radius:14px; padding:16px 10px; font-size:22px; font-weight:700; cursor:pointer;
+    transition:transform 0.08s ease, background 0.15s ease;
   }
-  .statusbar{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:14px 22px 4px; font-size:15px; font-weight:700;
-  }
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 20px 6px;
-  }
-  .icon-btn{
-    width:38px; height:38px; border-radius:12px; background:rgba(233,238,247,0.06);
-    display:flex; align-items:center; justify-content:center; font-size:16px; position:relative;
-  }
-  .icon-btn .dot{ position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--orange); }
-  .brand{ text-align:center; }
-  .brand .name{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:24px; letter-spacing:-0.01em; }
-  .brand .name .accent{ color:var(--gold); }
-  .brand .tag{ font-size:11px; color:var(--dim); margin-top:1px; }
+  .choice-btn:active{ transform:scale(0.96); }
+  .choice-btn.correct{ background:rgba(34,197,94,0.25); border-color:var(--green); }
+  .choice-btn.wrong{ background:rgba(239,68,68,0.25); border-color:var(--red); }
 
-  .jackpot{
-    margin:14px 18px 0; padding:22px 18px;
-    background:radial-gradient(120% 160% at 50% 0%, rgba(244,185,62,0.16), transparent 60%), var(--card);
-    border:1px solid rgba(244,185,62,0.25);
-    border-radius:20px; text-align:center; position:relative;
+  #startScreen, #endScreen{ text-align:center; padding:30px 0; }
+  #startScreen p, #endScreen p{ color:var(--dim); font-size:13.5px; line-height:1.6; margin:0 0 22px; }
+  .big-btn{
+    background:linear-gradient(90deg, var(--orange), var(--gold)); border:none; color:#111;
+    font-weight:800; font-size:16px; padding:16px 30px; border-radius:100px; cursor:pointer; width:100%;
   }
-  .jackpot .label{ font-size:12px; color:var(--dim); font-weight:700; letter-spacing:0.04em; margin-bottom:6px; }
-  .jackpot .amount{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:38px;
-    color:var(--gold); text-shadow:0 0 24px rgba(244,185,62,0.5); line-height:1;
-  }
-  .jackpot .amount span{ font-size:20px; }
-  .jackpot .sub{ font-size:11.5px; color:var(--dim); margin-top:10px; }
-  .jackpot .dots{ display:flex; gap:5px; justify-content:center; margin-top:12px; }
-  .jackpot .dots i{ width:5px; height:5px; border-radius:50%; background:rgba(233,238,247,0.25); }
-  .jackpot .dots i.on{ width:16px; background:var(--gold); }
-
-  .cta-row{
-    display:flex; align-items:center; justify-content:space-between;
-    margin:22px 18px 0; gap:10px;
-  }
-  .side-chip{
-    flex:1; background:var(--card); border-radius:16px; padding:12px 10px; text-align:center;
-    border:1px solid var(--line);
-  }
-  .side-chip .ic{ font-size:16px; margin-bottom:4px; }
-  .side-chip .t{ font-size:11.5px; font-weight:700; line-height:1.3; }
-  .side-chip .t .num{ color:var(--green); }
-
-  .play-btn-wrap{ display:flex; justify-content:center; margin:6px 18px 0; }
-  .play-btn{
-    width:150px; height:150px; border-radius:50%;
-    background:conic-gradient(from 210deg, var(--orange), var(--gold), var(--green), var(--orange));
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 0 0 6px rgba(244,185,62,0.12), 0 20px 40px -10px rgba(242,129,29,0.5);
-  }
-  .play-btn-inner{
-    width:126px; height:126px; border-radius:50%; background:var(--navy-2);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-  }
-  .play-btn-inner .t1{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; line-height:1.15; }
-  .play-btn-inner .t2{ margin-top:8px; background:rgba(34,197,94,0.18); color:var(--green); font-weight:800; font-size:13px; padding:4px 12px; border-radius:100px; }
-
-  .pay-label{ text-align:center; font-size:11px; color:var(--dim); margin:18px 0 8px; }
-  .pay-icons{ display:flex; justify-content:center; gap:22px; }
-  .pay-icons .pi{ text-align:center; }
-  .pay-icons .badge{
-    width:44px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:10px; margin:0 auto 5px;
-  }
-  .badge.om{ background:#111; color:var(--orange); border:1px solid var(--orange); }
-  .badge.mtn{ background:#F4B93E; color:#111; }
-  .badge.wave{ background:var(--blue); color:#fff; }
-  .pay-icons .pl{ font-size:10px; color:var(--dim); }
-
-  .rank-title{
-    display:flex; align-items:center; justify-content:space-between;
-    margin:24px 18px 10px; font-size:14px; font-weight:700;
-  }
-  .rank-title .q{
-    width:16px; height:16px; border-radius:50%; border:1px solid var(--dim); color:var(--dim);
-    font-size:10px; display:flex; align-items:center; justify-content:center;
-  }
-
-  .tier{
-    margin:0 18px 10px; padding:14px; background:var(--card); border-radius:16px;
-    display:flex; align-items:center; gap:12px; border:1px solid var(--line);
-  }
-  .tier .medal{
-    width:38px; height:38px; border-radius:50%; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; font-size:17px;
-  }
-  .tier.g1 .medal{ background:radial-gradient(circle at 35% 30%, #FFE9A8, var(--gold)); }
-  .tier.g2 .medal{ background:radial-gradient(circle at 35% 30%, #E7ECF4, #A9B4C4); }
-  .tier.g3 .medal{ background:radial-gradient(circle at 35% 30%, #E8B98A, #B9702F); }
-  .tier.g4 .medal{ background:radial-gradient(circle at 35% 30%, #E3C4FA, var(--purple)); }
-  .tier .info{ flex:1; }
-  .tier .rank{ font-size:11.5px; font-weight:700; }
-  .tier.g1 .rank{ color:var(--gold); } .tier.g2 .rank{ color:#B7C2D6; } .tier.g3 .rank{ color:#D18C4A; } .tier.g4 .rank{ color:var(--purple); }
-  .tier .amount{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; margin-top:1px; }
-  .tier .prog{ text-align:right; }
-  .tier .prog .pn{ font-size:11.5px; font-weight:700; }
-  .tier .prog .pn b{ color:var(--green); }
-  .tier .track{ width:74px; height:5px; border-radius:100px; background:rgba(233,238,247,0.1); margin-top:6px; overflow:hidden; }
-  .tier .fill{ height:100%; border-radius:100px; }
-  .tier.g1 .fill{ background:var(--green); width:60%; }
-  .tier.g2 .fill{ background:var(--blue); width:40%; }
-  .tier.g3 .fill{ background:var(--orange); width:23%; }
-  .tier.g4 .fill{ background:var(--purple); width:13%; }
-
-  .health{
-    margin:14px 18px 0; padding:16px; border-radius:16px;
-    background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3);
-    display:flex; gap:12px; align-items:flex-start;
-  }
-  .health .ic{ font-size:20px; }
-  .health h4{ margin:0 0 4px; font-size:13.5px; color:var(--green); font-weight:700; }
-  .health p{ margin:0; font-size:12px; color:var(--dim); line-height:1.5; }
-  .health .sign{ color:var(--green); font-weight:700; }
-
-  .navbar{
-    display:flex; justify-content:space-around; align-items:center;
-    margin:20px 10px 0; padding-top:14px; border-top:1px solid var(--line);
-  }
-  .nav-item{ text-align:center; font-size:10px; color:var(--dim); font-weight:600; }
-  .nav-item .ic{ font-size:17px; margin-bottom:3px; }
-  .nav-item.active{ color:var(--green); }
+  .end-score{ font-size:44px; font-weight:800; color:var(--gold); margin-bottom:6px; }
+  .end-detail{ font-size:13px; color:var(--dim); margin-bottom:24px; }
+  .hidden{ display:none !important; }
+  .streak-note{ font-size:12px; color:var(--green); min-height:16px; margin-bottom:6px; }
+  .penalty-note{ font-size:12px; color:var(--red); min-height:16px; margin-bottom:6px; }
 </style>
 </head>
 <body>
 
 <div class="phone">
-  <div class="screen">
-    <div class="statusbar">
-      <span>11:45</span>
-      <span class="mono" style="font-weight:400;">●●●● 4G 🔋78</span>
-    </div>
+  <h1>Swift<span>Kash</span> — Calcul</h1>
+  <div class="sub">Prototype de test — pas de vraie mise</div>
 
-    <div class="topbar">
-      <div class="icon-btn">☰</div>
-      <div class="brand">
-        <div class="name">Fut<span class="accent">é</span></div>
-        <div class="tag">Réponds vite, grimpe, gagne.</div>
-      </div>
-      <div class="icon-btn">🔔<span class="dot"></span></div>
-    </div>
+  <div id="startScreen">
+    <p>60 secondes. Résous un maximum de calculs. La difficulté augmente à chaque bonne réponse.
+    Une erreur te coûte 3 secondes de pénalité.</p>
+    <button class="big-btn" onclick="startGame()">Commencer le test</button>
+  </div>
 
-    <div class="jackpot">
-      <div class="label">CAGNOTTE DU CYCLE</div>
-      <div class="amount">8 500 <span>FCFA</span></div>
-      <div class="sub">Grimpe si le score plancher du gros lot n'est pas atteint</div>
-      <div class="dots"><i></i><i class="on"></i><i></i></div>
+  <div id="playScreen" class="hidden">
+    <div class="hud">
+      <div class="box" id="timerBox"><div class="l">Temps</div><div class="v" id="timerVal">60</div></div>
+      <div class="box" id="scoreBox"><div class="l">Score</div><div class="v" id="scoreVal">0</div></div>
+      <div class="box"><div class="l">Niveau</div><div class="v" id="levelVal">1</div></div>
     </div>
-
-    <div class="cta-row">
-      <div class="side-chip">
-        <div class="ic">🛡️</div>
-        <div class="t">Paiement<br>sécurisé</div>
-      </div>
-      <div class="side-chip">
-        <div class="ic">👥</div>
-        <div class="t"><span class="num">19</span> joueurs<br>ce cycle</div>
-      </div>
-    </div>
-
-    <div class="play-btn-wrap">
-      <div class="play-btn">
-        <div class="play-btn-inner">
-          <div class="t1">Jouer<br>un défi</div>
-          <div class="t2">500 FCFA</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pay-label">Paiement mobile</div>
-    <div class="pay-icons">
-      <div class="pi"><div class="badge om">OM</div><div class="pl">Orange<br>Money</div></div>
-      <div class="pi"><div class="badge mtn">MTN</div><div class="pl">MTN<br>MoMo</div></div>
-      <div class="pi"><div class="badge wave">〜</div><div class="pl">Wave</div></div>
-    </div>
-
-    <div class="rank-title">
-      <span>Classement — gains ce cycle</span>
-      <span class="q">?</span>
-    </div>
-
-    <div class="tier g1">
-      <div class="medal">🏆</div>
-      <div class="info"><div class="rank">1er au classement</div><div class="amount">5 000 F</div></div>
-      <div class="prog"><div class="pn"><b>18</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
-    </div>
-    <div class="tier g2">
-      <div class="medal">🥈</div>
-      <div class="info"><div class="rank">2e – 3e au classement</div><div class="amount">3 000 F</div></div>
-      <div class="prog"><div class="pn"><b>12</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
-    </div>
-    <div class="tier g3">
-      <div class="medal">🥉</div>
-      <div class="info"><div class="rank">4e – 6e au classement</div><div class="amount">1 500 F</div></div>
-      <div class="prog"><div class="pn"><b>7</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
-    </div>
-    <div class="tier g4">
-      <div class="medal">🪙</div>
-      <div class="info"><div class="rank">7e – 10e au classement</div><div class="amount">500 F</div></div>
-      <div class="prog"><div class="pn"><b>4</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
-    </div>
-
-    <div class="health">
-      <div class="ic">❤️</div>
-      <div>
-        <h4>Conseil santé du jour</h4>
-        <p>Buvez suffisamment d'eau chaque jour et évitez les excès de sucre.</p>
-        <p class="sign">Prenez soin de vous !</p>
-      </div>
-    </div>
-
-    <div class="navbar">
-      <div class="nav-item active"><div class="ic">🏠</div>Accueil</div>
-      <div class="nav-item"><div class="ic">🧠</div>Mes défis</div>
-      <div class="nav-item"><div class="ic">🕐</div>Historique</div>
-      <div class="nav-item"><div class="ic">🏆</div>Classement</div>
-      <div class="nav-item"><div class="ic">👤</div>Profil</div>
+    <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+    <div id="gameArea">
+      <div class="streak-note" id="streakNote">&nbsp;</div>
+      <div class="question" id="questionText">—</div>
+      <div class="choices" id="choicesArea"></div>
+      <div class="penalty-note" id="penaltyNote">&nbsp;</div>
     </div>
   </div>
+
+  <div id="endScreen" class="hidden">
+    <div class="end-score" id="finalScore">0</div>
+    <div class="end-detail" id="finalDetail">points</div>
+    <p>Score = bonnes réponses × 10 − pénalités de temps. Ce barème est ajustable avant l'intégration finale.</p>
+    <button class="big-btn" onclick="resetGame()">Rejouer</button>
+  </div>
 </div>
+
+<script>
+let timeLeft, score, correctCount, wrongCount, level, streak, timerInterval, currentAnswer;
+const TOTAL_TIME = 60;
+
+function startGame(){
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('endScreen').classList.add('hidden');
+  document.getElementById('playScreen').classList.remove('hidden');
+  timeLeft = TOTAL_TIME * 10; // tenths of a second for smooth penalty display
+  score = 0; correctCount = 0; wrongCount = 0; level = 1; streak = 0;
+  updateHud();
+  nextQuestion();
+  timerInterval = setInterval(tick, 100);
+}
+
+function tick(){
+  timeLeft -= 1;
+  if(timeLeft <= 0){
+    timeLeft = 0;
+    endGame();
+    return;
+  }
+  updateHud();
+}
+
+function updateHud(){
+  document.getElementById('timerVal').textContent = (timeLeft/10).toFixed(1);
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('levelVal').textContent = level;
+  document.getElementById('timerFill').style.width = (timeLeft/(TOTAL_TIME*10)*100)+'%';
+}
+
+function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function genQuestion(){
+  // difficulty scales with level
+  let a, b, op, text, answer;
+  if(level <= 2){
+    op = Math.random() < 0.5 ? '+' : '-';
+    a = randInt(1,20); b = randInt(1,20);
+    if(op === '-' && b > a) [a,b] = [b,a];
+    answer = op === '+' ? a+b : a-b;
+    text = `${a} ${op} ${b}`;
+  } else if(level <= 4){
+    const ops = ['+','-','×'];
+    op = ops[randInt(0,2)];
+    if(op === '×'){ a = randInt(2,12); b = randInt(2,12); answer = a*b; }
+    else { a = randInt(10,99); b = randInt(10,99); if(op==='-' && b>a)[a,b]=[b,a]; answer = op==='+'?a+b:a-b; }
+    text = `${a} ${op} ${b}`;
+  } else {
+    // chained operations
+    a = randInt(2,12); b = randInt(2,12); const c = randInt(1,15);
+    const useMinus = Math.random() < 0.5;
+    answer = useMinus ? a*b - c : a*b + c;
+    text = `${a} × ${b} ${useMinus ? '−' : '+'} ${c}`;
+  }
+  return {text, answer};
+}
+
+function nextQuestion(){
+  const q = genQuestion();
+  currentAnswer = q.answer;
+  document.getElementById('questionText').textContent = q.text + ' = ?';
+
+  // generate plausible wrong choices close to the real answer
+  let choices = new Set([q.answer]);
+  while(choices.size < 4){
+    const delta = randInt(-5,5) * (Math.random()<0.5?1:2);
+    const candidate = q.answer + (delta === 0 ? randInt(1,3) : delta);
+    if(candidate !== q.answer) choices.add(candidate);
+  }
+  choices = Array.from(choices).sort(()=>Math.random()-0.5);
+
+  const area = document.getElementById('choicesArea');
+  area.innerHTML = '';
+  choices.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c;
+    btn.onclick = () => handleAnswer(c, btn);
+    area.appendChild(btn);
+  });
+}
+
+function handleAnswer(chosen, btn){
+  const buttons = document.querySelectorAll('.choice-btn');
+  buttons.forEach(b => b.onclick = null);
+
+  if(chosen === currentAnswer){
+    btn.classList.add('correct');
+    correctCount++; streak++;
+    score += 10;
+    document.getElementById('streakNote').textContent = streak >= 3 ? `🔥 Série de ${streak} !` : '';
+    document.getElementById('penaltyNote').textContent = '\u00A0';
+    if(correctCount % 3 === 0 && level < 6) level++;
+  } else {
+    btn.classList.add('wrong');
+    wrongCount++; streak = 0;
+    timeLeft = Math.max(0, timeLeft - 30); // -3.0 sec penalty
+    document.getElementById('penaltyNote').textContent = '−3s de pénalité';
+    document.getElementById('streakNote').textContent = '';
+    buttons.forEach(b => { if(parseInt(b.textContent) === currentAnswer) b.classList.add('correct'); });
+  }
+  updateHud();
+  setTimeout(nextQuestion, 550);
+}
+
+function endGame(){
+  clearInterval(timerInterval);
+  document.getElementById('playScreen').classList.add('hidden');
+  document.getElementById('endScreen').classList.remove('hidden');
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalDetail').textContent =
+    `${correctCount} bonnes réponses · ${wrongCount} erreurs · niveau atteint ${level}`;
+}
+
+function resetGame(){
+  document.getElementById('endScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+}
+</script>
 
 </body>
 </html>
