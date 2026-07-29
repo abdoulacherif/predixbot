@@ -1,491 +1,394 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flinpay - Paiement Mobile</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malin — Réponds. Grimpe. Gagne.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo: #17223B;
+    --indigo-deep: #0E1626;
+    --gold: #D4A017;
+    --rust: #B85C38;
+    --green: #1F6F4A;
+    --cream: #F7F1E3;
+    --paper: #FBF8F1;
+    --ink: #17223B;
+    --line: rgba(23,34,59,0.12);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Manrope', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3, .display{
+    font-family:'Fraunces', serif;
+    letter-spacing:-0.01em;
+  }
+  .mono{ font-family:'Space Mono', monospace; }
+  a{ color:inherit; }
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(145deg, #f6f9fc 0%, #e9f1f8 100%);
-            padding: 20px;
-        }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
 
-        .card {
-            background: #ffffff;
-            border-radius: 32px;
-            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.12);
-            padding: 40px 32px;
-            max-width: 480px;
-            width: 100%;
-            transition: transform 0.2s ease;
-        }
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px clamp(20px,5vw,64px);
+    background:rgba(251,248,241,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; letter-spacing:-0.02em; }
+  .logo span{ color:var(--rust); }
+  .nav-cta{
+    background:var(--indigo); color:var(--paper);
+    padding:10px 20px; border-radius:100px; font-weight:600; font-size:14px;
+    text-decoration:none;
+  }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 32px;
-        }
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:clamp(50px,8vw,90px) clamp(20px,5vw,64px) 40px;
+    background:
+      radial-gradient(ellipse 900px 500px at 85% -10%, rgba(212,160,23,0.18), transparent 60%),
+      var(--paper);
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;
+    max-width:1180px; margin:0 auto;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Space Mono', monospace; font-size:12px; text-transform:uppercase;
+    letter-spacing:0.12em; color:var(--rust); margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--rust); }
+  .hero h1{
+    font-size:clamp(38px,5.2vw,64px); line-height:1.02; font-weight:600; margin:0 0 20px;
+  }
+  .hero h1 em{ font-style:italic; color:var(--rust); font-weight:500; }
+  .hero p.lede{
+    font-size:18px; line-height:1.6; color:rgba(23,34,59,0.75); max-width:480px; margin:0 0 32px;
+  }
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--indigo); color:var(--paper); border:none;
+    padding:16px 28px; border-radius:100px; font-weight:700; font-size:15px;
+    cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:10px;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(23,34,59,0.25); }
+  .btn-ghost{
+    background:transparent; color:var(--indigo); border:1.5px solid var(--line);
+    padding:16px 26px; border-radius:100px; font-weight:600; font-size:15px;
+    text-decoration:none;
+  }
+  .pay-icons{
+    margin-top:28px; display:flex; align-items:center; gap:14px;
+    font-family:'Space Mono', monospace; font-size:11px; color:rgba(23,34,59,0.5); flex-wrap:wrap;
+  }
+  .pay-icons .chip{
+    border:1px solid var(--line); border-radius:6px; padding:5px 10px; letter-spacing:0.02em;
+  }
 
-        .card-header .icon {
-            background: #0b2b4a;
-            color: white;
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 22px;
-            letter-spacing: -0.5px;
-        }
+  /* --- Jackpot ticker: signature element --- */
+  .jackpot-card{
+    background:var(--indigo);
+    border-radius:20px; padding:36px 32px;
+    position:relative; overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(14,22,38,0.5);
+  }
+  .jackpot-card::before{
+    content:''; position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(115deg, transparent 0 26px, rgba(212,160,23,0.06) 26px 27px);
+    pointer-events:none;
+  }
+  .jackpot-label{
+    font-family:'Space Mono', monospace; font-size:12px; text-transform:uppercase;
+    letter-spacing:0.14em; color:rgba(247,241,227,0.55); margin-bottom:10px;
+  }
+  .jackpot-amount{
+    display:flex; align-items:baseline; gap:10px; color:var(--paper); margin-bottom:6px;
+  }
+  .jackpot-digits{ display:flex; gap:4px; }
+  .digit{
+    font-family:'Space Mono', monospace; font-weight:700; font-size:clamp(30px,4vw,44px);
+    background:rgba(247,241,227,0.08); border:1px solid rgba(212,160,23,0.35);
+    border-radius:8px; padding:6px 4px; min-width:0.75em; text-align:center; color:var(--gold);
+  }
+  .jackpot-unit{ font-size:16px; color:rgba(247,241,227,0.6); font-family:'Space Mono', monospace; }
+  .jackpot-progress-label{
+    display:flex; justify-content:space-between; font-family:'Space Mono', monospace;
+    font-size:12px; color:rgba(247,241,227,0.55); margin:22px 0 8px;
+  }
+  .progress-track{
+    height:8px; border-radius:100px; background:rgba(247,241,227,0.12); overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:63%; border-radius:100px;
+    background:linear-gradient(90deg, var(--rust), var(--gold));
+    animation:fillIn 1.4s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes fillIn{ from{ width:0; } }
+  .jackpot-note{ font-size:13px; color:rgba(247,241,227,0.55); margin-top:16px; line-height:1.5; }
 
-        .card-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #0b2b4a;
-            letter-spacing: -0.3px;
-        }
+  /* ---------- HOW IT WORKS ---------- */
+  section{ padding:80px clamp(20px,5vw,64px); }
+  .section-inner{ max-width:1180px; margin:0 auto; }
+  .section-head{ max-width:600px; margin-bottom:48px; }
+  .section-head .eyebrow{ color:var(--green); }
+  .section-head .eyebrow::before{ background:var(--green); }
+  .section-head h2{ font-size:clamp(28px,3.5vw,40px); font-weight:600; margin:0 0 12px; }
+  .section-head p{ color:rgba(23,34,59,0.65); font-size:16px; line-height:1.6; margin:0; }
 
-        .card-header .badge {
-            margin-left: auto;
-            background: #eef3f9;
-            color: #1a4b6d;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 30px;
-            letter-spacing: 0.3px;
-        }
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .step{ background:var(--paper); padding:32px 28px; }
+  .step .tag{ font-family:'Space Mono', monospace; font-size:12px; color:var(--rust); margin-bottom:14px; }
+  .step h3{ font-size:20px; font-weight:600; margin:0 0 10px; }
+  .step p{ font-size:14.5px; line-height:1.6; color:rgba(23,34,59,0.65); margin:0; }
 
-        .form-group {
-            margin-bottom: 22px;
-        }
+  /* ---------- QUIZ PREVIEW ---------- */
+  .quiz-wrap{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:56px; align-items:center; }
+  .quiz-card{
+    background:var(--indigo); border-radius:20px; padding:30px; color:var(--paper);
+    max-width:340px; box-shadow:0 24px 50px -20px rgba(14,22,38,0.45);
+  }
+  .quiz-card .qtag{ font-family:'Space Mono', monospace; font-size:11px; color:var(--gold); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; }
+  .quiz-card h4{ font-family:'Fraunces', serif; font-weight:500; font-size:22px; line-height:1.3; margin:0 0 22px; }
+  .qopt{
+    display:flex; align-items:center; gap:12px;
+    border:1px solid rgba(247,241,227,0.18); border-radius:10px; padding:12px 14px; margin-bottom:10px;
+    font-size:14.5px;
+  }
+  .qopt.correct{ border-color:var(--green); background:rgba(31,111,74,0.25); }
+  .qopt .dot{ width:18px; height:18px; border-radius:50%; border:1.5px solid rgba(247,241,227,0.4); flex-shrink:0; }
+  .qopt.correct .dot{ background:var(--green); border-color:var(--green); }
+  .qtimer{ margin-top:18px; display:flex; justify-content:space-between; font-family:'Space Mono', monospace; font-size:12px; color:rgba(247,241,227,0.55); }
 
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: #1e3b55;
-            margin-bottom: 6px;
-            letter-spacing: -0.2px;
-        }
+  .rank-list{ list-style:none; margin:0; padding:0; }
+  .rank-list li{
+    display:grid; grid-template-columns:40px 1fr auto; align-items:center; gap:18px;
+    padding:18px 0; border-bottom:1px solid var(--line);
+  }
+  .rank-list li:first-child{ padding-top:0; }
+  .rank-num{ font-family:'Space Mono', monospace; font-weight:700; font-size:15px; color:rgba(23,34,59,0.35); }
+  .rank-list li.top .rank-num{ color:var(--gold); }
+  .rank-name{ font-weight:600; font-size:16px; }
+  .rank-sub{ font-size:13px; color:rgba(23,34,59,0.5); font-weight:500; margin-top:2px; }
+  .rank-prize{ font-family:'Space Mono', monospace; font-weight:700; font-size:16px; }
+  .rank-list li.top .rank-prize{ color:var(--rust); }
 
-        .form-group .input-wrapper {
-            position: relative;
-        }
+  /* ---------- CONSOLATION ---------- */
+  .consolation{ background:var(--cream); border-radius:24px; }
+  .cons-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  .cons-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:26px 22px;
+  }
+  .cons-card .ic{ width:38px; height:38px; border-radius:10px; background:var(--indigo); margin-bottom:16px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-family:'Space Mono',monospace; font-weight:700; }
+  .cons-card h4{ font-size:16px; margin:0 0 8px; font-weight:700; }
+  .cons-card p{ font-size:13.5px; color:rgba(23,34,59,0.6); line-height:1.55; margin:0; }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 16px;
-            background: #f5f9ff;
-            border: 1.5px solid #e2ebf3;
-            border-radius: 16px;
-            outline: none;
-            transition: 0.2s ease;
-            color: #0b2b4a;
-        }
+  /* ---------- CTA ---------- */
+  .cta-band{
+    background:var(--indigo); border-radius:28px; padding:60px clamp(24px,6vw,72px);
+    display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;
+    color:var(--paper);
+  }
+  .cta-band h2{ font-size:clamp(26px,3.4vw,38px); font-weight:600; margin:0 0 8px; max-width:480px; }
+  .cta-band p{ margin:0; color:rgba(247,241,227,0.65); font-size:15px; }
+  .cta-band .btn-primary{ background:var(--gold); color:var(--indigo-deep); }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: #0b2b4a;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(11, 43, 74, 0.06);
-        }
+  footer{
+    padding:36px clamp(20px,5vw,64px); text-align:center;
+    font-family:'Space Mono', monospace; font-size:12px; color:rgba(23,34,59,0.4);
+  }
 
-        .form-group .currency {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-weight: 600;
-            color: #1e3b55;
-            font-size: 15px;
-            background: #eef3f9;
-            padding: 2px 10px;
-            border-radius: 30px;
-        }
+  @media (max-width:860px){
+    .hero-grid, .quiz-wrap{ grid-template-columns:1fr; }
+    .steps{ grid-template-columns:1fr; }
+    .cons-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:520px){
+    .cons-grid{ grid-template-columns:1fr; }
+  }
 
-        .row-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .operator-selector {
-            display: flex;
-            gap: 12px;
-            margin-top: 4px;
-        }
-
-        .operator-btn {
-            flex: 1;
-            padding: 12px 0;
-            border: 2px solid #e2ebf3;
-            border-radius: 16px;
-            background: #f5f9ff;
-            font-weight: 600;
-            font-size: 15px;
-            color: #1e3b55;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .operator-btn.active {
-            border-color: #0b2b4a;
-            background: #e7eef9;
-            color: #0b2b4a;
-        }
-
-        .operator-btn:hover {
-            background: #e7eef9;
-        }
-
-        .operator-btn .emoji {
-            font-size: 20px;
-        }
-
-        .pay-btn {
-            width: 100%;
-            padding: 18px;
-            background: #0b2b4a;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .pay-btn:hover {
-            background: #123f63;
-            transform: scale(1.01);
-            box-shadow: 0 8px 24px rgba(11, 43, 74, 0.25);
-        }
-
-        .pay-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .status-box {
-            margin-top: 24px;
-            padding: 16px 18px;
-            border-radius: 16px;
-            background: #f5f9ff;
-            border-left: 5px solid #0b2b4a;
-            font-size: 14px;
-            color: #1a3a52;
-            line-height: 1.6;
-            min-height: 70px;
-            word-break: break-word;
-        }
-
-        .status-box .highlight {
-            font-weight: 600;
-            color: #0b2b4a;
-        }
-
-        .status-box .error {
-            color: #b13e3e;
-        }
-
-        .status-box .success {
-            color: #1f7b4d;
-        }
-
-        .footnote {
-            margin-top: 20px;
-            font-size: 13px;
-            color: #6c869c;
-            text-align: center;
-            border-top: 1px solid #e2ebf3;
-            padding-top: 20px;
-        }
-
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            border-top-color: #ffffff;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 480px) {
-            .card { padding: 28px 18px; }
-            .row-2col { grid-template-columns: 1fr; gap: 0; }
-        }
-    </style>
+  button:focus-visible, a:focus-visible{ outline:3px solid var(--rust); outline-offset:2px; }
+</style>
 </head>
 <body>
 
-<div class="card" id="app">
-    <div class="card-header">
-        <div class="icon">F</div>
-        <h1>Flinpay</h1>
-        <span class="badge">🔐 sécurisé</span>
+<nav>
+  <div class="logo">Malin<span>.</span></div>
+  <a href="#jouer" class="nav-cta">Tenter un défi</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Jeu de connaissance — sans hasard</div>
+      <h1>Réponds vite.<br>Grimpe au classement.<br><em>Gagne selon ton score.</em></h1>
+      <p class="lede">Chaque défi coûte 500 FCFA. Ton classement à la fin du cycle détermine ton gain — jamais un tirage au sort. Même sans être dans les premiers, tu repars toujours avec quelque chose.</p>
+      <div class="hero-ctas">
+        <a href="#jouer" class="btn-primary">Tenter un défi — 500 FCFA →</a>
+        <a href="#comment" class="btn-ghost">Comment ça marche</a>
+      </div>
+      <div class="pay-icons">
+        <span class="chip">Orange Money</span>
+        <span class="chip">MTN MoMo</span>
+        <span class="chip">Wave</span>
+      </div>
     </div>
 
-    <form id="paymentForm" autocomplete="off">
-        <!-- Montant -->
-        <div class="form-group">
-            <label for="amount">Montant (FCFA)</label>
-            <div class="input-wrapper">
-                <input type="number" id="amount" value="10000" min="1" step="1" required />
-                <span class="currency">XOF</span>
-            </div>
+    <div class="jackpot-card">
+      <div class="jackpot-label">Cagnotte du cycle en cours</div>
+      <div class="jackpot-amount">
+        <div class="jackpot-digits">
+          <span class="digit">6</span><span class="digit">8</span><span class="digit">5</span><span class="digit">0</span>
         </div>
-
-        <!-- Téléphone & Nom -->
-        <div class="row-2col">
-            <div class="form-group">
-                <label for="phone">Téléphone</label>
-                <input type="tel" id="phone" value="0700000000" placeholder="07 00 00 00 00" required />
-            </div>
-            <div class="form-group">
-                <label for="client_name">Nom client</label>
-                <input type="text" id="client_name" value="Kouamé Diallo" placeholder="Nom complet" required />
-            </div>
-        </div>
-
-        <!-- Pays & Opérateur -->
-        <div class="row-2col">
-            <div class="form-group">
-                <label for="country">Pays</label>
-                <select id="country" required>
-                    <option value="CI" selected>🇨🇮 Côte d'Ivoire</option>
-                    <option value="SN">🇸🇳 Sénégal</option>
-                    <option value="CM">🇨🇲 Cameroun</option>
-                    <option value="ML">🇲🇱 Mali</option>
-                    <option value="BF">🇧🇫 Burkina Faso</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Opérateur</label>
-                <div class="operator-selector">
-                    <button type="button" class="operator-btn active" data-operator="momo">
-                        <span class="emoji">📱</span> MTN
-                    </button>
-                    <button type="button" class="operator-btn" data-operator="om">
-                        <span class="emoji">🟠</span> Orange
-                    </button>
-                </div>
-                <input type="hidden" id="operator" value="momo" />
-            </div>
-        </div>
-
-        <!-- Order ID (caché mais utilisé) -->
-        <input type="hidden" id="order_id" value="ORD-001" />
-
-        <button type="submit" class="pay-btn" id="payBtn">
-            <span>💳 Payer maintenant</span>
-        </button>
-    </form>
-
-    <!-- Zone de statut / réponse -->
-    <div class="status-box" id="statusBox">
-        <span class="highlight">📋 Prêt</span> — Remplissez le formulaire et cliquez sur payer.
+        <span class="jackpot-unit">FCFA</span>
+      </div>
+      <div class="jackpot-progress-label">
+        <span>19 / 30 défis joués</span>
+        <span>Tirage au seuil de 30</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+      <p class="jackpot-note">La cagnotte grimpe si le cycle précédent n'a pas atteint le score plancher du gros lot. Aucun tirage aléatoire — le classement décide.</p>
     </div>
+  </div>
+</section>
 
-    <div class="footnote">
-        ⚡ Paiement sécurisé · Confirmation directe sur votre téléphone
+<section id="comment">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="eyebrow">Le principe</div>
+      <h2>Trois étapes, un classement, jamais de hasard</h2>
+      <p>Le résultat dépend de ta performance mesurable — pas d'un tirage caché côté serveur.</p>
     </div>
-</div>
+    <div class="steps">
+      <div class="step">
+        <div class="tag">01</div>
+        <h3>Tu payes ton défi</h3>
+        <p>500 FCFA par mobile money. Tu reçois immédiatement 5 questions ou un mini-défi chronométré.</p>
+      </div>
+      <div class="step">
+        <div class="tag">02</div>
+        <h3>Tu es classé en direct</h3>
+        <p>Ton score te place dans le classement du cycle, visible en temps réel face aux autres participants.</p>
+      </div>
+      <div class="step">
+        <div class="tag">03</div>
+        <h3>Le cycle se clôture</h3>
+        <p>Au seuil de participants atteint, les gains sont distribués selon le classement final — du gros lot au conseil santé.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-<script>
-    (function() {
-        // ---------- ÉLÉMENTS ----------
-        const form = document.getElementById('paymentForm');
-        const payBtn = document.getElementById('payBtn');
-        const statusBox = document.getElementById('statusBox');
+<section id="jouer">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="eyebrow">Aperçu</div>
+      <h2>Un défi, une question à la fois</h2>
+      <p>Simple à comprendre, impossible à truquer — le score est calculé et vérifié côté serveur.</p>
+    </div>
+    <div class="quiz-wrap">
+      <div class="quiz-card">
+        <div class="qtag">Question 3 / 5</div>
+        <h4>Quelle est la capitale du Cameroun ?</h4>
+        <div class="qopt"><span class="dot"></span> Douala</div>
+        <div class="qopt correct"><span class="dot"></span> Yaoundé</div>
+        <div class="qopt"><span class="dot"></span> Garoua</div>
+        <div class="qtimer"><span>Temps restant</span><span>00:07</span></div>
+      </div>
 
-        const amountInput = document.getElementById('amount');
-        const phoneInput = document.getElementById('phone');
-        const clientNameInput = document.getElementById('client_name');
-        const countrySelect = document.getElementById('country');
-        const operatorHidden = document.getElementById('operator');
-        const orderIdInput = document.getElementById('order_id');
+      <ul class="rank-list">
+        <li class="top">
+          <span class="rank-num">01</span>
+          <div><div class="rank-name">A. Ngassa</div><div class="rank-sub">5/5 bonnes réponses · 41 sec</div></div>
+          <span class="rank-prize">5 000 F</span>
+        </li>
+        <li class="top">
+          <span class="rank-num">02</span>
+          <div><div class="rank-name">M. Foka</div><div class="rank-sub">5/5 bonnes réponses · 58 sec</div></div>
+          <span class="rank-prize">3 000 F</span>
+        </li>
+        <li>
+          <span class="rank-num">03</span>
+          <div><div class="rank-name">S. Biya</div><div class="rank-sub">4/5 bonnes réponses · 44 sec</div></div>
+          <span class="rank-prize">1 500 F</span>
+        </li>
+        <li>
+          <span class="rank-num">04</span>
+          <div><div class="rank-name">R. Etoundi</div><div class="rank-sub">4/5 bonnes réponses · 1:02</div></div>
+          <span class="rank-prize">500 F</span>
+        </li>
+        <li>
+          <span class="rank-num">…</span>
+          <div><div class="rank-name">Autres participants</div><div class="rank-sub">Score enregistré</div></div>
+          <span class="rank-prize">Conseil santé</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
 
-        const operatorBtns = document.querySelectorAll('.operator-btn');
+<section>
+  <div class="section-inner consolation" style="padding:56px clamp(24px,5vw,56px);">
+    <div class="section-head" style="margin-bottom:36px;">
+      <div class="eyebrow">Même sans podium</div>
+      <h2>Personne ne repart les mains vides</h2>
+      <p>Hors du classement des gains en argent, chaque participant reçoit une vraie valeur — sans jamais peser sur la marge du cycle.</p>
+    </div>
+    <div class="cons-grid">
+      <div class="cons-card">
+        <div class="ic">+</div>
+        <h4>Conseil santé du jour</h4>
+        <p>Un contenu pratique et vérifié, différent à chaque défi.</p>
+      </div>
+      <div class="cons-card">
+        <div class="ic">★</div>
+        <h4>Points de fidélité</h4>
+        <p>Cumulés à chaque défi, échangeables contre un avantage après plusieurs participations.</p>
+      </div>
+      <div class="cons-card">
+        <div class="ic">%</div>
+        <h4>Réduction du prochain défi</h4>
+        <p>Une remise appliquée automatiquement sur ton prochain ticket.</p>
+      </div>
+      <div class="cons-card">
+        <div class="ic">↑</div>
+        <h4>Statut progressif</h4>
+        <p>Bronze, Argent, Or — visible sur ton profil selon ton assiduité.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-        // ---------- GESTION OPÉRATEUR (UI) ----------
-        operatorBtns.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                // Retirer la classe active sur tous
-                operatorBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                // Mettre à jour le champ caché
-                const op = this.dataset.operator;
-                operatorHidden.value = op;
-            });
-        });
+<section>
+  <div class="section-inner cta-band">
+    <div>
+      <h2>Le prochain cycle démarre bientôt.</h2>
+      <p>19 participants sur 30 — la cagnotte grimpe à chaque défi joué.</p>
+    </div>
+    <a href="#jouer" class="btn-primary">Tenter un défi — 500 FCFA →</a>
+  </div>
+</section>
 
-        // ---------- GÉNÉRATION ORDER_ID aléatoire (pour l'exemple) ----------
-        function generateOrderId() {
-            const now = new Date();
-            const ts = now.getFullYear().toString().slice(2) +
-                      String(now.getMonth() + 1).padStart(2, '0') +
-                      String(now.getDate()).padStart(2, '0') +
-                      String(now.getHours()).padStart(2, '0') +
-                      String(now.getMinutes()).padStart(2, '0');
-            const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-            return `ORD-${ts}-${rand}`;
-        }
-
-        // Mettre à jour order_id à chaque soumission (ou on peut le laisser fixe)
-        // On va le générer dynamiquement dans le submit.
-
-        // ---------- FONCTION APPEL API FLINPAY ----------
-        async function initPayment(payload) {
-            // ⚠️ ATTENTION : Cette clé est LIVE — elle sera révoquée après test.
-            const API_KEY = 'fp_live_550243a96137abb0b177dd4ca74458f12df21f0bb637a2f7';
-            const BASE_URL = 'https://www.flinpay.cfd';
-
-            try {
-                const response = await fetch(`${BASE_URL}/api/pay`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    // Gérer les erreurs HTTP (400, 401, 500...)
-                    throw new Error(data.message || `Erreur HTTP ${response.status}`);
-                }
-
-                return data;
-            } catch (error) {
-                // Réseau ou autre
-                throw new Error(error.message || 'Erreur de connexion au serveur');
-            }
-        }
-
-        // ---------- AFFICHAGE STATUT ----------
-        function setStatus(message, type = 'info') {
-            // type: 'info', 'success', 'error'
-            let icon = '📋';
-            let colorClass = '';
-            if (type === 'success') {
-                icon = '✅';
-                colorClass = 'success';
-            } else if (type === 'error') {
-                icon = '❌';
-                colorClass = 'error';
-            } else {
-                icon = 'ℹ️';
-            }
-            statusBox.innerHTML = `<span class="highlight">${icon}</span> <span class="${colorClass}">${message}</span>`;
-        }
-
-        // ---------- SUBMIT ----------
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            // Récupérer les valeurs
-            const amount = parseInt(amountInput.value.trim(), 10);
-            const phone = phoneInput.value.trim();
-            const client_name = clientNameInput.value.trim();
-            const country = countrySelect.value;
-            const operator = operatorHidden.value; // "momo" ou "om"
-            // Générer un order_id unique (pour l'exemple)
-            const order_id = generateOrderId();
-
-            // Validation basique
-            if (!amount || amount <= 0) {
-                setStatus('Veuillez entrer un montant valide (supérieur à 0).', 'error');
-                return;
-            }
-            if (!phone || phone.length < 8) {
-                setStatus('Veuillez entrer un numéro de téléphone valide.', 'error');
-                return;
-            }
-            if (!client_name || client_name.length < 2) {
-                setStatus('Veuillez entrer le nom du client.', 'error');
-                return;
-            }
-
-            // Désactiver le bouton pendant l'appel
-            payBtn.disabled = true;
-            payBtn.innerHTML = `<span class="loader"></span> Traitement...`;
-            setStatus('⏳ Envoi de la requête...', 'info');
-
-            // Construction du payload
-            const payload = {
-                amount: amount,
-                phone: phone,
-                client_name: client_name,
-                order_id: order_id,
-                country: country,
-                operator: operator,
-            };
-
-            try {
-                // Appel API
-                const result = await initPayment(payload);
-
-                // Succès — on affiche la réponse brute (pour le test)
-                const prettyResult = JSON.stringify(result, null, 2);
-                setStatus(`✅ Paiement initié avec succès ! Réponse : ${prettyResult}`, 'success');
-
-                // Optionnel : on peut aussi afficher un message spécifique
-                // if (result.status === 'success') { ... }
-
-            } catch (error) {
-                setStatus(`❌ ${error.message}`, 'error');
-            } finally {
-                // Réactiver le bouton
-                payBtn.disabled = false;
-                payBtn.innerHTML = `<span>💳 Payer maintenant</span>`;
-            }
-        });
-
-        // ---------- INIT : petit message d'exemple ----------
-        setStatus('📋 Prêt — Remplissez et cliquez sur Payer.', 'info');
-
-        // Pour démonstration : afficher l'order_id généré dans la console
-        console.log('🔑 Clé API live (à révoquer après test) :', 'fp_live_...');
-        console.log('💡 Order ID généré à chaque soumission.');
-    })();
-</script>
+<footer>
+  MALIN — jeu de compétence, résultat basé sur la performance. Aucun élément de hasard n'intervient dans l'attribution des gains.
+</footer>
 
 </body>
 </html>
