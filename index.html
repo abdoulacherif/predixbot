@@ -67,8 +67,8 @@
   <div class="sub">Prototype de test — pas de vraie mise</div>
 
   <div id="startScreen">
-    <p>60 secondes. Résous un maximum de calculs. La difficulté augmente à chaque bonne réponse.
-    Une erreur te coûte 3 secondes de pénalité.</p>
+    <p>90 secondes. Résous un maximum de calculs. La difficulté augmente à chaque bonne réponse,
+    jusqu'à des opérations combinées assez corsées. Une erreur te coûte 3 secondes de pénalité.</p>
     <button class="big-btn" onclick="startGame()">Commencer le test</button>
   </div>
 
@@ -97,7 +97,7 @@
 
 <script>
 let timeLeft, score, correctCount, wrongCount, level, streak, timerInterval, currentAnswer;
-const TOTAL_TIME = 60;
+const TOTAL_TIME = 90;
 
 function startGame(){
   document.getElementById('startScreen').classList.add('hidden');
@@ -130,8 +130,8 @@ function updateHud(){
 function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
 function genQuestion(){
-  // difficulty scales with level
-  let a, b, op, text, answer;
+  // difficulty scales with level (1 = easiest, 8 = hardest)
+  let a, b, c, d, text, answer, op;
   if(level <= 2){
     op = Math.random() < 0.5 ? '+' : '-';
     a = randInt(1,20); b = randInt(1,20);
@@ -144,12 +144,42 @@ function genQuestion(){
     if(op === '×'){ a = randInt(2,12); b = randInt(2,12); answer = a*b; }
     else { a = randInt(10,99); b = randInt(10,99); if(op==='-' && b>a)[a,b]=[b,a]; answer = op==='+'?a+b:a-b; }
     text = `${a} ${op} ${b}`;
+  } else if(level <= 6){
+    // chained operations with 3 terms, includes division with clean results
+    const variant = randInt(0,2);
+    if(variant === 0){
+      a = randInt(2,12); b = randInt(2,12); c = randInt(1,20);
+      const useMinus = Math.random() < 0.5;
+      answer = useMinus ? a*b - c : a*b + c;
+      text = `${a} × ${b} ${useMinus ? '−' : '+'} ${c}`;
+    } else if(variant === 1){
+      b = randInt(2,9); answer = randInt(2,15); a = b*answer; c = randInt(1,10);
+      answer = answer + c;
+      text = `${a} ÷ ${b} + ${c}`;
+    } else {
+      a = randInt(3,15); b = randInt(3,15); c = randInt(2,9);
+      answer = (a+b)*c;
+      text = `(${a} + ${b}) × ${c}`;
+    }
   } else {
-    // chained operations
-    a = randInt(2,12); b = randInt(2,12); const c = randInt(1,15);
-    const useMinus = Math.random() < 0.5;
-    answer = useMinus ? a*b - c : a*b + c;
-    text = `${a} × ${b} ${useMinus ? '−' : '+'} ${c}`;
+    // level 7-8: squares, percentages, 4-term chains
+    const variant = randInt(0,2);
+    if(variant === 0){
+      a = randInt(4,15); c = randInt(1,30);
+      answer = a*a + c;
+      text = `${a}² + ${c}`;
+    } else if(variant === 1){
+      const bases = [100,200,300,400,500];
+      const pct = [10,20,25,50];
+      a = bases[randInt(0,bases.length-1)]; b = pct[randInt(0,pct.length-1)];
+      answer = (a*b)/100;
+      c = randInt(1,10); answer += c;
+      text = `${b}% de ${a} + ${c}`;
+    } else {
+      a = randInt(2,10); b = randInt(2,10); c = randInt(2,10); d = randInt(1,15);
+      answer = a*b - c*2 + d;
+      text = `${a} × ${b} − ${c}×2 + ${d}`;
+    }
   }
   return {text, answer};
 }
@@ -189,7 +219,7 @@ function handleAnswer(chosen, btn){
     score += 10;
     document.getElementById('streakNote').textContent = streak >= 3 ? `🔥 Série de ${streak} !` : '';
     document.getElementById('penaltyNote').textContent = '\u00A0';
-    if(correctCount % 3 === 0 && level < 6) level++;
+    if(correctCount % 3 === 0 && level < 8) level++;
   } else {
     btn.classList.add('wrong');
     wrongCount++; streak = 0;
