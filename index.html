@@ -3,392 +3,269 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Malin — Réponds. Grimpe. Gagne.</title>
+<title>Futé — Aperçu app</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --indigo: #17223B;
-    --indigo-deep: #0E1626;
-    --gold: #D4A017;
-    --rust: #B85C38;
-    --green: #1F6F4A;
-    --cream: #F7F1E3;
-    --paper: #FBF8F1;
-    --ink: #17223B;
-    --line: rgba(23,34,59,0.12);
+    --navy: #0B1526;
+    --navy-2: #101E36;
+    --card: #16233D;
+    --gold: #F4B93E;
+    --orange: #F2811D;
+    --green: #22C55E;
+    --blue: #2FB6E0;
+    --purple: #B26CE0;
+    --ink: #E9EEF7;
+    --dim: rgba(233,238,247,0.55);
+    --line: rgba(233,238,247,0.10);
   }
   *{ box-sizing:border-box; }
-  html{ scroll-behavior:smooth; }
   body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
+    margin:0; min-height:100vh; display:flex; align-items:flex-start; justify-content:center;
+    background:#EDEBE3; padding:40px 16px;
     font-family:'Manrope', sans-serif;
-    -webkit-font-smoothing:antialiased;
   }
-  h1,h2,h3, .display{
-    font-family:'Fraunces', serif;
-    letter-spacing:-0.01em;
-  }
+  .display{ font-family:'Baloo 2', sans-serif; }
   .mono{ font-family:'Space Mono', monospace; }
-  a{ color:inherit; }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  .phone{
+    width:390px; max-width:100%;
+    background:var(--navy);
+    border-radius:44px;
+    padding:14px;
+    box-shadow:0 40px 80px -20px rgba(0,0,0,0.4);
+    color:var(--ink);
   }
-
-  /* ---------- NAV ---------- */
-  nav{
-    position:sticky; top:0; z-index:50;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px clamp(20px,5vw,64px);
-    background:rgba(251,248,241,0.85);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-  }
-  .logo{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; letter-spacing:-0.02em; }
-  .logo span{ color:var(--rust); }
-  .nav-cta{
-    background:var(--indigo); color:var(--paper);
-    padding:10px 20px; border-radius:100px; font-weight:600; font-size:14px;
-    text-decoration:none;
-  }
-
-  /* ---------- HERO ---------- */
-  .hero{
-    position:relative;
-    padding:clamp(50px,8vw,90px) clamp(20px,5vw,64px) 40px;
-    background:
-      radial-gradient(ellipse 900px 500px at 85% -10%, rgba(212,160,23,0.18), transparent 60%),
-      var(--paper);
+  .screen{
+    background:linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    border-radius:32px;
     overflow:hidden;
+    padding-bottom:18px;
   }
-  .hero-grid{
-    display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;
-    max-width:1180px; margin:0 auto;
+  .statusbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 22px 4px; font-size:15px; font-weight:700;
   }
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:'Space Mono', monospace; font-size:12px; text-transform:uppercase;
-    letter-spacing:0.12em; color:var(--rust); margin-bottom:18px;
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px 6px;
   }
-  .eyebrow::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--rust); }
-  .hero h1{
-    font-size:clamp(38px,5.2vw,64px); line-height:1.02; font-weight:600; margin:0 0 20px;
+  .icon-btn{
+    width:38px; height:38px; border-radius:12px; background:rgba(233,238,247,0.06);
+    display:flex; align-items:center; justify-content:center; font-size:16px; position:relative;
   }
-  .hero h1 em{ font-style:italic; color:var(--rust); font-weight:500; }
-  .hero p.lede{
-    font-size:18px; line-height:1.6; color:rgba(23,34,59,0.75); max-width:480px; margin:0 0 32px;
+  .icon-btn .dot{ position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--orange); }
+  .brand{ text-align:center; }
+  .brand .name{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:24px; letter-spacing:-0.01em; }
+  .brand .name .accent{ color:var(--gold); }
+  .brand .tag{ font-size:11px; color:var(--dim); margin-top:1px; }
+
+  .jackpot{
+    margin:14px 18px 0; padding:22px 18px;
+    background:radial-gradient(120% 160% at 50% 0%, rgba(244,185,62,0.16), transparent 60%), var(--card);
+    border:1px solid rgba(244,185,62,0.25);
+    border-radius:20px; text-align:center; position:relative;
   }
-  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; }
-  .btn-primary{
-    background:var(--indigo); color:var(--paper); border:none;
-    padding:16px 28px; border-radius:100px; font-weight:700; font-size:15px;
-    cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:10px;
-    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  .jackpot .label{ font-size:12px; color:var(--dim); font-weight:700; letter-spacing:0.04em; margin-bottom:6px; }
+  .jackpot .amount{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:38px;
+    color:var(--gold); text-shadow:0 0 24px rgba(244,185,62,0.5); line-height:1;
   }
-  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(23,34,59,0.25); }
-  .btn-ghost{
-    background:transparent; color:var(--indigo); border:1.5px solid var(--line);
-    padding:16px 26px; border-radius:100px; font-weight:600; font-size:15px;
-    text-decoration:none;
+  .jackpot .amount span{ font-size:20px; }
+  .jackpot .sub{ font-size:11.5px; color:var(--dim); margin-top:10px; }
+  .jackpot .dots{ display:flex; gap:5px; justify-content:center; margin-top:12px; }
+  .jackpot .dots i{ width:5px; height:5px; border-radius:50%; background:rgba(233,238,247,0.25); }
+  .jackpot .dots i.on{ width:16px; background:var(--gold); }
+
+  .cta-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin:22px 18px 0; gap:10px;
   }
-  .pay-icons{
-    margin-top:28px; display:flex; align-items:center; gap:14px;
-    font-family:'Space Mono', monospace; font-size:11px; color:rgba(23,34,59,0.5); flex-wrap:wrap;
+  .side-chip{
+    flex:1; background:var(--card); border-radius:16px; padding:12px 10px; text-align:center;
+    border:1px solid var(--line);
   }
-  .pay-icons .chip{
-    border:1px solid var(--line); border-radius:6px; padding:5px 10px; letter-spacing:0.02em;
+  .side-chip .ic{ font-size:16px; margin-bottom:4px; }
+  .side-chip .t{ font-size:11.5px; font-weight:700; line-height:1.3; }
+  .side-chip .t .num{ color:var(--green); }
+
+  .play-btn-wrap{ display:flex; justify-content:center; margin:6px 18px 0; }
+  .play-btn{
+    width:150px; height:150px; border-radius:50%;
+    background:conic-gradient(from 210deg, var(--orange), var(--gold), var(--green), var(--orange));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 6px rgba(244,185,62,0.12), 0 20px 40px -10px rgba(242,129,29,0.5);
+  }
+  .play-btn-inner{
+    width:126px; height:126px; border-radius:50%; background:var(--navy-2);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  }
+  .play-btn-inner .t1{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; line-height:1.15; }
+  .play-btn-inner .t2{ margin-top:8px; background:rgba(34,197,94,0.18); color:var(--green); font-weight:800; font-size:13px; padding:4px 12px; border-radius:100px; }
+
+  .pay-label{ text-align:center; font-size:11px; color:var(--dim); margin:18px 0 8px; }
+  .pay-icons{ display:flex; justify-content:center; gap:22px; }
+  .pay-icons .pi{ text-align:center; }
+  .pay-icons .badge{
+    width:44px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:10px; margin:0 auto 5px;
+  }
+  .badge.om{ background:#111; color:var(--orange); border:1px solid var(--orange); }
+  .badge.mtn{ background:#F4B93E; color:#111; }
+  .badge.wave{ background:var(--blue); color:#fff; }
+  .pay-icons .pl{ font-size:10px; color:var(--dim); }
+
+  .rank-title{
+    display:flex; align-items:center; justify-content:space-between;
+    margin:24px 18px 10px; font-size:14px; font-weight:700;
+  }
+  .rank-title .q{
+    width:16px; height:16px; border-radius:50%; border:1px solid var(--dim); color:var(--dim);
+    font-size:10px; display:flex; align-items:center; justify-content:center;
   }
 
-  /* --- Jackpot ticker: signature element --- */
-  .jackpot-card{
-    background:var(--indigo);
-    border-radius:20px; padding:36px 32px;
-    position:relative; overflow:hidden;
-    box-shadow:0 30px 60px -20px rgba(14,22,38,0.5);
+  .tier{
+    margin:0 18px 10px; padding:14px; background:var(--card); border-radius:16px;
+    display:flex; align-items:center; gap:12px; border:1px solid var(--line);
   }
-  .jackpot-card::before{
-    content:''; position:absolute; inset:0;
-    background:
-      repeating-linear-gradient(115deg, transparent 0 26px, rgba(212,160,23,0.06) 26px 27px);
-    pointer-events:none;
+  .tier .medal{
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:17px;
   }
-  .jackpot-label{
-    font-family:'Space Mono', monospace; font-size:12px; text-transform:uppercase;
-    letter-spacing:0.14em; color:rgba(247,241,227,0.55); margin-bottom:10px;
-  }
-  .jackpot-amount{
-    display:flex; align-items:baseline; gap:10px; color:var(--paper); margin-bottom:6px;
-  }
-  .jackpot-digits{ display:flex; gap:4px; }
-  .digit{
-    font-family:'Space Mono', monospace; font-weight:700; font-size:clamp(30px,4vw,44px);
-    background:rgba(247,241,227,0.08); border:1px solid rgba(212,160,23,0.35);
-    border-radius:8px; padding:6px 4px; min-width:0.75em; text-align:center; color:var(--gold);
-  }
-  .jackpot-unit{ font-size:16px; color:rgba(247,241,227,0.6); font-family:'Space Mono', monospace; }
-  .jackpot-progress-label{
-    display:flex; justify-content:space-between; font-family:'Space Mono', monospace;
-    font-size:12px; color:rgba(247,241,227,0.55); margin:22px 0 8px;
-  }
-  .progress-track{
-    height:8px; border-radius:100px; background:rgba(247,241,227,0.12); overflow:hidden;
-  }
-  .progress-fill{
-    height:100%; width:63%; border-radius:100px;
-    background:linear-gradient(90deg, var(--rust), var(--gold));
-    animation:fillIn 1.4s cubic-bezier(.2,.8,.2,1) both;
-  }
-  @keyframes fillIn{ from{ width:0; } }
-  .jackpot-note{ font-size:13px; color:rgba(247,241,227,0.55); margin-top:16px; line-height:1.5; }
+  .tier.g1 .medal{ background:radial-gradient(circle at 35% 30%, #FFE9A8, var(--gold)); }
+  .tier.g2 .medal{ background:radial-gradient(circle at 35% 30%, #E7ECF4, #A9B4C4); }
+  .tier.g3 .medal{ background:radial-gradient(circle at 35% 30%, #E8B98A, #B9702F); }
+  .tier.g4 .medal{ background:radial-gradient(circle at 35% 30%, #E3C4FA, var(--purple)); }
+  .tier .info{ flex:1; }
+  .tier .rank{ font-size:11.5px; font-weight:700; }
+  .tier.g1 .rank{ color:var(--gold); } .tier.g2 .rank{ color:#B7C2D6; } .tier.g3 .rank{ color:#D18C4A; } .tier.g4 .rank{ color:var(--purple); }
+  .tier .amount{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; margin-top:1px; }
+  .tier .prog{ text-align:right; }
+  .tier .prog .pn{ font-size:11.5px; font-weight:700; }
+  .tier .prog .pn b{ color:var(--green); }
+  .tier .track{ width:74px; height:5px; border-radius:100px; background:rgba(233,238,247,0.1); margin-top:6px; overflow:hidden; }
+  .tier .fill{ height:100%; border-radius:100px; }
+  .tier.g1 .fill{ background:var(--green); width:60%; }
+  .tier.g2 .fill{ background:var(--blue); width:40%; }
+  .tier.g3 .fill{ background:var(--orange); width:23%; }
+  .tier.g4 .fill{ background:var(--purple); width:13%; }
 
-  /* ---------- HOW IT WORKS ---------- */
-  section{ padding:80px clamp(20px,5vw,64px); }
-  .section-inner{ max-width:1180px; margin:0 auto; }
-  .section-head{ max-width:600px; margin-bottom:48px; }
-  .section-head .eyebrow{ color:var(--green); }
-  .section-head .eyebrow::before{ background:var(--green); }
-  .section-head h2{ font-size:clamp(28px,3.5vw,40px); font-weight:600; margin:0 0 12px; }
-  .section-head p{ color:rgba(23,34,59,0.65); font-size:16px; line-height:1.6; margin:0; }
-
-  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
-  .step{ background:var(--paper); padding:32px 28px; }
-  .step .tag{ font-family:'Space Mono', monospace; font-size:12px; color:var(--rust); margin-bottom:14px; }
-  .step h3{ font-size:20px; font-weight:600; margin:0 0 10px; }
-  .step p{ font-size:14.5px; line-height:1.6; color:rgba(23,34,59,0.65); margin:0; }
-
-  /* ---------- QUIZ PREVIEW ---------- */
-  .quiz-wrap{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:56px; align-items:center; }
-  .quiz-card{
-    background:var(--indigo); border-radius:20px; padding:30px; color:var(--paper);
-    max-width:340px; box-shadow:0 24px 50px -20px rgba(14,22,38,0.45);
+  .health{
+    margin:14px 18px 0; padding:16px; border-radius:16px;
+    background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3);
+    display:flex; gap:12px; align-items:flex-start;
   }
-  .quiz-card .qtag{ font-family:'Space Mono', monospace; font-size:11px; color:var(--gold); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; }
-  .quiz-card h4{ font-family:'Fraunces', serif; font-weight:500; font-size:22px; line-height:1.3; margin:0 0 22px; }
-  .qopt{
-    display:flex; align-items:center; gap:12px;
-    border:1px solid rgba(247,241,227,0.18); border-radius:10px; padding:12px 14px; margin-bottom:10px;
-    font-size:14.5px;
-  }
-  .qopt.correct{ border-color:var(--green); background:rgba(31,111,74,0.25); }
-  .qopt .dot{ width:18px; height:18px; border-radius:50%; border:1.5px solid rgba(247,241,227,0.4); flex-shrink:0; }
-  .qopt.correct .dot{ background:var(--green); border-color:var(--green); }
-  .qtimer{ margin-top:18px; display:flex; justify-content:space-between; font-family:'Space Mono', monospace; font-size:12px; color:rgba(247,241,227,0.55); }
+  .health .ic{ font-size:20px; }
+  .health h4{ margin:0 0 4px; font-size:13.5px; color:var(--green); font-weight:700; }
+  .health p{ margin:0; font-size:12px; color:var(--dim); line-height:1.5; }
+  .health .sign{ color:var(--green); font-weight:700; }
 
-  .rank-list{ list-style:none; margin:0; padding:0; }
-  .rank-list li{
-    display:grid; grid-template-columns:40px 1fr auto; align-items:center; gap:18px;
-    padding:18px 0; border-bottom:1px solid var(--line);
+  .navbar{
+    display:flex; justify-content:space-around; align-items:center;
+    margin:20px 10px 0; padding-top:14px; border-top:1px solid var(--line);
   }
-  .rank-list li:first-child{ padding-top:0; }
-  .rank-num{ font-family:'Space Mono', monospace; font-weight:700; font-size:15px; color:rgba(23,34,59,0.35); }
-  .rank-list li.top .rank-num{ color:var(--gold); }
-  .rank-name{ font-weight:600; font-size:16px; }
-  .rank-sub{ font-size:13px; color:rgba(23,34,59,0.5); font-weight:500; margin-top:2px; }
-  .rank-prize{ font-family:'Space Mono', monospace; font-weight:700; font-size:16px; }
-  .rank-list li.top .rank-prize{ color:var(--rust); }
-
-  /* ---------- CONSOLATION ---------- */
-  .consolation{ background:var(--cream); border-radius:24px; }
-  .cons-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
-  .cons-card{
-    background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:26px 22px;
-  }
-  .cons-card .ic{ width:38px; height:38px; border-radius:10px; background:var(--indigo); margin-bottom:16px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-family:'Space Mono',monospace; font-weight:700; }
-  .cons-card h4{ font-size:16px; margin:0 0 8px; font-weight:700; }
-  .cons-card p{ font-size:13.5px; color:rgba(23,34,59,0.6); line-height:1.55; margin:0; }
-
-  /* ---------- CTA ---------- */
-  .cta-band{
-    background:var(--indigo); border-radius:28px; padding:60px clamp(24px,6vw,72px);
-    display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;
-    color:var(--paper);
-  }
-  .cta-band h2{ font-size:clamp(26px,3.4vw,38px); font-weight:600; margin:0 0 8px; max-width:480px; }
-  .cta-band p{ margin:0; color:rgba(247,241,227,0.65); font-size:15px; }
-  .cta-band .btn-primary{ background:var(--gold); color:var(--indigo-deep); }
-
-  footer{
-    padding:36px clamp(20px,5vw,64px); text-align:center;
-    font-family:'Space Mono', monospace; font-size:12px; color:rgba(23,34,59,0.4);
-  }
-
-  @media (max-width:860px){
-    .hero-grid, .quiz-wrap{ grid-template-columns:1fr; }
-    .steps{ grid-template-columns:1fr; }
-    .cons-grid{ grid-template-columns:repeat(2,1fr); }
-  }
-  @media (max-width:520px){
-    .cons-grid{ grid-template-columns:1fr; }
-  }
-
-  button:focus-visible, a:focus-visible{ outline:3px solid var(--rust); outline-offset:2px; }
+  .nav-item{ text-align:center; font-size:10px; color:var(--dim); font-weight:600; }
+  .nav-item .ic{ font-size:17px; margin-bottom:3px; }
+  .nav-item.active{ color:var(--green); }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">Malin<span>.</span></div>
-  <a href="#jouer" class="nav-cta">Tenter un défi</a>
-</nav>
+<div class="phone">
+  <div class="screen">
+    <div class="statusbar">
+      <span>11:45</span>
+      <span class="mono" style="font-weight:400;">●●●● 4G 🔋78</span>
+    </div>
 
-<section class="hero">
-  <div class="hero-grid">
-    <div>
-      <div class="eyebrow">Jeu de connaissance — sans hasard</div>
-      <h1>Réponds vite.<br>Grimpe au classement.<br><em>Gagne selon ton score.</em></h1>
-      <p class="lede">Chaque défi coûte 500 FCFA. Ton classement à la fin du cycle détermine ton gain — jamais un tirage au sort. Même sans être dans les premiers, tu repars toujours avec quelque chose.</p>
-      <div class="hero-ctas">
-        <a href="#jouer" class="btn-primary">Tenter un défi — 500 FCFA →</a>
-        <a href="#comment" class="btn-ghost">Comment ça marche</a>
+    <div class="topbar">
+      <div class="icon-btn">☰</div>
+      <div class="brand">
+        <div class="name">Fut<span class="accent">é</span></div>
+        <div class="tag">Réponds vite, grimpe, gagne.</div>
       </div>
-      <div class="pay-icons">
-        <span class="chip">Orange Money</span>
-        <span class="chip">MTN MoMo</span>
-        <span class="chip">Wave</span>
+      <div class="icon-btn">🔔<span class="dot"></span></div>
+    </div>
+
+    <div class="jackpot">
+      <div class="label">CAGNOTTE DU CYCLE</div>
+      <div class="amount">8 500 <span>FCFA</span></div>
+      <div class="sub">Grimpe si le score plancher du gros lot n'est pas atteint</div>
+      <div class="dots"><i></i><i class="on"></i><i></i></div>
+    </div>
+
+    <div class="cta-row">
+      <div class="side-chip">
+        <div class="ic">🛡️</div>
+        <div class="t">Paiement<br>sécurisé</div>
+      </div>
+      <div class="side-chip">
+        <div class="ic">👥</div>
+        <div class="t"><span class="num">19</span> joueurs<br>ce cycle</div>
       </div>
     </div>
 
-    <div class="jackpot-card">
-      <div class="jackpot-label">Cagnotte du cycle en cours</div>
-      <div class="jackpot-amount">
-        <div class="jackpot-digits">
-          <span class="digit">6</span><span class="digit">8</span><span class="digit">5</span><span class="digit">0</span>
+    <div class="play-btn-wrap">
+      <div class="play-btn">
+        <div class="play-btn-inner">
+          <div class="t1">Jouer<br>un défi</div>
+          <div class="t2">500 FCFA</div>
         </div>
-        <span class="jackpot-unit">FCFA</span>
       </div>
-      <div class="jackpot-progress-label">
-        <span>19 / 30 défis joués</span>
-        <span>Tirage au seuil de 30</span>
-      </div>
-      <div class="progress-track"><div class="progress-fill"></div></div>
-      <p class="jackpot-note">La cagnotte grimpe si le cycle précédent n'a pas atteint le score plancher du gros lot. Aucun tirage aléatoire — le classement décide.</p>
     </div>
-  </div>
-</section>
 
-<section id="comment">
-  <div class="section-inner">
-    <div class="section-head">
-      <div class="eyebrow">Le principe</div>
-      <h2>Trois étapes, un classement, jamais de hasard</h2>
-      <p>Le résultat dépend de ta performance mesurable — pas d'un tirage caché côté serveur.</p>
+    <div class="pay-label">Paiement mobile</div>
+    <div class="pay-icons">
+      <div class="pi"><div class="badge om">OM</div><div class="pl">Orange<br>Money</div></div>
+      <div class="pi"><div class="badge mtn">MTN</div><div class="pl">MTN<br>MoMo</div></div>
+      <div class="pi"><div class="badge wave">〜</div><div class="pl">Wave</div></div>
     </div>
-    <div class="steps">
-      <div class="step">
-        <div class="tag">01</div>
-        <h3>Tu payes ton défi</h3>
-        <p>500 FCFA par mobile money. Tu reçois immédiatement 5 questions ou un mini-défi chronométré.</p>
-      </div>
-      <div class="step">
-        <div class="tag">02</div>
-        <h3>Tu es classé en direct</h3>
-        <p>Ton score te place dans le classement du cycle, visible en temps réel face aux autres participants.</p>
-      </div>
-      <div class="step">
-        <div class="tag">03</div>
-        <h3>Le cycle se clôture</h3>
-        <p>Au seuil de participants atteint, les gains sont distribués selon le classement final — du gros lot au conseil santé.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section id="jouer">
-  <div class="section-inner">
-    <div class="section-head">
-      <div class="eyebrow">Aperçu</div>
-      <h2>Un défi, une question à la fois</h2>
-      <p>Simple à comprendre, impossible à truquer — le score est calculé et vérifié côté serveur.</p>
+    <div class="rank-title">
+      <span>Classement — gains ce cycle</span>
+      <span class="q">?</span>
     </div>
-    <div class="quiz-wrap">
-      <div class="quiz-card">
-        <div class="qtag">Question 3 / 5</div>
-        <h4>Quelle est la capitale du Cameroun ?</h4>
-        <div class="qopt"><span class="dot"></span> Douala</div>
-        <div class="qopt correct"><span class="dot"></span> Yaoundé</div>
-        <div class="qopt"><span class="dot"></span> Garoua</div>
-        <div class="qtimer"><span>Temps restant</span><span>00:07</span></div>
-      </div>
 
-      <ul class="rank-list">
-        <li class="top">
-          <span class="rank-num">01</span>
-          <div><div class="rank-name">A. Ngassa</div><div class="rank-sub">5/5 bonnes réponses · 41 sec</div></div>
-          <span class="rank-prize">5 000 F</span>
-        </li>
-        <li class="top">
-          <span class="rank-num">02</span>
-          <div><div class="rank-name">M. Foka</div><div class="rank-sub">5/5 bonnes réponses · 58 sec</div></div>
-          <span class="rank-prize">3 000 F</span>
-        </li>
-        <li>
-          <span class="rank-num">03</span>
-          <div><div class="rank-name">S. Biya</div><div class="rank-sub">4/5 bonnes réponses · 44 sec</div></div>
-          <span class="rank-prize">1 500 F</span>
-        </li>
-        <li>
-          <span class="rank-num">04</span>
-          <div><div class="rank-name">R. Etoundi</div><div class="rank-sub">4/5 bonnes réponses · 1:02</div></div>
-          <span class="rank-prize">500 F</span>
-        </li>
-        <li>
-          <span class="rank-num">…</span>
-          <div><div class="rank-name">Autres participants</div><div class="rank-sub">Score enregistré</div></div>
-          <span class="rank-prize">Conseil santé</span>
-        </li>
-      </ul>
+    <div class="tier g1">
+      <div class="medal">🏆</div>
+      <div class="info"><div class="rank">1er au classement</div><div class="amount">5 000 F</div></div>
+      <div class="prog"><div class="pn"><b>18</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
     </div>
-  </div>
-</section>
+    <div class="tier g2">
+      <div class="medal">🥈</div>
+      <div class="info"><div class="rank">2e – 3e au classement</div><div class="amount">3 000 F</div></div>
+      <div class="prog"><div class="pn"><b>12</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
+    </div>
+    <div class="tier g3">
+      <div class="medal">🥉</div>
+      <div class="info"><div class="rank">4e – 6e au classement</div><div class="amount">1 500 F</div></div>
+      <div class="prog"><div class="pn"><b>7</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
+    </div>
+    <div class="tier g4">
+      <div class="medal">🪙</div>
+      <div class="info"><div class="rank">7e – 10e au classement</div><div class="amount">500 F</div></div>
+      <div class="prog"><div class="pn"><b>4</b>/30 défis joués</div><div class="track"><div class="fill"></div></div></div>
+    </div>
 
-<section>
-  <div class="section-inner consolation" style="padding:56px clamp(24px,5vw,56px);">
-    <div class="section-head" style="margin-bottom:36px;">
-      <div class="eyebrow">Même sans podium</div>
-      <h2>Personne ne repart les mains vides</h2>
-      <p>Hors du classement des gains en argent, chaque participant reçoit une vraie valeur — sans jamais peser sur la marge du cycle.</p>
-    </div>
-    <div class="cons-grid">
-      <div class="cons-card">
-        <div class="ic">+</div>
+    <div class="health">
+      <div class="ic">❤️</div>
+      <div>
         <h4>Conseil santé du jour</h4>
-        <p>Un contenu pratique et vérifié, différent à chaque défi.</p>
-      </div>
-      <div class="cons-card">
-        <div class="ic">★</div>
-        <h4>Points de fidélité</h4>
-        <p>Cumulés à chaque défi, échangeables contre un avantage après plusieurs participations.</p>
-      </div>
-      <div class="cons-card">
-        <div class="ic">%</div>
-        <h4>Réduction du prochain défi</h4>
-        <p>Une remise appliquée automatiquement sur ton prochain ticket.</p>
-      </div>
-      <div class="cons-card">
-        <div class="ic">↑</div>
-        <h4>Statut progressif</h4>
-        <p>Bronze, Argent, Or — visible sur ton profil selon ton assiduité.</p>
+        <p>Buvez suffisamment d'eau chaque jour et évitez les excès de sucre.</p>
+        <p class="sign">Prenez soin de vous !</p>
       </div>
     </div>
-  </div>
-</section>
 
-<section>
-  <div class="section-inner cta-band">
-    <div>
-      <h2>Le prochain cycle démarre bientôt.</h2>
-      <p>19 participants sur 30 — la cagnotte grimpe à chaque défi joué.</p>
+    <div class="navbar">
+      <div class="nav-item active"><div class="ic">🏠</div>Accueil</div>
+      <div class="nav-item"><div class="ic">🧠</div>Mes défis</div>
+      <div class="nav-item"><div class="ic">🕐</div>Historique</div>
+      <div class="nav-item"><div class="ic">🏆</div>Classement</div>
+      <div class="nav-item"><div class="ic">👤</div>Profil</div>
     </div>
-    <a href="#jouer" class="btn-primary">Tenter un défi — 500 FCFA →</a>
   </div>
-</section>
-
-<footer>
-  MALIN — jeu de compétence, résultat basé sur la performance. Aucun élément de hasard n'intervient dans l'attribution des gains.
-</footer>
+</div>
 
 </body>
 </html>
