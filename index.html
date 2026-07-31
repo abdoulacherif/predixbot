@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 520px;
+            max-width: 560px;
             width: 100%;
             padding: 40px 35px;
             transition: transform 0.3s ease;
@@ -53,6 +53,17 @@
         .logo p {
             color: #7f8c8d;
             font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .logo .badge {
+            display: inline-block;
+            background: #e8f8f0;
+            color: #27ae60;
+            font-size: 11px;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-weight: 600;
             margin-top: 5px;
         }
 
@@ -103,35 +114,100 @@
             gap: 15px;
         }
 
-        .operator-icons {
-            display: flex;
-            gap: 12px;
+        .operator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-top: 8px;
-            flex-wrap: wrap;
         }
 
-        .operator-badge {
-            display: inline-flex;
+        .operator-card {
+            display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #2d3436;
-            border: 2px solid transparent;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
             transition: all 0.3s ease;
+            background: #fafafa;
+            position: relative;
         }
 
-        .operator-badge.mtn {
+        .operator-card:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .operator-card.selected {
+            border-color: #667eea;
+            background: #e8edff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .operator-card input[type="radio"] {
+            display: none;
+        }
+
+        .operator-card .op-icon {
+            font-size: 24px;
+        }
+
+        .operator-card .op-info {
+            flex: 1;
+        }
+
+        .operator-card .op-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2d3436;
+        }
+
+        .operator-card .op-country {
+            font-size: 11px;
+            color: #95a5a6;
+        }
+
+        .operator-card .op-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .op-badge.mtn {
             background: #fef3e8;
             color: #e67e22;
         }
 
-        .operator-badge.orange {
+        .op-badge.orange {
             background: #fde8e8;
             color: #e74c3c;
+        }
+
+        .op-badge.moov {
+            background: #e8f0fe;
+            color: #2980b9;
+        }
+
+        .op-badge.airtel {
+            background: #fef0e8;
+            color: #d35400;
+        }
+
+        .op-badge.africell {
+            background: #e8f8f0;
+            color: #27ae60;
+        }
+
+        .op-badge.celtis {
+            background: #f5e8f8;
+            color: #8e44ad;
+        }
+
+        .op-badge.expresso {
+            background: #fef8e8;
+            color: #d4ac0d;
         }
 
         .btn-submit {
@@ -252,6 +328,11 @@
             margin-right: 6px;
         }
 
+        .country-flag {
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -265,9 +346,8 @@
                 grid-template-columns: 1fr;
                 gap: 0;
             }
-            .operator-icons {
-                flex-direction: column;
-                align-items: flex-start;
+            .operator-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -277,34 +357,30 @@
         <div class="logo">
             <h1>💳 Flinpay</h1>
             <p>Paiement Mobile Money sécurisé</p>
+            <span class="badge">🌍 7 pays couverts</span>
         </div>
 
         <form id="paymentForm">
             <div class="form-group">
-                <label>Opérateur <span class="required">*</span></label>
-                <select id="operator" required>
-                    <option value="">Sélectionnez un opérateur</option>
-                    <option value="momo">MTN Mobile Money</option>
-                    <option value="om">Orange Money</option>
-                </select>
-                <div class="operator-icons">
-                    <span class="operator-badge mtn">📱 MTN MoMo</span>
-                    <span class="operator-badge orange">📱 Orange Money</span>
-                </div>
-            </div>
-
-            <div class="form-group">
                 <label>Pays <span class="required">*</span></label>
                 <select id="country" required>
                     <option value="">Sélectionnez un pays</option>
-                    <option value="CI">Côte d'Ivoire</option>
-                    <option value="CM">Cameroun</option>
-                    <option value="SN">Sénégal</option>
-                    <option value="BF">Burkina Faso</option>
-                    <option value="ML">Mali</option>
-                    <option value="BJ">Bénin</option>
-                    <option value="TG">Togo</option>
+                    <option value="CI">🇨🇮 Côte d'Ivoire</option>
+                    <option value="CM">🇨🇲 Cameroun</option>
+                    <option value="SN">🇸🇳 Sénégal</option>
+                    <option value="BF">🇧🇫 Burkina Faso</option>
+                    <option value="ML">🇲🇱 Mali</option>
+                    <option value="BJ">🇧🇯 Bénin</option>
+                    <option value="TG">🇹🇬 Togo</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Opérateur <span class="required">*</span></label>
+                <div class="operator-grid" id="operatorGrid">
+                    <!-- Les opérateurs seront générés dynamiquement -->
+                </div>
+                <input type="hidden" id="operator" value="">
             </div>
 
             <div class="form-group">
@@ -350,6 +426,113 @@
         // URL de l'API Flinpay
         const API_URL = 'https://www.flinpay.cfd/api/pay';
 
+        // Opérateurs par pays (selon la documentation Flinpay)
+        const OPERATORS_BY_COUNTRY = {
+            'CI': [ // Côte d'Ivoire
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'CI' },
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'CI' },
+                { id: 'moov', name: 'Moov Money', icon: '📱', color: 'moov', country: 'CI' }
+            ],
+            'CM': [ // Cameroun
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'CM' },
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'CM' }
+            ],
+            'SN': [ // Sénégal
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'SN' },
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'SN' },
+                { id: 'expresso', name: 'Expresso Money', icon: '📱', color: 'expresso', country: 'SN' }
+            ],
+            'BF': [ // Burkina Faso
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'BF' },
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'BF' },
+                { id: 'moov', name: 'Moov Money', icon: '📱', color: 'moov', country: 'BF' }
+            ],
+            'ML': [ // Mali
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'ML' },
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'ML' }
+            ],
+            'BJ': [ // Bénin
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'BJ' },
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'BJ' },
+                { id: 'moov', name: 'Moov Money', icon: '📱', color: 'moov', country: 'BJ' }
+            ],
+            'TG': [ // Togo
+                { id: 'momo', name: 'MTN MoMo', icon: '📱', color: 'mtn', country: 'TG' },
+                { id: 'om', name: 'Orange Money', icon: '📱', color: 'orange', country: 'TG' },
+                { id: 'moov', name: 'Moov Money', icon: '📱', color: 'moov', country: 'TG' }
+            ]
+        };
+
+        // Mapping des noms de pays
+        const COUNTRY_NAMES = {
+            'CI': 'Côte d\'Ivoire',
+            'CM': 'Cameroun',
+            'SN': 'Sénégal',
+            'BF': 'Burkina Faso',
+            'ML': 'Mali',
+            'BJ': 'Bénin',
+            'TG': 'Togo'
+        };
+
+        // Générer les opérateurs en fonction du pays sélectionné
+        function updateOperators(countryCode) {
+            const grid = document.getElementById('operatorGrid');
+            const hiddenInput = document.getElementById('operator');
+            
+            if (!countryCode || !OPERATORS_BY_COUNTRY[countryCode]) {
+                grid.innerHTML = '<p style="color: #95a5a6; font-size: 14px; grid-column: 1 / -1;">Sélectionnez un pays pour voir les opérateurs disponibles</p>';
+                hiddenInput.value = '';
+                return;
+            }
+
+            const operators = OPERATORS_BY_COUNTRY[countryCode];
+            
+            grid.innerHTML = operators.map((op, index) => `
+                <div class="operator-card ${index === 0 ? 'selected' : ''}" data-operator="${op.id}" onclick="selectOperator('${op.id}')">
+                    <input type="radio" name="operator" value="${op.id}" ${index === 0 ? 'checked' : ''}>
+                    <span class="op-icon">${op.icon}</span>
+                    <div class="op-info">
+                        <div class="op-name">${op.name}</div>
+                        <div class="op-country">${COUNTRY_NAMES[op.country] || op.country}</div>
+                    </div>
+                    <span class="op-badge ${op.color}">${op.id.toUpperCase()}</span>
+                </div>
+            `).join('');
+
+            // Sélectionner le premier opérateur par défaut
+            if (operators.length > 0) {
+                hiddenInput.value = operators[0].id;
+            }
+        }
+
+        // Sélectionner un opérateur
+        window.selectOperator = function(operatorId) {
+            const cards = document.querySelectorAll('.operator-card');
+            const hiddenInput = document.getElementById('operator');
+            
+            cards.forEach(card => {
+                card.classList.remove('selected');
+                const radio = card.querySelector('input[type="radio"]');
+                if (card.dataset.operator === operatorId) {
+                    card.classList.add('selected');
+                    radio.checked = true;
+                    hiddenInput.value = operatorId;
+                }
+            });
+        };
+
+        // Écouter le changement de pays
+        document.getElementById('country').addEventListener('change', function() {
+            updateOperators(this.value);
+        });
+
+        // Générer un order_id par défaut
+        function generateOrderId() {
+            const timestamp = Date.now().toString(36).toUpperCase();
+            const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+            return `ORD-${timestamp}-${random}`;
+        }
+
         // Gestion du formulaire
         document.getElementById('paymentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -357,24 +540,21 @@
             const submitBtn = document.getElementById('submitBtn');
             const responseDiv = document.getElementById('response');
 
-            // Désactiver le bouton
             submitBtn.disabled = true;
             submitBtn.classList.add('loading');
 
-            // Cacher l'ancienne réponse
             responseDiv.className = 'response-box';
             responseDiv.innerHTML = '';
 
-            // Récupérer les valeurs
-            const operator = document.getElementById('operator').value;
             const country = document.getElementById('country').value;
+            const operator = document.getElementById('operator').value;
             const phone = document.getElementById('phone').value.trim();
             const clientName = document.getElementById('clientName').value.trim();
             const amount = parseFloat(document.getElementById('amount').value);
             const orderId = document.getElementById('orderId').value.trim();
 
-            // Validation supplémentaire
-            if (!operator || !country || !phone || !clientName || !amount || !orderId) {
+            // Validations
+            if (!country || !operator || !phone || !clientName || !amount || !orderId) {
                 showResponse(false, 'Tous les champs sont obligatoires.');
                 resetButton();
                 return;
@@ -392,7 +572,7 @@
                 return;
             }
 
-            // Construction du payload
+            // Payload
             const payload = {
                 amount: amount,
                 phone: phone,
@@ -440,7 +620,7 @@
                 responseDiv.innerHTML = `
                     <div class="response-title">✅ Paiement initié avec succès</div>
                     <p style="color: #2d3436; margin-bottom: 8px; font-size: 14px;">
-                        Le client va recevoir une confirmation USSD sur son téléphone.
+                        📲 Le client va recevoir une confirmation USSD sur son téléphone.
                     </p>
                     <pre>${JSON.stringify(data, null, 2)}</pre>
                     <p style="margin-top: 10px; font-size: 13px; color: #27ae60;">
@@ -457,7 +637,6 @@
                 `;
             }
 
-            // Scroll vers la réponse
             responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -467,13 +646,17 @@
             submitBtn.classList.remove('loading');
         }
 
-        // Générer un order_id par défaut
+        // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
+            // Générer un order_id par défaut
             const orderInput = document.getElementById('orderId');
-            if (!orderInput.value) {
-                const timestamp = Date.now().toString(36).toUpperCase();
-                const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-                orderInput.value = `ORD-${timestamp}-${random}`;
+            orderInput.value = generateOrderId();
+
+            // Sélectionner le premier pays par défaut et charger ses opérateurs
+            const countrySelect = document.getElementById('country');
+            if (countrySelect.options.length > 1) {
+                countrySelect.selectedIndex = 1;
+                updateOperators(countrySelect.value);
             }
         });
     </script>
