@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://leekpay.fr/js/leekpay.js"></script>
+<script src="site-content.js"></script>
 <style>
   :root{
     --paper:#fdfcf9;
@@ -59,8 +60,8 @@
     color:var(--amber); text-transform:uppercase; margin-top:40px;
   }
   .recap h1{font-size:2.1rem; line-height:1.05; margin-top:14px;}
-  .recap h1 span{
-    background:linear-gradient(100deg, var(--violet), var(--magenta) 60%, var(--amber));
+  .recap h1.grad{
+    background:linear-gradient(100deg, var(--violet), var(--magenta) 55%, var(--amber));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .recap-items{margin-top:38px; display:flex; flex-direction:column; gap:16px;}
@@ -112,11 +113,11 @@
     background:#f3f1fb; border:1px solid var(--line); border-radius:4px;
     padding:12px 16px; margin:6px 0 24px;
   }
-  .provider-badge{
-    font-weight:700; padding:3px 9px; border-radius:20px; color:#fff; font-size:0.7rem;
+  .provider-note .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:linear-gradient(100deg, var(--violet), var(--magenta));
+    flex-shrink:0;
   }
-  .provider-badge.flinpay{background:var(--violet);}
-  .provider-badge.leekpay{background:var(--teal);}
 
   .pay-btn{
     margin-top:8px;
@@ -186,16 +187,16 @@
 <div class="recap">
   <a href="millionnaire-digital.html" class="back-link mono">← Retour au coffre</a>
   <div class="eyebrow">Récapitulatif</div>
-  <h1 class="display"><span>Millionnaire<br>Digital</span></h1>
+  <h1 class="display grad">Millionnaire<br>Digital</h1>
   <div class="recap-items">
     <div class="recap-item"><span>Bibliothèque</span><b>2000+ ebooks</b></div>
     <div class="recap-item"><span>Audiothèque</span><b>100+ livres audio</b></div>
     <div class="recap-item"><span>Formations</span><b>54 vidéos</b></div>
-    <div class="recap-item"><span>Logiciels</span><b>[N] outils</b></div>
+    <div class="recap-item"><span>Logiciels</span><b><span data-field="software_count">[N]</span> outils</b></div>
   </div>
   <div class="recap-total">
     <div class="label">Total à payer</div>
-    <div class="amount mono" id="recapAmount">[PRIX]</div>
+    <div class="amount mono" id="recapAmount" data-field="price">[PRIX]</div>
     <div class="recap-note">Paiement sécurisé. Accès envoyé automatiquement après confirmation.</div>
   </div>
 </div>
@@ -229,26 +230,22 @@
       <label for="pays">Pays</label>
       <select id="pays" name="pays" required>
         <option value="">Sélectionner un pays</option>
-        <optgroup label="Zone FlinPay">
-          <option value="CM">Cameroun</option>
-          <option value="TG">Togo</option>
-          <option value="CI">Côte d'Ivoire</option>
-        </optgroup>
-        <optgroup label="Zone LeekPay">
-          <option value="SN">Sénégal</option>
-          <option value="BJ">Bénin</option>
-          <option value="BF">Burkina Faso</option>
-          <option value="ML">Mali</option>
-          <option value="GN">Guinée</option>
-          <option value="OTHER">Autre pays</option>
-        </optgroup>
+        <option value="CM">Cameroun</option>
+        <option value="TG">Togo</option>
+        <option value="CI">Côte d'Ivoire</option>
+        <option value="SN">Sénégal</option>
+        <option value="BJ">Bénin</option>
+        <option value="BF">Burkina Faso</option>
+        <option value="ML">Mali</option>
+        <option value="GN">Guinée</option>
+        <option value="OTHER">Autre pays</option>
       </select>
       <div class="field-error">Sélectionne ton pays.</div>
     </div>
 
     <div class="provider-note" id="providerNote" style="display:none;">
-      <span class="provider-badge mono" id="providerBadge"></span>
-      <span id="providerText"></span>
+      <span class="dot"></span>
+      <span id="providerText">Paiement sécurisé disponible pour ta zone.</span>
     </div>
 
     <button type="submit" class="pay-btn" id="payBtn">
@@ -270,56 +267,52 @@
 
 <script>
 /* =====================================================================
-   CONFIGURATION — à compléter
+   CONFIGURATION
    ===================================================================== */
 const CONFIG = {
-  amount: "[PRIX]",                 // prix affiché, ex: "15 000 XOF"
-  amountValue: 0,                    // montant numérique réel à envoyer à l'API
+  amount: "[PRIX]",
+  amountValue: 0,
   currency: "XOF",
-  contentUrl: "[URL_DU_CONTENU]",   // lien vers le contenu après paiement confirmé
+  contentUrl: "[URL_DU_CONTENU]",
 
-  // Pays couverts par FlinPay — le reste part sur LeekPay
-  flinpayCountries: ["CM", "TG", "CI"],
+  // Zones de routage interne (invisible pour l'utilisateur)
+  primaryProcessorCountries: ["CM", "TG", "CI"],
 
-  // LeekPay se configure côté client avec la clé PUBLIQUE (comme Stripe pk_).
-  // C'est normal et sûr d'avoir cette clé dans le code — c'est la clé secrète (sk_live_...)
-  // qui ne doit JAMAIS apparaître ici (elle reste uniquement côté backend, si besoin).
-  leekpayPublicKey: "pk_live_Au2TSvPZFUPqsygwJxptkg8qmW17s7Sq",
+  // Clé publique du processeur secondaire (sûr à exposer côté client, comme une clé publique Stripe)
+  secondaryProcessorPublicKey: "pk_live_Au2TSvPZFUPqsygwJxptkg8qmW17s7Sq",
 
-  // FlinPay : pas encore branché — en attente des infos d'intégration.
-  // Endpoint de TON backend qui appellera FlinPay avec sa clé secrète.
+  // Endpoint de TON backend pour le processeur principal (clé secrète côté serveur uniquement)
   api: {
-    flinpay: "/api/pay/flinpay",     // à remplacer par ton endpoint réel, dès que tu as les infos FlinPay
+    primary: "/api/pay/primary",
   }
 };
 
 document.getElementById('recapAmount').textContent = CONFIG.amount;
 document.getElementById('btnAmount').textContent = CONFIG.amount;
 
-/* ===================== Provider routing ===================== */
+// Charge le contenu à jour depuis Supabase (prix, montant réel, lien du contenu, textes…)
+(async () => {
+  const content = await loadAndApplySiteContent();
+  if(content){
+    if(content.price) { CONFIG.amount = content.price; document.getElementById('btnAmount').textContent = content.price; }
+    if(content.amount_value) CONFIG.amountValue = content.amount_value;
+    if(content.currency) CONFIG.currency = content.currency;
+    if(content.content_url) CONFIG.contentUrl = content.content_url;
+  }
+})();
+
+/* ===================== Provider routing (invisible côté utilisateur) ===================== */
 const paysSelect = document.getElementById('pays');
 const providerNote = document.getElementById('providerNote');
-const providerBadge = document.getElementById('providerBadge');
-const providerText = document.getElementById('providerText');
 
-function getProviderForCountry(code){
-  return CONFIG.flinpayCountries.includes(code) ? 'flinpay' : 'leekpay';
+function getProcessorForCountry(code){
+  return CONFIG.primaryProcessorCountries.includes(code) ? 'primary' : 'secondary';
 }
 
 paysSelect.addEventListener('change', () => {
   const code = paysSelect.value;
   if(!code){ providerNote.style.display = 'none'; return; }
-  const provider = getProviderForCountry(code);
   providerNote.style.display = 'flex';
-  if(provider === 'flinpay'){
-    providerBadge.textContent = 'FlinPay';
-    providerBadge.className = 'provider-badge mono flinpay';
-    providerText.textContent = "Paiement traité via FlinPay pour ta zone (bascule automatique sur LeekPay si indisponible).";
-  } else {
-    providerBadge.textContent = 'LeekPay';
-    providerBadge.className = 'provider-badge mono leekpay';
-    providerText.textContent = "Paiement traité via LeekPay pour ta zone.";
-  }
 });
 
 /* ===================== Validation ===================== */
@@ -337,15 +330,14 @@ function validateForm(data){
   return valid;
 }
 
-/* ===================== Payment: LeekPay (client) + FlinPay (backend, à venir) ===================== */
+/* ===================== Paiement : processeur secondaire (client) + principal (backend, à venir) ===================== */
 
-// LeekPay — paiement via son widget JS avec la clé publique
-function payWithLeekPay(payload){
+function payWithSecondaryProcessor(payload){
   return new Promise((resolve) => {
     LeekPay.checkout({
       amount: payload.amount,
       currency: payload.currency,
-      apiKey: CONFIG.leekpayPublicKey,
+      apiKey: CONFIG.secondaryProcessorPublicKey,
       description: payload.product,
       customer: { name: payload.nom, email: payload.email, phone: payload.tel },
       onSuccess: function(data){
@@ -361,10 +353,9 @@ function payWithLeekPay(payload){
   });
 }
 
-// FlinPay — pas encore branché, passera par TON backend une fois les infos fournies.
-async function payWithFlinPay(payload){
+async function payWithPrimaryProcessor(payload){
   try{
-    const res = await fetch(CONFIG.api.flinpay, {
+    const res = await fetch(CONFIG.api.primary, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(payload)
@@ -378,13 +369,12 @@ async function payWithFlinPay(payload){
       ? { success:true, redirect_url: result.redirect_url || CONFIG.contentUrl }
       : { success:false, error: result.error };
   } catch(err){
-    // FlinPay pas encore branché côté backend → bascule automatique sur LeekPay
     return { operator_unavailable:true };
   }
 }
 
 async function processPayment(payload){
-  const primaryProvider = getProviderForCountry(payload.pays);
+  const primary = getProcessorForCountry(payload.pays);
   const statusBox = document.getElementById('statusBox');
 
   const showStatus = (type, msg) => {
@@ -393,14 +383,12 @@ async function processPayment(payload){
   };
 
   try{
-    if(primaryProvider === 'flinpay'){
-      showStatus('info', 'Connexion à FlinPay en cours…');
-      let result = await payWithFlinPay(payload);
+    if(primary === 'primary'){
+      showStatus('info', 'Traitement du paiement en cours…');
+      let result = await payWithPrimaryProcessor(payload);
 
-      // Opérateur/service indisponible sur FlinPay (ou pas encore branché) → bascule LeekPay
       if(result.operator_unavailable){
-        showStatus('info', "Bascule automatique vers LeekPay…");
-        result = await payWithLeekPay(payload);
+        result = await payWithSecondaryProcessor(payload);
       }
 
       if(result.success) return result;
@@ -408,9 +396,8 @@ async function processPayment(payload){
       throw new Error(result.error || 'payment_failed');
     }
 
-    // Zone LeekPay directement
-    showStatus('info', 'Connexion à LeekPay en cours…');
-    const result = await payWithLeekPay(payload);
+    showStatus('info', 'Traitement du paiement en cours…');
+    const result = await payWithSecondaryProcessor(payload);
     if(result.success) return result;
     if(result.cancelled) { showStatus('info', 'Paiement annulé.'); return { success:false }; }
     throw new Error(result.error || 'payment_failed');
