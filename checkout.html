@@ -332,6 +332,25 @@ function validateForm(data){
 
 /* ===================== Paiement : processeur secondaire (client) + principal (backend, à venir) ===================== */
 
+// Enregistre l'achat dans Supabase et retourne un token d'accès unique
+async function registerPurchase(payload){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/purchases`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({
+      nom: payload.nom, email: payload.email, tel: payload.tel, pays: payload.pays,
+      product: payload.product, amount: payload.amount, currency: payload.currency
+    })
+  });
+  const rows = await res.json();
+  return rows && rows[0] ? rows[0].token : null;
+}
+
 function payWithSecondaryProcessor(payload){
   return new Promise((resolve) => {
     LeekPay.checkout({
@@ -444,6 +463,10 @@ form.addEventListener('submit', async (e) => {
   payBtn.classList.remove('loading');
 
   if(result.success){
+    // Enregistre l'accès du client et prépare son lien unique vers l'espace membres
+    const token = await registerPurchase(data);
+    const redirectUrl = token ? `membres.html?token=${token}` : (CONFIG.contentUrl || 'membres.html');
+
     successOverlay.classList.add('show');
     let seconds = 3;
     const countdownEl = document.getElementById('redirectCountdown');
@@ -452,7 +475,7 @@ form.addEventListener('submit', async (e) => {
       countdownEl.textContent = `Redirection dans ${seconds}s…`;
       if(seconds <= 0){
         clearInterval(interval);
-        window.location.href = result.redirect_url;
+        window.location.href = redirectUrl;
       }
     }, 1000);
   }
