@@ -8,20 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --black:#07070a;
-    --charcoal:#111116;
-    --gold:#f2b705;
-    --gold-dim:#c99a1c;
-    --electric:#3b5bff;
-    --off-white:#f4f2ec;
-    --smoke:#8a8a94;
-    --line:rgba(244,242,236,0.12);
+    --paper:#fdfcf9;
+    --ink:#14121c;
+    --violet:#6d28d9;
+    --violet-deep:#4c1d95;
+    --magenta:#ee1573;
+    --amber:#ffb200;
+    --teal:#00b8a9;
+    --smoke:#6b6878;
+    --line:rgba(20,18,28,0.12);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
-    background:var(--black);
-    color:var(--off-white);
+    background:var(--paper);
+    color:var(--ink);
     font-family:'Space Grotesk', sans-serif;
     overflow-x:hidden;
   }
@@ -29,35 +30,30 @@
   .mono{font-family:'Space Mono', monospace;}
   a{color:inherit;}
 
-  body::before{
-    content:"";
-    position:fixed; inset:0; z-index:999; pointer-events:none;
-    opacity:0.035;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
   .eyebrow{
     font-family:'Space Mono', monospace;
     font-size:0.72rem;
     letter-spacing:0.28em;
     text-transform:uppercase;
-    color:var(--gold);
+    color:var(--magenta);
   }
 
   nav{
     position:fixed; top:0; left:0; right:0; z-index:100;
     display:flex; justify-content:space-between; align-items:center;
     padding:22px 6%;
-    background:linear-gradient(to bottom, rgba(7,7,10,0.9), transparent);
+    background:rgba(253,252,249,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
   }
   .logo{font-family:'Anton',sans-serif; font-size:1.15rem; letter-spacing:0.04em;}
-  .logo span{color:var(--gold);}
+  .logo span{color:var(--magenta);}
   .nav-cta{
     font-family:'Space Mono',monospace; font-size:0.75rem; letter-spacing:0.08em;
-    border:1px solid var(--line); padding:9px 18px; border-radius:2px;
-    transition:border-color .3s, background .3s;
+    border:2px solid var(--ink); padding:9px 18px; border-radius:2px;
+    transition:all .3s;
   }
-  .nav-cta:hover{border-color:var(--gold); background:rgba(242,183,5,0.06);}
+  .nav-cta:hover{background:var(--ink); color:var(--paper);}
 
   .hero{
     position:relative;
@@ -69,18 +65,10 @@
   .hero-bg{
     position:absolute; inset:0; z-index:-1;
     background:
-      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(59,91,255,0.18), transparent 60%),
-      radial-gradient(ellipse 50% 40% at 85% 90%, rgba(242,183,5,0.10), transparent 60%);
-  }
-  .hero-bg::after{
-    content:"";
-    position:absolute; inset:0;
-    background:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size:64px 64px;
-    opacity:0.25;
-    mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent);
+      radial-gradient(circle 480px at 12% 20%, rgba(109,40,217,0.25), transparent 70%),
+      radial-gradient(circle 520px at 88% 15%, rgba(238,21,115,0.22), transparent 70%),
+      radial-gradient(circle 460px at 75% 85%, rgba(255,178,0,0.28), transparent 70%),
+      radial-gradient(circle 400px at 15% 90%, rgba(0,184,169,0.22), transparent 70%);
   }
   .hero-eyebrow{
     opacity:0;
@@ -93,9 +81,10 @@
     opacity:0;
     animation:riseIn .9s .35s forwards;
   }
-  .hero h1 .gold{color:var(--gold);}
-  .hero h1 .outline{
-    -webkit-text-stroke:1.5px var(--off-white);
+  .hero h1 .grad{
+    background:linear-gradient(100deg, var(--violet), var(--magenta) 45%, var(--amber) 85%);
+    -webkit-background-clip:text;
+    background-clip:text;
     color:transparent;
   }
   .hero-sub{
@@ -124,21 +113,23 @@
     font-size:0.85rem;
     letter-spacing:0.06em;
     text-transform:uppercase;
-    background:var(--gold);
-    color:var(--black);
+    background:linear-gradient(100deg, var(--magenta), var(--violet));
+    color:#fff;
     padding:17px 34px;
     border:none;
     border-radius:2px;
     cursor:pointer;
     position:relative;
     overflow:hidden;
-    transition:transform .25s ease;
+    transition:transform .25s ease, box-shadow .25s ease;
+    box-shadow:0 8px 24px rgba(238,21,115,0.25);
+    display:inline-block;
   }
-  .btn-primary:hover{transform:translateY(-2px);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(238,21,115,0.35);}
   .btn-primary::after{
     content:"";
     position:absolute; top:0; left:-120%; width:60%; height:100%;
-    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.6), transparent);
     transform:skewX(-20deg);
     transition:left .6s ease;
   }
@@ -150,7 +141,7 @@
     color:var(--smoke);
   }
   .price-tag .strike{text-decoration:line-through; opacity:0.6;}
-  .price-tag .now{color:var(--gold); font-size:1.05rem; font-weight:700;}
+  .price-tag .now{color:var(--magenta); font-size:1.05rem; font-weight:700;}
 
   .scroll-cue{
     position:absolute; bottom:34px; left:6%;
@@ -161,26 +152,30 @@
   .scroll-line{width:32px; height:1px; background:var(--smoke); position:relative; overflow:hidden;}
   .scroll-line::after{
     content:""; position:absolute; left:-100%; top:0; width:100%; height:100%;
-    background:var(--gold); animation:scrollmove 2s linear infinite;
+    background:var(--magenta); animation:scrollmove 2s linear infinite;
   }
   @keyframes scrollmove{ to{left:100%;} }
 
   .vault-strip{
-    border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
     padding:44px 6%;
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:20px;
   }
-  .vault-item{text-align:left; border-left:1px solid var(--line); padding-left:20px;}
+  .vault-item{text-align:left; border-left:3px solid var(--line); padding-left:20px;}
+  .vault-item:nth-child(1){border-left-color:var(--violet);}
+  .vault-item:nth-child(2){border-left-color:var(--magenta);}
+  .vault-item:nth-child(3){border-left-color:var(--amber);}
+  .vault-item:nth-child(4){border-left-color:var(--teal);}
   .vault-num{
     font-family:'Anton',sans-serif;
     font-size:clamp(2.2rem,4vw,3.4rem);
-    color:var(--off-white);
+    color:var(--ink);
     line-height:1;
   }
-  .vault-num .plus{color:var(--gold);}
+  .vault-num .plus{color:var(--magenta);}
   .vault-label{
     font-family:'Space Mono',monospace;
     font-size:0.72rem;
@@ -199,27 +194,35 @@
   }
   .section-head p{color:var(--smoke); margin-top:18px; line-height:1.65; font-size:1rem;}
 
-  .arsenal{background:var(--charcoal);}
+  .arsenal{background:var(--ink); color:var(--paper);}
+  .arsenal .eyebrow{color:var(--amber);}
+  .arsenal .section-head p{color:#b8b4c4;}
   .arsenal-grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:1px;
-    background:var(--line);
-    border:1px solid var(--line);
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.12);
   }
   .arsenal-card{
-    background:var(--charcoal);
+    background:var(--ink);
     padding:38px 28px;
     position:relative;
     transition:background .3s ease;
   }
-  .arsenal-card:hover{background:#16161d;}
+  .arsenal-card img.arsenal-img{width:100%; height:110px; object-fit:cover; border-radius:4px; margin-bottom:16px; display:none;}
+  .arsenal-card:nth-child(1):hover{background:linear-gradient(160deg,var(--ink),#2a1a52);}
+  .arsenal-card:nth-child(2):hover{background:linear-gradient(160deg,var(--ink),#4a0f2d);}
+  .arsenal-card:nth-child(3):hover{background:linear-gradient(160deg,var(--ink),#4a3300);}
+  .arsenal-card:nth-child(4):hover{background:linear-gradient(160deg,var(--ink),#003d37);}
   .arsenal-card .icon{
     font-family:'Anton',sans-serif;
     font-size:2.6rem;
-    color:var(--gold-dim);
-    opacity:0.85;
   }
+  .arsenal-card:nth-child(1) .icon{color:var(--violet);}
+  .arsenal-card:nth-child(2) .icon{color:var(--magenta);}
+  .arsenal-card:nth-child(3) .icon{color:var(--amber);}
+  .arsenal-card:nth-child(4) .icon{color:var(--teal);}
   .arsenal-card h3{
     font-family:'Anton',sans-serif;
     font-size:1.25rem;
@@ -228,12 +231,15 @@
   }
   .arsenal-card .count{
     font-family:'Space Mono',monospace;
-    color:var(--gold);
     font-size:0.95rem;
     margin-top:6px;
   }
+  .arsenal-card:nth-child(1) .count{color:var(--violet);}
+  .arsenal-card:nth-child(2) .count{color:var(--magenta);}
+  .arsenal-card:nth-child(3) .count{color:var(--amber);}
+  .arsenal-card:nth-child(4) .count{color:var(--teal);}
   .arsenal-card p{
-    color:var(--smoke);
+    color:#b8b4c4;
     font-size:0.88rem;
     line-height:1.55;
     margin-top:14px;
@@ -257,60 +263,56 @@
   }
   .stack-total{
     display:flex; justify-content:space-between; align-items:baseline;
-    margin-top:30px; padding-top:26px; border-top:2px solid var(--gold);
+    margin-top:30px; padding-top:26px; border-top:3px solid var(--magenta);
   }
   .stack-total .label{font-family:'Space Mono',monospace; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); font-size:0.85rem;}
-  .stack-total .amount{font-family:'Anton',sans-serif; font-size:2.4rem; color:var(--gold);}
+  .stack-total .amount{font-family:'Anton',sans-serif; font-size:2.4rem; color:var(--magenta);}
 
   .offer{
-    background:linear-gradient(160deg, #14141b, #0a0a0e 70%);
-    border:1px solid var(--line);
-    border-radius:4px;
+    background:linear-gradient(135deg, var(--violet), var(--magenta) 55%, var(--amber));
+    border-radius:6px;
     padding:60px 8%;
     text-align:center;
     position:relative;
     overflow:hidden;
+    color:#fff;
   }
-  .offer::before{
-    content:"";
-    position:absolute; top:-40%; left:50%; transform:translateX(-50%);
-    width:600px; height:600px;
-    background:radial-gradient(circle, rgba(242,183,5,0.12), transparent 65%);
-  }
-  .offer-eyebrow{position:relative;}
+  .offer .eyebrow{color:#fff; opacity:0.85;}
   .offer h2{
     font-size:clamp(2rem,5vw,3.2rem);
     margin:16px 0 26px;
-    position:relative;
   }
-  .offer-price{position:relative; margin:20px 0 30px;}
-  .offer-price .old{font-family:'Space Mono',monospace; text-decoration:line-through; color:var(--smoke); font-size:1.1rem;}
+  .offer-price{margin:20px 0 30px;}
+  .offer-price .old{font-family:'Space Mono',monospace; text-decoration:line-through; opacity:0.75; font-size:1.1rem;}
   .offer-price .new{
     font-family:'Anton',sans-serif;
     font-size:clamp(3rem,7vw,5rem);
-    color:var(--gold);
     display:block;
     margin-top:6px;
   }
-  .offer-note{color:var(--smoke); font-size:0.85rem; margin-bottom:32px; position:relative;}
+  .offer-note{opacity:0.85; font-size:0.85rem; margin-bottom:32px;}
+  .offer .btn-primary{background:var(--ink); box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+  .offer .btn-primary:hover{box-shadow:0 12px 28px rgba(0,0,0,0.35);}
 
   .testi-grid{
-    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
-    background:var(--line); border:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
   }
-  .testi-card{background:var(--black); padding:34px 28px;}
-  .testi-stars{color:var(--gold); letter-spacing:2px; font-size:0.9rem;}
-  .testi-text{margin-top:16px; color:var(--off-white); line-height:1.6; font-size:0.95rem;}
+  .testi-card{background:#fff; padding:34px 28px; border:1px solid var(--line); border-radius:6px; border-top:4px solid var(--violet);}
+  .testi-card:nth-child(2){border-top-color:var(--magenta);}
+  .testi-card:nth-child(3){border-top-color:var(--amber);}
+  .testi-avatar{width:44px; height:44px; border-radius:50%; object-fit:cover; margin-bottom:14px; display:none;}
+  .testi-stars{color:var(--amber); letter-spacing:2px; font-size:0.9rem;}
+  .testi-text{margin-top:16px; color:var(--ink); line-height:1.6; font-size:0.95rem;}
   .testi-author{margin-top:20px; font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--smoke);}
 
   .faq-item{border-bottom:1px solid var(--line);}
   .faq-q{
-    width:100%; text-align:left; background:none; border:none; color:var(--off-white);
+    width:100%; text-align:left; background:none; border:none; color:var(--ink);
     font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:600;
     padding:24px 0; cursor:pointer;
     display:flex; justify-content:space-between; align-items:center;
   }
-  .faq-q .plus{font-family:'Space Mono',monospace; color:var(--gold); font-size:1.3rem; transition:transform .3s;}
+  .faq-q .plus{font-family:'Space Mono',monospace; color:var(--magenta); font-size:1.3rem; transition:transform .3s;}
   .faq-item.open .plus{transform:rotate(45deg);}
   .faq-a{
     max-height:0; overflow:hidden; transition:max-height .35s ease;
@@ -320,10 +322,14 @@
 
   .final{
     text-align:center;
-    background:var(--charcoal);
-    border-top:1px solid var(--line);
+    background:linear-gradient(180deg, var(--paper), #f0eefc);
+    border-top:2px solid var(--ink);
   }
   .final h2{font-size:clamp(2.4rem,6vw,4.5rem); line-height:0.98;}
+  .final .grad2{
+    background:linear-gradient(100deg, var(--magenta), var(--amber));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
   .final p{color:var(--smoke); margin:20px auto 36px; max-width:480px;}
 
   footer{
@@ -359,13 +365,13 @@
   <div class="hero-bg"></div>
   <div class="hero-eyebrow eyebrow">Le coffre-fort du savoir numérique</div>
   <h1 class="display">
-    <span class="outline">Devenir</span><br>
-    <span class="gold">Millionnaire</span> Digital
+    Devenir<br>
+    <span class="grad">Millionnaire Digital</span>
   </h1>
-  <p class="hero-sub">2000 livres, 100 livres audio, 54 formations vidéo et une sélection de logiciels professionnels — réunis dans un seul coffre, pour construire ton savoir et ton revenu en ligne, à ton rythme.</p>
+  <p class="hero-sub" data-field="hero_subtitle">2000 livres, 100 livres audio, 54 formations vidéo et une sélection de logiciels professionnels — réunis dans un seul coffre, pour construire ton savoir et ton revenu en ligne, à ton rythme.</p>
   <div class="hero-actions">
     <a href="checkout.html" class="btn-primary">Débloquer le pack</a>
-    <div class="price-tag">Accès complet dès <span class="now">[PRIX]</span> <span class="strike">[ANCIEN PRIX]</span></div>
+    <div class="price-tag">Accès complet dès <span class="now" data-field="price">[PRIX]</span> <span class="strike" data-field="old_price">[ANCIEN PRIX]</span></div>
   </div>
   <div class="scroll-cue"><div class="scroll-line"></div> Découvrir le contenu</div>
 </section>
@@ -384,7 +390,7 @@
     <div class="vault-label">Formations vidéo</div>
   </div>
   <div class="vault-item">
-    <div class="vault-num mono">[N]<span class="plus">+</span></div>
+    <div class="vault-num mono"><span data-field="software_count">[N]</span><span class="plus">+</span></div>
     <div class="vault-label">Logiciels inclus</div>
   </div>
 </div>
@@ -397,28 +403,32 @@
   </div>
   <div class="arsenal-grid">
     <div class="arsenal-card" data-reveal>
+      <img class="arsenal-img" data-field-img="lib_image_url">
       <div class="icon mono">01</div>
       <h3>Bibliothèque</h3>
       <div class="count">2000+ ebooks</div>
-      <p>[Décris ici les thématiques principales : business, développement personnel, marketing, finance, etc.]</p>
+      <p data-field="lib_desc">[Décris ici les thématiques principales : business, développement personnel, marketing, finance, etc.]</p>
     </div>
     <div class="arsenal-card" data-reveal>
+      <img class="arsenal-img" data-field-img="audio_image_url">
       <div class="icon mono">02</div>
       <h3>Audiothèque</h3>
       <div class="count">100+ livres audio</div>
-      <p>[Décris ici le format audio : écoute en déplacement, résumés, langues disponibles, etc.]</p>
+      <p data-field="audio_desc">[Décris ici le format audio : écoute en déplacement, résumés, langues disponibles, etc.]</p>
     </div>
     <div class="arsenal-card" data-reveal>
+      <img class="arsenal-img" data-field-img="formation_image_url">
       <div class="icon mono">03</div>
       <h3>Formations</h3>
       <div class="count">54 vidéos</div>
-      <p>[Décris ici les sujets des formations : création d'entreprise, marketing digital, outils, etc.]</p>
+      <p data-field="formation_desc">[Décris ici les sujets des formations : création d'entreprise, marketing digital, outils, etc.]</p>
     </div>
     <div class="arsenal-card" data-reveal>
+      <img class="arsenal-img" data-field-img="software_image_url">
       <div class="icon mono">04</div>
       <h3>Logiciels</h3>
-      <div class="count">[N] outils</div>
-      <p>[Décris ici les logiciels inclus et à quoi ils servent concrètement.]</p>
+      <div class="count"><span data-field="software_count">[N]</span> outils</div>
+      <p data-field="software_desc">[Décris ici les logiciels inclus et à quoi ils servent concrètement.]</p>
     </div>
   </div>
 </section>
@@ -431,23 +441,23 @@
   <div class="stack-list" data-reveal>
     <div class="stack-row">
       <div class="stack-name">Bibliothèque de 2000+ ebooks<span>Accès illimité, à vie</span></div>
-      <div class="stack-value">[VALEUR]</div>
+      <div class="stack-value" data-field="lib_value">[VALEUR]</div>
     </div>
     <div class="stack-row">
       <div class="stack-name">100+ livres audio<span>Toutes thématiques</span></div>
-      <div class="stack-value">[VALEUR]</div>
+      <div class="stack-value" data-field="audio_value">[VALEUR]</div>
     </div>
     <div class="stack-row">
       <div class="stack-name">54 formations vidéo<span>Pas à pas, avec supports</span></div>
-      <div class="stack-value">[VALEUR]</div>
+      <div class="stack-value" data-field="formation_value">[VALEUR]</div>
     </div>
     <div class="stack-row">
       <div class="stack-name">Logiciels professionnels<span>Prêts à l'emploi</span></div>
-      <div class="stack-value">[VALEUR]</div>
+      <div class="stack-value" data-field="software_value">[VALEUR]</div>
     </div>
     <div class="stack-total">
       <div class="label">Valeur totale</div>
-      <div class="amount mono">[TOTAL]</div>
+      <div class="amount mono" data-field="total_value">[TOTAL]</div>
     </div>
   </div>
 </section>
@@ -457,10 +467,10 @@
     <div class="offer-eyebrow eyebrow">Offre à durée limitée</div>
     <h2 class="display">Le coffre s'ouvre<br>une fois. Aujourd'hui.</h2>
     <div class="offer-price">
-      <span class="old mono">[ANCIEN PRIX]</span>
-      <span class="new">[PRIX]</span>
+      <span class="old mono" data-field="old_price">[ANCIEN PRIX]</span>
+      <span class="new" data-field="price">[PRIX]</span>
     </div>
-    <div class="offer-note">Paiement unique · Accès immédiat · [Garantie ou modalité à préciser]</div>
+    <div class="offer-note">Paiement unique · Accès immédiat · <span data-field="guarantee_note">[Garantie ou modalité à préciser]</span></div>
     <a href="checkout.html" class="btn-primary">Rejoindre le pack Millionnaire Digital</a>
   </div>
 </section>
@@ -472,19 +482,22 @@
   </div>
   <div class="testi-grid" data-reveal>
     <div class="testi-card">
+      <img class="testi-avatar" data-field-img="testimonial1_avatar_url">
       <div class="testi-stars">★★★★★</div>
-      <p class="testi-text">"[Témoignage à remplacer — parle du résultat concret obtenu grâce au pack.]"</p>
-      <div class="testi-author">— [Nom, activité]</div>
+      <p class="testi-text" data-field="testimonial1_text">"[Témoignage à remplacer — parle du résultat concret obtenu grâce au pack.]"</p>
+      <div class="testi-author">— <span data-field="testimonial1_author">[Nom, activité]</span></div>
     </div>
     <div class="testi-card">
+      <img class="testi-avatar" data-field-img="testimonial2_avatar_url">
       <div class="testi-stars">★★★★★</div>
-      <p class="testi-text">"[Témoignage à remplacer.]"</p>
-      <div class="testi-author">— [Nom, activité]</div>
+      <p class="testi-text" data-field="testimonial2_text">"[Témoignage à remplacer.]"</p>
+      <div class="testi-author">— <span data-field="testimonial2_author">[Nom, activité]</span></div>
     </div>
     <div class="testi-card">
+      <img class="testi-avatar" data-field-img="testimonial3_avatar_url">
       <div class="testi-stars">★★★★★</div>
-      <p class="testi-text">"[Témoignage à remplacer.]"</p>
-      <div class="testi-author">— [Nom, activité]</div>
+      <p class="testi-text" data-field="testimonial3_text">"[Témoignage à remplacer.]"</p>
+      <div class="testi-author">— <span data-field="testimonial3_author">[Nom, activité]</span></div>
     </div>
   </div>
 </section>
@@ -497,32 +510,32 @@
   <div data-reveal>
     <div class="faq-item">
       <button class="faq-q">Comment je reçois l'accès après l'achat ? <span class="plus">+</span></button>
-      <div class="faq-a"><div class="faq-a-inner">[Réponse à préciser.]</div></div>
+      <div class="faq-a"><div class="faq-a-inner" data-field="faq1_answer">[Réponse à préciser.]</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q">L'accès est-il valable à vie ? <span class="plus">+</span></button>
-      <div class="faq-a"><div class="faq-a-inner">[Réponse à préciser.]</div></div>
+      <div class="faq-a"><div class="faq-a-inner" data-field="faq2_answer">[Réponse à préciser.]</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q">Quels moyens de paiement sont acceptés ? <span class="plus">+</span></button>
-      <div class="faq-a"><div class="faq-a-inner">[Réponse à préciser.]</div></div>
+      <div class="faq-a"><div class="faq-a-inner" data-field="faq3_answer">[Réponse à préciser.]</div></div>
     </div>
     <div class="faq-item">
       <button class="faq-q">Puis-je être remboursé si ça ne me convient pas ? <span class="plus">+</span></button>
-      <div class="faq-a"><div class="faq-a-inner">[Réponse à préciser.]</div></div>
+      <div class="faq-a"><div class="faq-a-inner" data-field="faq4_answer">[Réponse à préciser.]</div></div>
     </div>
   </div>
 </section>
 
 <section class="final">
-  <h2 class="display">Le savoir ne coûte<br>plus cher que <span style="color:var(--gold)">l'ignorance</span>.</h2>
+  <h2 class="display">Le savoir ne coûte<br>plus cher que <span class="grad2">l'ignorance</span>.</h2>
   <p>2154+ ressources. Un accès. Une décision.</p>
   <a href="checkout.html" class="btn-primary">Ouvrir mon coffre maintenant</a>
 </section>
 
 <footer>
-  <div>© 2026 Millionnaire Digital — WinAffinity</div>
-  <div>[Email de contact] · [Réseaux sociaux]</div>
+  <div>© 2026 Millionnaire Digital</div>
+  <div><span data-field="contact_email">[Email de contact]</span></div>
 </footer>
 
 <script>
@@ -580,6 +593,11 @@
     });
   }, {threshold:0.5});
   stripObserver.observe(document.querySelector('.vault-strip'));
+</script>
+
+<script src="site-content.js"></script>
+<script>
+  loadAndApplySiteContent();
 </script>
 
 </body>
