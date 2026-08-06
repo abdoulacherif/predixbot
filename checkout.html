@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paiement — Millionnaire Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://leekpay.fr/js/leekpay.js"></script>
+<style>
+  :root{
+    --paper:#fdfcf9;
+    --ink:#14121c;
+    --violet:#6d28d9;
+    --magenta:#ee1573;
+    --amber:#ffb200;
+    --teal:#00b8a9;
+    --smoke:#6b6878;
+    --line:rgba(20,18,28,0.14);
+    --error:#d92d2d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    display:flex;
+  }
+  .display{font-family:'Anton', sans-serif; text-transform:uppercase;}
+  .mono{font-family:'Space Mono', monospace;}
+
+  /* LEFT — recap panel */
+  .recap{
+    width:38%;
+    min-width:320px;
+    background:var(--ink);
+    color:var(--paper);
+    padding:56px 44px;
+    display:flex; flex-direction:column;
+    position:relative;
+    overflow:hidden;
+  }
+  .recap::before{
+    content:"";
+    position:absolute; inset:0; z-index:0;
+    background:
+      radial-gradient(circle 420px at 10% 10%, rgba(109,40,217,0.35), transparent 70%),
+      radial-gradient(circle 420px at 90% 90%, rgba(238,21,115,0.3), transparent 70%);
+  }
+  .recap > *{position:relative; z-index:1;}
+  .back-link{
+    font-family:'Space Mono',monospace; font-size:0.75rem; color:#b8b4c4;
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    width:fit-content;
+  }
+  .recap .eyebrow{
+    font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.25em;
+    color:var(--amber); text-transform:uppercase; margin-top:40px;
+  }
+  .recap h1{font-size:2.1rem; line-height:1.05; margin-top:14px;}
+  .recap h1 span{
+    background:linear-gradient(100deg, var(--violet), var(--magenta) 60%, var(--amber));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .recap-items{margin-top:38px; display:flex; flex-direction:column; gap:16px;}
+  .recap-item{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:0.9rem; color:#d8d5e2;
+    border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:14px;
+  }
+  .recap-item b{color:var(--paper); font-weight:600;}
+  .recap-total{
+    margin-top:auto; padding-top:28px; border-top:2px solid var(--amber);
+  }
+  .recap-total .label{font-family:'Space Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; color:#b8b4c4; text-transform:uppercase;}
+  .recap-total .amount{font-family:'Anton',sans-serif; font-size:2.6rem; color:var(--amber); margin-top:6px;}
+  .recap-note{font-size:0.78rem; color:#8a86a0; margin-top:14px; line-height:1.5;}
+
+  /* RIGHT — form panel */
+  .pay-panel{
+    flex:1;
+    padding:56px 8% 56px 6%;
+    display:flex; flex-direction:column;
+    max-width:640px;
+  }
+  .pay-eyebrow{font-family:'Space Mono',monospace; font-size:0.72rem; letter-spacing:0.25em; color:var(--magenta); text-transform:uppercase;}
+  .pay-panel h2{font-size:2rem; margin-top:14px; margin-bottom:8px;}
+  .pay-panel > p.sub{color:var(--smoke); margin-bottom:34px; font-size:0.95rem;}
+
+  .field{margin-bottom:20px;}
+  .field label{
+    display:block; font-family:'Space Mono',monospace; font-size:0.72rem;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--smoke); margin-bottom:8px;
+  }
+  .field input, .field select{
+    width:100%; padding:14px 16px; border:1.5px solid var(--line); border-radius:4px;
+    font-family:'Space Grotesk',sans-serif; font-size:0.95rem; background:#fff; color:var(--ink);
+    transition:border-color .2s;
+  }
+  .field input:focus, .field select:focus{
+    outline:none; border-color:var(--violet);
+  }
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .field-error{color:var(--error); font-size:0.78rem; margin-top:6px; display:none;}
+  .field.invalid input, .field.invalid select{border-color:var(--error);}
+  .field.invalid .field-error{display:block;}
+
+  .provider-note{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--smoke);
+    background:#f3f1fb; border:1px solid var(--line); border-radius:4px;
+    padding:12px 16px; margin:6px 0 24px;
+  }
+  .provider-badge{
+    font-weight:700; padding:3px 9px; border-radius:20px; color:#fff; font-size:0.7rem;
+  }
+  .provider-badge.flinpay{background:var(--violet);}
+  .provider-badge.leekpay{background:var(--teal);}
+
+  .pay-btn{
+    margin-top:8px;
+    font-family:'Space Mono', monospace; font-weight:700; font-size:0.85rem;
+    letter-spacing:0.06em; text-transform:uppercase;
+    background:linear-gradient(100deg, var(--magenta), var(--violet));
+    color:#fff; padding:18px 34px; border:none; border-radius:4px; cursor:pointer;
+    box-shadow:0 8px 24px rgba(238,21,115,0.25);
+    transition:transform .2s, box-shadow .2s, opacity .2s;
+    display:flex; align-items:center; justify-content:center; gap:12px;
+  }
+  .pay-btn:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(238,21,115,0.35);}
+  .pay-btn:disabled{opacity:0.6; cursor:not-allowed; transform:none;}
+
+  .spinner{
+    width:16px; height:16px; border:2px solid rgba(255,255,255,0.4);
+    border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:none;
+  }
+  .pay-btn.loading .spinner{display:inline-block;}
+  .pay-btn.loading .btn-label{opacity:0.85;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .secure-note{
+    text-align:center; font-family:'Space Mono',monospace; font-size:0.75rem;
+    color:var(--smoke); margin-top:18px;
+  }
+
+  .status-box{
+    margin-top:22px; padding:16px 18px; border-radius:4px; font-size:0.88rem;
+    display:none; line-height:1.5;
+  }
+  .status-box.show{display:block;}
+  .status-box.info{background:#f3f1fb; border:1px solid var(--violet); color:var(--ink);}
+  .status-box.error{background:#fdeceb; border:1px solid var(--error); color:#8a1f1f;}
+  .status-box.success{background:#eafaf3; border:1px solid var(--teal); color:#0a5c50;}
+
+  /* Success overlay */
+  .success-overlay{
+    position:fixed; inset:0; background:var(--ink); z-index:200;
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    text-align:center; color:var(--paper); padding:0 6%;
+  }
+  .success-overlay.show{display:flex;}
+  .success-overlay .check{
+    width:74px; height:74px; border-radius:50%;
+    background:linear-gradient(135deg, var(--teal), var(--violet));
+    display:flex; align-items:center; justify-content:center; margin-bottom:26px;
+    font-size:2rem;
+  }
+  .success-overlay h2{font-size:clamp(1.8rem,5vw,3rem);}
+  .success-overlay h2 span{color:var(--amber);}
+  .success-overlay p{color:#b8b4c4; margin-top:14px; max-width:420px;}
+  .success-overlay .redirect-note{
+    margin-top:30px; font-family:'Space Mono',monospace; font-size:0.78rem; color:#8a86a0;
+  }
+
+  @media (max-width:860px){
+    body{flex-direction:column;}
+    .recap{width:100%;}
+    .pay-panel{max-width:100%; padding:44px 6%;}
+    .field-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="recap">
+  <a href="millionnaire-digital.html" class="back-link mono">← Retour au coffre</a>
+  <div class="eyebrow">Récapitulatif</div>
+  <h1 class="display"><span>Millionnaire<br>Digital</span></h1>
+  <div class="recap-items">
+    <div class="recap-item"><span>Bibliothèque</span><b>2000+ ebooks</b></div>
+    <div class="recap-item"><span>Audiothèque</span><b>100+ livres audio</b></div>
+    <div class="recap-item"><span>Formations</span><b>54 vidéos</b></div>
+    <div class="recap-item"><span>Logiciels</span><b>[N] outils</b></div>
+  </div>
+  <div class="recap-total">
+    <div class="label">Total à payer</div>
+    <div class="amount mono" id="recapAmount">[PRIX]</div>
+    <div class="recap-note">Paiement sécurisé. Accès envoyé automatiquement après confirmation.</div>
+  </div>
+</div>
+
+<div class="pay-panel">
+  <div class="pay-eyebrow">Étape finale</div>
+  <h2 class="display">Finaliser le paiement</h2>
+  <p class="sub">Renseigne tes infos pour recevoir l'accès au coffre immédiatement après paiement.</p>
+
+  <form id="payForm" novalidate>
+    <div class="field" id="field-nom">
+      <label for="nom">Nom complet</label>
+      <input type="text" id="nom" name="nom" placeholder="Ex : Aïcha Koné" required>
+      <div class="field-error">Merci d'indiquer ton nom.</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field" id="field-email">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="toi@email.com" required>
+        <div class="field-error">Email invalide.</div>
+      </div>
+      <div class="field" id="field-tel">
+        <label for="tel">Numéro de téléphone (mobile money)</label>
+        <input type="tel" id="tel" name="tel" placeholder="Ex : 07 00 00 00 00" required>
+        <div class="field-error">Numéro invalide.</div>
+      </div>
+    </div>
+
+    <div class="field" id="field-pays">
+      <label for="pays">Pays</label>
+      <select id="pays" name="pays" required>
+        <option value="">Sélectionner un pays</option>
+        <optgroup label="Zone FlinPay">
+          <option value="CM">Cameroun</option>
+          <option value="TG">Togo</option>
+          <option value="CI">Côte d'Ivoire</option>
+        </optgroup>
+        <optgroup label="Zone LeekPay">
+          <option value="SN">Sénégal</option>
+          <option value="BJ">Bénin</option>
+          <option value="BF">Burkina Faso</option>
+          <option value="ML">Mali</option>
+          <option value="GN">Guinée</option>
+          <option value="OTHER">Autre pays</option>
+        </optgroup>
+      </select>
+      <div class="field-error">Sélectionne ton pays.</div>
+    </div>
+
+    <div class="provider-note" id="providerNote" style="display:none;">
+      <span class="provider-badge mono" id="providerBadge"></span>
+      <span id="providerText"></span>
+    </div>
+
+    <button type="submit" class="pay-btn" id="payBtn">
+      <span class="spinner"></span>
+      <span class="btn-label">Payer maintenant — <span id="btnAmount">[PRIX]</span></span>
+    </button>
+    <div class="secure-note">🔒 Paiement chiffré · Mobile Money & Carte bancaire</div>
+
+    <div class="status-box" id="statusBox"></div>
+  </form>
+</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="check">✓</div>
+  <h2 class="display">Paiement <span>confirmé</span></h2>
+  <p>Ton accès au coffre Millionnaire Digital est prêt. Tu vas être redirigé automatiquement.</p>
+  <div class="redirect-note mono" id="redirectCountdown">Redirection dans 3s…</div>
+</div>
+
+<script>
+/* =====================================================================
+   CONFIGURATION — à compléter
+   ===================================================================== */
+const CONFIG = {
+  amount: "[PRIX]",                 // prix affiché, ex: "15 000 XOF"
+  amountValue: 0,                    // montant numérique réel à envoyer à l'API
+  currency: "XOF",
+  contentUrl: "[URL_DU_CONTENU]",   // lien vers le contenu après paiement confirmé
+
+  // Pays couverts par FlinPay — le reste part sur LeekPay
+  flinpayCountries: ["CM", "TG", "CI"],
+
+  // LeekPay se configure côté client avec la clé PUBLIQUE (comme Stripe pk_).
+  // C'est normal et sûr d'avoir cette clé dans le code — c'est la clé secrète (sk_live_...)
+  // qui ne doit JAMAIS apparaître ici (elle reste uniquement côté backend, si besoin).
+  leekpayPublicKey: "pk_live_Au2TSvPZFUPqsygwJxptkg8qmW17s7Sq",
+
+  // FlinPay : pas encore branché — en attente des infos d'intégration.
+  // Endpoint de TON backend qui appellera FlinPay avec sa clé secrète.
+  api: {
+    flinpay: "/api/pay/flinpay",     // à remplacer par ton endpoint réel, dès que tu as les infos FlinPay
+  }
+};
+
+document.getElementById('recapAmount').textContent = CONFIG.amount;
+document.getElementById('btnAmount').textContent = CONFIG.amount;
+
+/* ===================== Provider routing ===================== */
+const paysSelect = document.getElementById('pays');
+const providerNote = document.getElementById('providerNote');
+const providerBadge = document.getElementById('providerBadge');
+const providerText = document.getElementById('providerText');
+
+function getProviderForCountry(code){
+  return CONFIG.flinpayCountries.includes(code) ? 'flinpay' : 'leekpay';
+}
+
+paysSelect.addEventListener('change', () => {
+  const code = paysSelect.value;
+  if(!code){ providerNote.style.display = 'none'; return; }
+  const provider = getProviderForCountry(code);
+  providerNote.style.display = 'flex';
+  if(provider === 'flinpay'){
+    providerBadge.textContent = 'FlinPay';
+    providerBadge.className = 'provider-badge mono flinpay';
+    providerText.textContent = "Paiement traité via FlinPay pour ta zone (bascule automatique sur LeekPay si indisponible).";
+  } else {
+    providerBadge.textContent = 'LeekPay';
+    providerBadge.className = 'provider-badge mono leekpay';
+    providerText.textContent = "Paiement traité via LeekPay pour ta zone.";
+  }
+});
+
+/* ===================== Validation ===================== */
+function setInvalid(fieldId, invalid){
+  const el = document.getElementById(fieldId);
+  el.classList.toggle('invalid', invalid);
+}
+
+function validateForm(data){
+  let valid = true;
+  if(!data.nom.trim()){ setInvalid('field-nom', true); valid = false; } else setInvalid('field-nom', false);
+  if(!/^\S+@\S+\.\S+$/.test(data.email)){ setInvalid('field-email', true); valid = false; } else setInvalid('field-email', false);
+  if(data.tel.replace(/\D/g,'').length < 8){ setInvalid('field-tel', true); valid = false; } else setInvalid('field-tel', false);
+  if(!data.pays){ setInvalid('field-pays', true); valid = false; } else setInvalid('field-pays', false);
+  return valid;
+}
+
+/* ===================== Payment: LeekPay (client) + FlinPay (backend, à venir) ===================== */
+
+// LeekPay — paiement via son widget JS avec la clé publique
+function payWithLeekPay(payload){
+  return new Promise((resolve) => {
+    LeekPay.checkout({
+      amount: payload.amount,
+      currency: payload.currency,
+      apiKey: CONFIG.leekpayPublicKey,
+      description: payload.product,
+      customer: { name: payload.nom, email: payload.email, phone: payload.tel },
+      onSuccess: function(data){
+        resolve({ success:true, redirect_url: CONFIG.contentUrl });
+      },
+      onCancel: function(){
+        resolve({ success:false, cancelled:true });
+      },
+      onError: function(err){
+        resolve({ success:false, error: err && err.message });
+      }
+    });
+  });
+}
+
+// FlinPay — pas encore branché, passera par TON backend une fois les infos fournies.
+async function payWithFlinPay(payload){
+  try{
+    const res = await fetch(CONFIG.api.flinpay, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('network');
+    const result = await res.json();
+    if(result.operator_unavailable){
+      return { operator_unavailable:true };
+    }
+    return result.success
+      ? { success:true, redirect_url: result.redirect_url || CONFIG.contentUrl }
+      : { success:false, error: result.error };
+  } catch(err){
+    // FlinPay pas encore branché côté backend → bascule automatique sur LeekPay
+    return { operator_unavailable:true };
+  }
+}
+
+async function processPayment(payload){
+  const primaryProvider = getProviderForCountry(payload.pays);
+  const statusBox = document.getElementById('statusBox');
+
+  const showStatus = (type, msg) => {
+    statusBox.className = 'status-box show ' + type;
+    statusBox.textContent = msg;
+  };
+
+  try{
+    if(primaryProvider === 'flinpay'){
+      showStatus('info', 'Connexion à FlinPay en cours…');
+      let result = await payWithFlinPay(payload);
+
+      // Opérateur/service indisponible sur FlinPay (ou pas encore branché) → bascule LeekPay
+      if(result.operator_unavailable){
+        showStatus('info', "Bascule automatique vers LeekPay…");
+        result = await payWithLeekPay(payload);
+      }
+
+      if(result.success) return result;
+      if(result.cancelled) { showStatus('info', 'Paiement annulé.'); return { success:false }; }
+      throw new Error(result.error || 'payment_failed');
+    }
+
+    // Zone LeekPay directement
+    showStatus('info', 'Connexion à LeekPay en cours…');
+    const result = await payWithLeekPay(payload);
+    if(result.success) return result;
+    if(result.cancelled) { showStatus('info', 'Paiement annulé.'); return { success:false }; }
+    throw new Error(result.error || 'payment_failed');
+
+  } catch(err){
+    showStatus('error', "Le paiement n'a pas pu être finalisé. Vérifie tes infos ou réessaie dans un instant.");
+    return { success:false };
+  }
+}
+
+/* ===================== Form submit ===================== */
+const form = document.getElementById('payForm');
+const payBtn = document.getElementById('payBtn');
+const successOverlay = document.getElementById('successOverlay');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const data = {
+    nom: document.getElementById('nom').value,
+    email: document.getElementById('email').value,
+    tel: document.getElementById('tel').value,
+    pays: document.getElementById('pays').value,
+    amount: CONFIG.amountValue,
+    currency: CONFIG.currency,
+    product: "Millionnaire Digital"
+  };
+
+  if(!validateForm(data)) return;
+
+  payBtn.disabled = true;
+  payBtn.classList.add('loading');
+
+  const result = await processPayment(data);
+
+  payBtn.disabled = false;
+  payBtn.classList.remove('loading');
+
+  if(result.success){
+    successOverlay.classList.add('show');
+    let seconds = 3;
+    const countdownEl = document.getElementById('redirectCountdown');
+    const interval = setInterval(() => {
+      seconds -= 1;
+      countdownEl.textContent = `Redirection dans ${seconds}s…`;
+      if(seconds <= 0){
+        clearInterval(interval);
+        window.location.href = result.redirect_url;
+      }
+    }, 1000);
+  }
+});
+</script>
+
+</body>
+</html>
