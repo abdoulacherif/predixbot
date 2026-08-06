@@ -428,6 +428,13 @@ form.addEventListener('submit', async (e) => {
 
   if(!validateForm(data)) return;
 
+  if(!CONFIG.amountValue || CONFIG.amountValue <= 0){
+    const statusBox = document.getElementById('statusBox');
+    statusBox.className = 'status-box show error';
+    statusBox.textContent = "Le paiement n'est pas encore configuré (prix manquant). Contacte l'administrateur du site.";
+    return;
+  }
+
   payBtn.disabled = true;
   payBtn.classList.add('loading');
 
