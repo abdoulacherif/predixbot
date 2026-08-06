@@ -196,7 +196,7 @@
   </div>
   <div class="recap-total">
     <div class="label">Total à payer</div>
-    <div class="amount mono" id="recapAmount" data-field="price">[PRIX]</div>
+    <div class="amount mono" id="recapAmount">FCFA [PRIX]</div>
     <div class="recap-note">Paiement sécurisé. Accès envoyé automatiquement après confirmation.</div>
   </div>
 </div>
@@ -250,7 +250,7 @@
 
     <button type="submit" class="pay-btn" id="payBtn">
       <span class="spinner"></span>
-      <span class="btn-label">Payer maintenant — <span id="btnAmount">[PRIX]</span></span>
+      <span class="btn-label">Payer maintenant — <span id="btnAmount">FCFA [PRIX]</span></span>
     </button>
     <div class="secure-note">🔒 Paiement chiffré · Mobile Money & Carte bancaire</div>
 
@@ -287,14 +287,14 @@ const CONFIG = {
   }
 };
 
-document.getElementById('recapAmount').textContent = CONFIG.amount;
-document.getElementById('btnAmount').textContent = CONFIG.amount;
+document.getElementById('recapAmount').textContent = 'FCFA ' + CONFIG.amount;
+document.getElementById('btnAmount').textContent = 'FCFA ' + CONFIG.amount;
 
 // Charge le contenu à jour depuis Supabase (prix, montant réel, lien du contenu, textes…)
 (async () => {
   const content = await loadAndApplySiteContent();
   if(content){
-    if(content.price) { CONFIG.amount = content.price; document.getElementById('btnAmount').textContent = content.price; }
+    if(content.price) { CONFIG.amount = content.price; document.getElementById('btnAmount').textContent = 'FCFA ' + content.price; document.getElementById('recapAmount').textContent = 'FCFA ' + content.price; }
     if(content.amount_value) CONFIG.amountValue = content.amount_value;
     if(content.currency) CONFIG.currency = content.currency;
     if(content.content_url) CONFIG.contentUrl = content.content_url;
