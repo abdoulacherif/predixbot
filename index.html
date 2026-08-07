@@ -46,8 +46,8 @@
     backdrop-filter:blur(8px);
     border-bottom:1px solid var(--line);
   }
-  .logo{font-family:'Anton',sans-serif; font-size:1.15rem; letter-spacing:0.04em;}
-  .logo span{color:var(--magenta);}
+  .logo{display:flex; align-items:center;}
+  .logo svg{display:block;}
   .nav-cta{
     font-family:'Space Mono',monospace; font-size:0.75rem; letter-spacing:0.08em;
     border:2px solid var(--ink); padding:9px 18px; border-radius:2px;
@@ -398,7 +398,23 @@
 <body>
 
 <nav>
-  <div class="logo">MILLIONNAIRE<span>.</span>DIGITAL</div>
+  <div class="logo">
+    <svg width="140" height="40" viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#6d28d9"/>
+          <stop offset="55%" stop-color="#ee1573"/>
+          <stop offset="100%" stop-color="#ffb200"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="160" height="160" rx="34" fill="url(#navGrad)"/>
+      <text x="80" y="112" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="96" fill="#fdfcf9" text-anchor="middle">M</text>
+      <circle cx="123" cy="46" r="7" fill="#fdfcf9"/>
+      <text x="188" y="76" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="40" letter-spacing="0.5" fill="#14121c">MILLIONNAIRE</text>
+      <circle cx="188" cy="94" r="4" fill="#ee1573"/>
+      <text x="200" y="108" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="40" letter-spacing="0.5" fill="#14121c">DIGITAL</text>
+    </svg>
+  </div>
   <a href="checkout.html" class="nav-cta">Accéder au pack →</a>
 </nav>
 
@@ -649,6 +665,13 @@
 <script src="site-content.js"></script>
 <script>
   loadAndApplySiteContent().then(content => {
+    // Enregistre la visite (compteur admin)
+    fetch(`${SUPABASE_URL}/rest/v1/page_views`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: 'index' })
+    }).catch(()=>{});
+
     if(content && content.urgency_deadline){
       const deadline = new Date(content.urgency_deadline).getTime();
       const countdownEl = document.getElementById('countdownDisplay');
