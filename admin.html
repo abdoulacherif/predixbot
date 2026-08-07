@@ -173,11 +173,16 @@
         <div class="save-note mono" id="videoUploadNote" style="margin-top:6px;"></div>
       </div>
       <div class="field"><label>Message d'accueil affiché après paiement</label><textarea name="access_note"></textarea></div>
-      <div class="grid-2">
-        <div class="field"><label>Lien Bibliothèque (ebooks)</label><input type="text" name="lib_access_url" placeholder="https://..."></div>
-        <div class="field"><label>Lien Audiothèque</label><input type="text" name="audio_access_url" placeholder="https://..."></div>
-        <div class="field"><label>Lien Formations</label><input type="text" name="formation_access_url" placeholder="https://..."></div>
-        <div class="field"><label>Lien Logiciels</label><input type="text" name="software_access_url" placeholder="https://..."></div>
+      <div class="field">
+        <label>★ Formation phare — un module par ligne, format : Titre | Lien</label>
+        <textarea name="formation_items_raw" rows="6" placeholder="Vidéo d'introduction | https://...
+Création vidéo avec Veo3 | https://..."></textarea>
+      </div>
+      <div class="field"><label>💬 Lien du groupe WhatsApp</label><input type="text" name="whatsapp_group_url" placeholder="https://chat.whatsapp.com/..."></div>
+      <div class="field">
+        <label>🎁 Formations bonus — une par ligne, format : Titre | Lien</label>
+        <textarea name="bonus_items_raw" rows="10" placeholder="Marketing digital et community management | https://...
+Infographie et design | https://..."></textarea>
       </div>
     </div>
 
@@ -333,6 +338,13 @@ async function populateForm(){
       preview.style.display = 'block';
     }
   });
+
+  // Convertit les listes JSON (formation_items / bonus_items) en texte "Titre | URL" par ligne
+  const toLines = (items) => (items || []).map(i => `${i.title} | ${i.url}`).join('\n');
+  const formationRaw = contentForm.querySelector('[name="formation_items_raw"]');
+  if(formationRaw) formationRaw.value = toLines(content.formation_items);
+  const bonusRaw = contentForm.querySelector('[name="bonus_items_raw"]');
+  if(bonusRaw) bonusRaw.value = toLines(content.bonus_items);
 }
 
 // Upload d'une vidéo vers le bucket dédié product-videos, retourne l'URL publique
@@ -420,6 +432,22 @@ contentForm.addEventListener('submit', async (e) => {
     const url = input.getAttribute('data-uploaded-url');
     if(url) payload[input.getAttribute('data-upload-video')] = url;
   });
+
+  // Convertit le texte "Titre | URL" (une ligne par item) en JSON pour formation_items / bonus_items
+  function parseLines(raw){
+    return (raw || '').split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
+        const [title, ...rest] = line.split('|');
+        return { title: (title || '').trim(), url: rest.join('|').trim() };
+      })
+      .filter(item => item.title && item.url);
+  }
+  payload.formation_items = parseLines(payload.formation_items_raw);
+  payload.bonus_items = parseLines(payload.bonus_items_raw);
+  delete payload.formation_items_raw;
+  delete payload.bonus_items_raw;
 
   const { error } = await supabaseClient.from('site_content').upsert(payload);
 
