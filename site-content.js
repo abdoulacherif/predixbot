@@ -35,7 +35,7 @@ function applySiteContent(content){
     const key = el.getAttribute('data-field-img');
     if(content[key]){
       el.src = content[key];
-      el.style.display = '';
+      el.style.display = 'block';
     }
   });
   window.__siteContent = content;
