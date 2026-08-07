@@ -118,6 +118,15 @@
   <form id="contentForm">
 
     <div class="panel">
+      <h2>🔥 Urgence & preuve sociale (visibles dès le hero)</h2>
+      <div class="grid-2">
+        <div class="field"><label>Texte d'urgence</label><input type="text" name="urgency_text" placeholder="Offre à ce prix pendant 24h"></div>
+        <div class="field"><label>Date limite (optionnel — active un vrai compte à rebours)</label><input type="datetime-local" name="urgency_deadline"></div>
+        <div class="field"><label>Texte de preuve sociale</label><input type="text" name="social_proof_text" placeholder="1247 personnes ont déjà débloqué le pack"></div>
+      </div>
+    </div>
+
+    <div class="panel">
       <h2>💰 Prix & offre</h2>
       <div class="grid-2">
         <div class="field"><label>Prix affiché (ex: 15 000 XOF)</label><input type="text" name="price"></div>
@@ -278,7 +287,11 @@ async function populateForm(){
   if(!content) return;
   Object.keys(content).forEach(key => {
     const input = contentForm.querySelector(`[name="${key}"]`);
-    if(input) input.value = content[key] ?? '';
+    if(input && input.type === 'datetime-local' && content[key]){
+      input.value = new Date(content[key]).toISOString().slice(0,16);
+    } else if(input){
+      input.value = content[key] ?? '';
+    }
     const preview = contentForm.querySelector(`[data-preview="${key}"]`);
     if(preview && content[key]){ preview.src = content[key]; }
   });
@@ -321,6 +334,12 @@ contentForm.addEventListener('submit', async (e) => {
 
   const payload = { id: 1, updated_at: new Date().toISOString() };
   new FormData(contentForm).forEach((value, key) => { payload[key] = value; });
+
+  // Convertit la date limite en format ISO complet (ou null si vide)
+  const deadlineInput = contentForm.querySelector('[name="urgency_deadline"]');
+  if(deadlineInput){
+    payload.urgency_deadline = deadlineInput.value ? new Date(deadlineInput.value).toISOString() : null;
+  }
 
   // Ajoute les URLs d'images téléversées
   document.querySelectorAll('[data-upload]').forEach(input => {
