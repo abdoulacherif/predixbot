@@ -65,6 +65,19 @@
   .panel h2 .n{font-family:'Space Mono',monospace; color:var(--gold); font-size:0.85rem;}
 
   .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+
+  .stat-box{background:var(--black); border:1px solid var(--line); border-radius:6px; padding:22px 24px;}
+  .stat-num{font-family:'Anton',sans-serif; font-size:2.2rem; color:var(--gold);}
+  .stat-label{font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--smoke); text-transform:uppercase; letter-spacing:0.06em; margin-top:6px;}
+
+  .table-wrap{overflow-x:auto;}
+  .clients-table{width:100%; border-collapse:collapse; font-size:0.85rem;}
+  .clients-table th{
+    text-align:left; font-family:'Space Mono',monospace; font-size:0.7rem; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--smoke); padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  .clients-table td{padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  .clients-table tr:hover td{background:rgba(242,183,5,0.04);}
   .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
 
   .img-field{display:flex; align-items:center; gap:14px; margin-top:8px;}
@@ -113,6 +126,34 @@
       <h1 class="display">Millionnaire Digital</h1>
     </div>
     <button class="btn btn-outline" id="logoutBtn">Se déconnecter</button>
+  </div>
+
+  <div class="panel">
+    <h2>📊 Statistiques</h2>
+    <div class="grid-2">
+      <div class="stat-box">
+        <div class="stat-num" id="statViews">—</div>
+        <div class="stat-label">Visites du site</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statPurchases">—</div>
+        <div class="stat-label">Paiements confirmés</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>👥 Clients</h2>
+    <div class="table-wrap">
+      <table class="clients-table" id="clientsTable">
+        <thead>
+          <tr><th>Date</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Pays</th><th>Montant</th></tr>
+        </thead>
+        <tbody id="clientsTableBody">
+          <tr><td colspan="6" class="mono" style="color:var(--smoke);">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <form id="contentForm">
@@ -293,10 +334,46 @@ async function checkSession(){
     loginScreen.style.display = 'none';
     dashboard.classList.add('show');
     await populateForm();
+    await loadStatsAndClients();
   } else {
     loginScreen.style.display = 'flex';
     dashboard.classList.remove('show');
   }
+}
+
+async function loadStatsAndClients(){
+  // Statistiques (comptage uniquement, rapide et léger)
+  const { count: viewsCount } = await supabaseClient.from('page_views').select('id', { count: 'exact', head: true });
+  const { count: purchasesCount } = await supabaseClient.from('purchases').select('id', { count: 'exact', head: true });
+  document.getElementById('statViews').textContent = viewsCount ?? '0';
+  document.getElementById('statPurchases').textContent = purchasesCount ?? '0';
+
+  // Liste des clients, plus récents en premier
+  const { data: clients, error } = await supabaseClient
+    .from('purchases')
+    .select('created_at, nom, email, tel, pays, amount, currency')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  const tbody = document.getElementById('clientsTableBody');
+  if(error){
+    tbody.innerHTML = `<tr><td colspan="6" class="mono" style="color:#e2554a;">Erreur : ${error.message}</td></tr>`;
+    return;
+  }
+  if(!clients || clients.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" class="mono" style="color:var(--smoke);">Aucun client pour l'instant</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = clients.map(c => `
+    <tr>
+      <td class="mono">${new Date(c.created_at).toLocaleString('fr-FR')}</td>
+      <td>${c.nom || '—'}</td>
+      <td>${c.email || '—'}</td>
+      <td>${c.tel || '—'}</td>
+      <td>${c.pays || '—'}</td>
+      <td class="mono">${c.amount ?? '—'} ${c.currency || ''}</td>
+    </tr>
+  `).join('');
 }
 
 loginForm.addEventListener('submit', async (e) => {
