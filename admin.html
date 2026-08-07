@@ -146,7 +146,14 @@
 
     <div class="panel">
       <h2>🔓 Accès au contenu (espace membres)</h2>
-      <div class="field"><label>Lien vidéo de présentation de la formation (YouTube, Vimeo, ou lien direct .mp4) — affichée sur la page de paiement</label><input type="text" name="formation_preview_video_url" placeholder="https://youtube.com/watch?v=..."></div>
+      <div class="field">
+        <label>Vidéo de présentation de la formation (affichée sur la page de paiement)</label>
+        <video class="img-preview" id="videoPreview" style="width:220px; height:124px; display:none;" controls></video>
+        <div class="img-field">
+          <input type="file" accept="video/*" data-upload-video="formation_preview_video_url">
+        </div>
+        <div class="save-note mono" id="videoUploadNote" style="margin-top:6px;"></div>
+      </div>
       <div class="field"><label>Message d'accueil affiché après paiement</label><textarea name="access_note"></textarea></div>
       <div class="grid-2">
         <div class="field"><label>Lien Bibliothèque (ebooks)</label><input type="text" name="lib_access_url" placeholder="https://..."></div>
@@ -296,7 +303,42 @@ async function populateForm(){
     const preview = contentForm.querySelector(`[data-preview="${key}"]`);
     if(preview && content[key]){ preview.src = content[key]; }
   });
+  if(content.formation_preview_video_url){
+    const videoPreview = document.getElementById('videoPreview');
+    videoPreview.src = content.formation_preview_video_url;
+    videoPreview.style.display = 'block';
+  }
 }
+
+// Upload d'une vidéo vers le bucket dédié product-videos, retourne l'URL publique
+async function uploadVideo(file, fieldName){
+  const ext = file.name.split('.').pop();
+  const path = `${fieldName}-${Date.now()}.${ext}`;
+  const { error } = await supabaseClient.storage.from('product-videos').upload(path, file, { upsert: true });
+  if(error) throw error;
+  const { data } = supabaseClient.storage.from('product-videos').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+document.querySelectorAll('[data-upload-video]').forEach(input => {
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if(!file) return;
+    const fieldName = input.getAttribute('data-upload-video');
+    const note = document.getElementById('videoUploadNote');
+    const preview = document.getElementById('videoPreview');
+    note.textContent = `Envoi de la vidéo en cours… (${(file.size/1024/1024).toFixed(1)} Mo)`;
+    try{
+      const url = await uploadVideo(file, fieldName);
+      input.setAttribute('data-uploaded-url', url);
+      preview.src = url;
+      preview.style.display = 'block';
+      note.textContent = "Vidéo envoyée — pense à enregistrer.";
+    } catch(err){
+      note.textContent = "Erreur lors de l'envoi de la vidéo : " + (err.message || '');
+    }
+  });
+});
 
 // Upload d'image vers le bucket Supabase Storage, retourne l'URL publique
 async function uploadImage(file, fieldName){
@@ -346,6 +388,12 @@ contentForm.addEventListener('submit', async (e) => {
   document.querySelectorAll('[data-upload]').forEach(input => {
     const url = input.getAttribute('data-uploaded-url');
     if(url) payload[input.getAttribute('data-upload')] = url;
+  });
+
+  // Ajoute l'URL de la vidéo téléversée
+  document.querySelectorAll('[data-upload-video]').forEach(input => {
+    const url = input.getAttribute('data-uploaded-url');
+    if(url) payload[input.getAttribute('data-upload-video')] = url;
   });
 
   const { error } = await supabaseClient.from('site_content').upsert(payload);
