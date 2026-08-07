@@ -145,6 +145,24 @@
     </div>
 
     <div class="panel">
+      <h2>🎬 Vidéos de la page de vente (grille de 2)</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>Vidéo 1 (gauche)</label>
+          <video class="img-preview video-upload-preview" data-video-preview="formation_video1_url" style="width:100%; height:140px; display:none;" controls></video>
+          <div class="img-field"><input type="file" accept="video/*" data-upload-video="formation_video1_url"></div>
+          <div class="save-note mono" data-video-note="formation_video1_url" style="margin-top:6px;"></div>
+        </div>
+        <div class="field">
+          <label>Vidéo 2 (droite)</label>
+          <video class="img-preview video-upload-preview" data-video-preview="formation_video2_url" style="width:100%; height:140px; display:none;" controls></video>
+          <div class="img-field"><input type="file" accept="video/*" data-upload-video="formation_video2_url"></div>
+          <div class="save-note mono" data-video-note="formation_video2_url" style="margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
       <h2>🔓 Accès au contenu (espace membres)</h2>
       <div class="field">
         <label>Vidéo de présentation de la formation (affichée sur la page de paiement)</label>
@@ -308,6 +326,13 @@ async function populateForm(){
     videoPreview.src = content.formation_preview_video_url;
     videoPreview.style.display = 'block';
   }
+  document.querySelectorAll('[data-video-preview]').forEach(preview => {
+    const key = preview.getAttribute('data-video-preview');
+    if(content[key]){
+      preview.src = content[key];
+      preview.style.display = 'block';
+    }
+  });
 }
 
 // Upload d'une vidéo vers le bucket dédié product-videos, retourne l'URL publique
@@ -325,17 +350,17 @@ document.querySelectorAll('[data-upload-video]').forEach(input => {
     const file = input.files[0];
     if(!file) return;
     const fieldName = input.getAttribute('data-upload-video');
-    const note = document.getElementById('videoUploadNote');
-    const preview = document.getElementById('videoPreview');
-    note.textContent = `Envoi de la vidéo en cours… (${(file.size/1024/1024).toFixed(1)} Mo)`;
+    const note = document.querySelector(`[data-video-note="${fieldName}"]`) || document.getElementById('videoUploadNote');
+    const preview = document.querySelector(`[data-video-preview="${fieldName}"]`)
+      || (fieldName === 'formation_preview_video_url' ? document.getElementById('videoPreview') : null);
+    if(note) note.textContent = `Envoi de la vidéo en cours… (${(file.size/1024/1024).toFixed(1)} Mo)`;
     try{
       const url = await uploadVideo(file, fieldName);
       input.setAttribute('data-uploaded-url', url);
-      preview.src = url;
-      preview.style.display = 'block';
-      note.textContent = "Vidéo envoyée — pense à enregistrer.";
+      if(preview){ preview.src = url; preview.style.display = 'block'; }
+      if(note) note.textContent = "Vidéo envoyée — pense à enregistrer.";
     } catch(err){
-      note.textContent = "Erreur lors de l'envoi de la vidéo : " + (err.message || '');
+      if(note) note.textContent = "Erreur lors de l'envoi de la vidéo : " + (err.message || '');
     }
   });
 });
