@@ -38,7 +38,29 @@ function applySiteContent(content){
       el.style.display = 'block';
     }
   });
+  document.querySelectorAll('[data-field-video]').forEach(el => {
+    const key = el.getAttribute('data-field-video');
+    renderVideoInto(el, content[key]);
+  });
   window.__siteContent = content;
+}
+
+// Affiche une vidéo (YouTube, Vimeo, ou fichier direct) dans un élément conteneur
+function renderVideoInto(slot, url){
+  if(!slot) return;
+  if(!url){
+    slot.innerHTML = '<div class="video-placeholder">Vidéo à venir</div>';
+    return;
+  }
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/);
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if(ytMatch){
+    slot.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+  } else if(vimeoMatch){
+    slot.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoMatch[1]}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
+  } else {
+    slot.innerHTML = `<video controls src="${url}"></video>`;
+  }
 }
 
 async function loadAndApplySiteContent(){
