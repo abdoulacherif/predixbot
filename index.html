@@ -143,6 +143,36 @@
   .price-tag .strike{text-decoration:line-through; opacity:0.6;}
   .price-tag .now{color:var(--magenta); font-size:1.05rem; font-weight:700;}
 
+  .urgency-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Space Mono',monospace; font-size:0.75rem; font-weight:700;
+    letter-spacing:0.04em; color:#fff;
+    background:linear-gradient(100deg, var(--magenta), var(--violet));
+    padding:9px 16px; border-radius:20px; margin-bottom:18px;
+    opacity:0; animation:riseIn .8s .1s forwards;
+  }
+  .urgency-badge .dot{width:7px; height:7px; border-radius:50%; background:#fff; animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+
+  .social-proof{
+    display:flex; align-items:center; gap:10px; margin-top:16px;
+    font-family:'Space Mono',monospace; font-size:0.82rem; color:var(--smoke);
+    opacity:0; animation:riseIn .9s .8s forwards;
+  }
+  .social-proof .avatars{display:flex;}
+  .social-proof .avatars span{
+    width:26px; height:26px; border-radius:50%; border:2px solid var(--paper);
+    background:linear-gradient(135deg, var(--violet), var(--magenta));
+    margin-left:-8px; display:inline-block;
+  }
+  .social-proof .avatars span:first-child{margin-left:0;}
+
+  .guarantee-strip{
+    display:flex; align-items:center; gap:8px; margin-top:14px;
+    font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--teal); font-weight:700;
+    opacity:0; animation:riseIn .9s .9s forwards;
+  }
+
   .scroll-cue{
     position:absolute; bottom:34px; left:6%;
     font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--smoke);
@@ -364,6 +394,7 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-eyebrow eyebrow">Le coffre-fort du savoir numérique</div>
+  <div class="urgency-badge"><span class="dot"></span> <span data-field="urgency_text">Offre à ce prix pendant 24h</span> <span id="countdownDisplay"></span></div>
   <h1 class="display">
     Devenir<br>
     <span class="grad">Millionnaire Digital</span>
@@ -373,6 +404,11 @@
     <a href="checkout.html" class="btn-primary">Débloquer le pack</a>
     <div class="price-tag">Accès complet dès FCFA <span class="now" data-field="price">[PRIX]</span> <span class="strike">FCFA <span data-field="old_price">[ANCIEN PRIX]</span></span></div>
   </div>
+  <div class="social-proof">
+    <div class="avatars"><span></span><span></span><span></span><span></span></div>
+    🔥 <span data-field="social_proof_text">1247 personnes ont déjà débloqué le pack</span>
+  </div>
+  <div class="guarantee-strip">✅ <span data-field="guarantee_note">Garantie satisfait ou remboursé</span></div>
   <div class="scroll-cue"><div class="scroll-line"></div> Découvrir le contenu</div>
 </section>
 
@@ -597,7 +633,23 @@
 
 <script src="site-content.js"></script>
 <script>
-  loadAndApplySiteContent();
+  loadAndApplySiteContent().then(content => {
+    if(content && content.urgency_deadline){
+      const deadline = new Date(content.urgency_deadline).getTime();
+      const countdownEl = document.getElementById('countdownDisplay');
+      const urgencyTextEl = document.querySelector('[data-field="urgency_text"]');
+      function tick(){
+        const diff = deadline - Date.now();
+        if(diff <= 0){ countdownEl.textContent = ''; return; }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        countdownEl.textContent = `— ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        requestAnimationFrame(() => setTimeout(tick, 1000));
+      }
+      tick();
+    }
+  });
 </script>
 
 </body>
