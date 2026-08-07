@@ -70,6 +70,24 @@
     font-size:0.9rem; color:#d8d5e2;
     border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:14px;
   }
+
+  .formation-highlight{
+    margin-top:30px; padding:22px; background:rgba(255,178,0,0.08);
+    border:1px solid rgba(255,178,0,0.35); border-radius:8px;
+  }
+  .formation-badge{
+    display:inline-block; font-family:'Space Mono',monospace; font-size:0.7rem; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--amber);
+    border:1px solid var(--amber); border-radius:20px; padding:5px 12px; margin-bottom:12px;
+  }
+  .formation-title{font-size:1.15rem; line-height:1.25; margin-bottom:8px;}
+  .formation-desc{font-size:0.85rem; color:#b8b4c4; line-height:1.55; margin-bottom:16px;}
+  .formation-video{width:100%; border-radius:6px; overflow:hidden; background:#000; aspect-ratio:16/9;}
+  .formation-video video, .formation-video iframe{width:100%; height:100%; display:block; border:0;}
+  .formation-video .placeholder{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    color:#6b6878; font-family:'Space Mono',monospace; font-size:0.75rem;
+  }
   .recap-item b{color:var(--paper); font-weight:600;}
   .recap-total{
     margin-top:auto; padding-top:28px; border-top:2px solid var(--amber);
@@ -188,8 +206,15 @@
   <a href="millionnaire-digital.html" class="back-link mono">← Retour au coffre</a>
   <div class="eyebrow">Récapitulatif</div>
   <h1 class="display grad">Millionnaire<br>Digital</h1>
+
+  <div class="formation-highlight">
+    <div class="formation-badge">★ Formation phare</div>
+    <h2 class="formation-title">Créer des vidéos avec l'IA & montage vidéo</h2>
+    <p class="formation-desc" data-field="formation_desc">Créer des vidéos avec l'IA & maîtriser le montage vidéo — puis 53 autres formations pour construire ton activité en ligne.</p>
+    <div class="formation-video" id="formationVideoSlot"></div>
+  </div>
+
   <div class="recap-items">
-    <div class="recap-item"><span>Formation phare</span><b>54 vidéos</b></div>
     <div class="recap-item"><span>Bonus — Bibliothèque</span><b>2000+ ebooks</b></div>
     <div class="recap-item"><span>Bonus — Audiothèque</span><b>100+ livres audio</b></div>
     <div class="recap-item"><span>Bonus — Logiciels</span><b><span data-field="software_count">[N]</span> outils</b></div>
@@ -299,8 +324,26 @@ document.getElementById('btnAmount').textContent = 'FCFA ' + CONFIG.amount;
     if(content.amount_value) CONFIG.amountValue = content.amount_value;
     if(content.currency) CONFIG.currency = content.currency;
     if(content.content_url) CONFIG.contentUrl = content.content_url;
+    renderFormationVideo(content.formation_preview_video_url);
   }
 })();
+
+function renderFormationVideo(url){
+  const slot = document.getElementById('formationVideoSlot');
+  if(!url){
+    slot.innerHTML = '<div class="placeholder">Vidéo de présentation à venir</div>';
+    return;
+  }
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/);
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if(ytMatch){
+    slot.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+  } else if(vimeoMatch){
+    slot.innerHTML = `<iframe src="https://player.vimeo.com/video/${vimeoMatch[1]}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
+  } else {
+    slot.innerHTML = `<video controls src="${url}"></video>`;
+  }
+}
 
 /* ===================== Provider routing (invisible côté utilisateur) ===================== */
 const paysSelect = document.getElementById('pays');
