@@ -126,12 +126,18 @@ async function verifyAndShowAccess(){
   }
 
   try{
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/purchases?token=eq.${encodeURIComponent(token)}&select=id`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_purchase_token`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_token: token })
     });
-    const rows = await res.json();
+    const isValid = await res.json();
 
-    if(!rows || rows.length === 0){
+    if(!isValid){
       loadingMsg.style.display = 'none';
       errorBox.style.display = 'block';
       accessNote.textContent = "Accès invalide.";
