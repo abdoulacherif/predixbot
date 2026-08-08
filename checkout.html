@@ -255,19 +255,8 @@
 
     <div class="field" id="field-pays">
       <label for="pays">Pays</label>
-      <select id="pays" name="pays" required>
-        <option value="">Sélectionner un pays</option>
-        <option value="CM">Cameroun</option>
-        <option value="TG">Togo</option>
-        <option value="CI">Côte d'Ivoire</option>
-        <option value="SN">Sénégal</option>
-        <option value="BJ">Bénin</option>
-        <option value="BF">Burkina Faso</option>
-        <option value="ML">Mali</option>
-        <option value="GN">Guinée</option>
-        <option value="OTHER">Autre pays</option>
-      </select>
-      <div class="field-error">Sélectionne ton pays.</div>
+      <input type="text" id="pays" name="pays" placeholder="Ex : Sénégal, Côte d'Ivoire, Cameroun..." required>
+      <div class="field-error">Indique ton pays.</div>
     </div>
 
     <div class="provider-note" id="providerNote" style="display:none;">
@@ -355,13 +344,21 @@ function renderFormationVideo(url){
 const paysSelect = document.getElementById('pays');
 const providerNote = document.getElementById('providerNote');
 
-function getProcessorForCountry(code){
-  return CONFIG.primaryProcessorCountries.includes(code) ? 'primary' : 'secondary';
+// Reconnaît le pays même écrit librement (accents, casse, fautes courantes)
+function normalizeCountry(text){
+  return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
 
-paysSelect.addEventListener('change', () => {
-  const code = paysSelect.value;
-  if(!code){ providerNote.style.display = 'none'; return; }
+function getProcessorForCountry(text){
+  const n = normalizeCountry(text);
+  const primaryMatches = ['cameroun', 'cameroon', 'togo', 'cote d ivoire', 'cote divoire', 'ivoire', 'rci'];
+  const isPrimary = primaryMatches.some(m => n.includes(normalizeCountry(m)));
+  return isPrimary ? 'primary' : 'secondary';
+}
+
+paysSelect.addEventListener('input', () => {
+  const text = paysSelect.value;
+  if(!text.trim()){ providerNote.style.display = 'none'; return; }
   providerNote.style.display = 'flex';
 });
 
@@ -376,7 +373,7 @@ function validateForm(data){
   if(!data.nom.trim()){ setInvalid('field-nom', true); valid = false; } else setInvalid('field-nom', false);
   if(!/^\S+@\S+\.\S+$/.test(data.email)){ setInvalid('field-email', true); valid = false; } else setInvalid('field-email', false);
   if(data.tel.replace(/\D/g,'').length < 8){ setInvalid('field-tel', true); valid = false; } else setInvalid('field-tel', false);
-  if(!data.pays){ setInvalid('field-pays', true); valid = false; } else setInvalid('field-pays', false);
+  if(!data.pays.trim()){ setInvalid('field-pays', true); valid = false; } else setInvalid('field-pays', false);
   return valid;
 }
 
