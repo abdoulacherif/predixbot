@@ -236,6 +236,23 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // ---- Filet de sécurité global : plus jamais d'erreur silencieuse ----
+  window.addEventListener('error', (e) => {
+    console.error('Erreur JS non gérée :', e.error || e.message);
+    document.querySelectorAll('.submit-btn').forEach(b => { b.disabled = false; });
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    console.error('Promesse rejetée non gérée :', e.reason);
+    document.querySelectorAll('.submit-btn').forEach(b => { b.disabled = false; });
+    const visible = document.querySelector('.view.active');
+    const msgBox = visible?.querySelector('.msg');
+    if (msgBox){
+      msgBox.className = 'msg error';
+      msgBox.style.display = 'block';
+      msgBox.textContent = 'Erreur inattendue : ' + (e.reason?.message || 'réessayez.');
+    }
+  });
+
   function switchView(view){
     document.getElementById('view-login').classList.toggle('active', view === 'login');
     document.getElementById('view-signup').classList.toggle('active', view === 'signup');
@@ -286,6 +303,39 @@
     return msg;
   }
 
+  // ---- Stockage temporaire des infos d'entreprise en attendant la confirmation e-mail ----
+  const CLE_ATTENTE = 'rhub_inscription_en_attente';
+
+  function sauvegarderInscriptionEnAttente(email, payload){
+    sessionStorage.setItem(CLE_ATTENTE, JSON.stringify({ email, payload }));
+  }
+  function lireInscriptionEnAttente(email){
+    const raw = sessionStorage.getItem(CLE_ATTENTE);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed.email === email ? parsed.payload : null;
+    } catch { return null; }
+  }
+  function effacerInscriptionEnAttente(){ sessionStorage.removeItem(CLE_ATTENTE); }
+
+  // Appelle la fonction sécurisée côté base qui crée entreprise + directeur en une fois
+  async function finaliserCreationEntreprise(payload){
+    const { data, error } = await sb.rpc('creer_entreprise_et_directeur', {
+      p_nom_entreprise: payload.entrepriseNom,
+      p_secteur: payload.secteur,
+      p_prenom: payload.prenom,
+      p_nom: payload.nom,
+      p_email: payload.email,
+      p_telephone: payload.telephone,
+      p_momo: payload.momo || null,
+      p_ville: payload.ville || null,
+      p_taille: payload.taille || null
+    });
+    if (error) throw error;
+    return data; // id de l'entreprise créée
+  }
+
   // ---- LOGIN ----
   document.getElementById('form-login').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -296,16 +346,52 @@
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
 
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    try {
+      const { data: signInData, error } = await sb.auth.signInWithPassword({ email, password });
 
-    btn.disabled = false; btn.textContent = 'Se connecter';
+      if (error){
+        showMsg('login-msg', 'error', traduireErreur(error.message));
+        return;
+      }
 
-    if (error){
-      showMsg('login-msg', 'error', traduireErreur(error.message));
-      return;
+      // Ce compte a-t-il déjà une entreprise créée ?
+      const { data: userRow, error: userErr } = await sb
+        .from('utilisateurs').select('id').eq('id', signInData.user.id).maybeSingle();
+
+      if (userErr){
+        showMsg('login-msg', 'error', traduireErreur(userErr.message));
+        return;
+      }
+
+      if (!userRow){
+        // Pas encore de fiche utilisateur : on finalise la création de l'entreprise maintenant
+        const enAttente = lireInscriptionEnAttente(email);
+        if (enAttente){
+          try {
+            await finaliserCreationEntreprise(enAttente);
+            effacerInscriptionEnAttente();
+            showMsg('login-msg', 'success', 'Entreprise créée avec succès. Redirection...');
+            // window.location.href = '/dashboard-directeur.html';
+          } catch (err){
+            showMsg('login-msg', 'error', traduireErreur(err.message));
+            return;
+          }
+        } else {
+          showMsg('login-msg', 'error', "Votre e-mail est confirmé mais aucune entreprise n'a été trouvée pour ce compte. Cliquez sur « Créer mon entreprise » pour recommencer.");
+          return;
+        }
+      } else {
+        showMsg('login-msg', 'success', 'Connexion réussie. Redirection...');
+        // window.location.href = '/dashboard-directeur.html';
+      }
+
+    } catch (err){
+      // Filet de sécurité : toute erreur imprévue (réseau, config Supabase, etc.) s'affiche quand même
+      console.error('Erreur de connexion :', err);
+      showMsg('login-msg', 'error', 'Erreur inattendue : ' + (err.message || 'impossible de contacter le serveur. Vérifiez votre connexion.'));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Se connecter';
     }
-    showMsg('login-msg', 'success', 'Connexion réussie. Redirection...');
-    // window.location.href = '/dashboard.html';
   });
 
   // ---- SIGNUP ----
@@ -329,54 +415,44 @@
     btn.disabled = true; btn.textContent = 'Création en cours...';
 
     const email = document.getElementById('su-email').value.trim();
-    const entrepriseNom = document.getElementById('su-entreprise-nom').value.trim();
-    const secteur = document.getElementById('su-secteur').value;
-    const taille = document.getElementById('su-taille').value;
-    const ville = document.getElementById('su-ville').value.trim();
-    const prenom = document.getElementById('su-prenom').value.trim();
-    const nom = document.getElementById('su-nom').value.trim();
-    const telephone = document.getElementById('su-telephone').value.trim();
-    const momo = document.getElementById('su-momo').value.trim();
+    const payload = {
+      entrepriseNom: document.getElementById('su-entreprise-nom').value.trim(),
+      secteur: document.getElementById('su-secteur').value,
+      taille: document.getElementById('su-taille').value,
+      ville: document.getElementById('su-ville').value.trim(),
+      prenom: document.getElementById('su-prenom').value.trim(),
+      nom: document.getElementById('su-nom').value.trim(),
+      email,
+      telephone: document.getElementById('su-telephone').value.trim(),
+      momo: document.getElementById('su-momo').value.trim()
+    };
 
     try {
       // 1. Créer le compte d'authentification
       const { data: authData, error: authError } = await sb.auth.signUp({ email, password });
-      if (authError) throw authError;
+      if (authError){
+        showMsg('signup-msg', 'error', traduireErreur(authError.message));
+        return;
+      }
 
-      const userId = authData.user?.id;
-      if (!userId) throw new Error("Compte créé — vérifiez votre e-mail pour confirmer avant de continuer.");
+      if (authData.session){
+        // Confirmation e-mail désactivée : session active immédiatement → on finalise tout de suite
+        await finaliserCreationEntreprise(payload);
+        showMsg('signup-msg', 'success', 'Entreprise créée avec succès. Redirection...');
+        // window.location.href = '/dashboard-directeur.html';
+      } else {
+        // Confirmation e-mail requise : on garde les infos en attente et on finalise après la 1ère connexion
+        sauvegarderInscriptionEnAttente(email, payload);
+        showMsg('signup-msg', 'success', 'Compte créé. Vérifiez votre e-mail pour confirmer, puis connectez-vous ici pour terminer la création de votre entreprise.');
+      }
 
-      // 2. Créer l'entreprise
-      const { data: entreprise, error: entError } = await sb
-        .from('entreprises')
-        .insert({ nom: entrepriseNom, secteur: secteur, statut: 'actif' })
-        .select()
-        .single();
-      if (entError) throw entError;
-
-      // 3. Créer la fiche utilisateur (rôle directeur)
-      const { error: userError } = await sb.from('utilisateurs').insert({
-        id: userId,
-        entreprise_id: entreprise.id,
-        role: 'directeur',
-        nom, prenom, email, telephone,
-        numero_mobile_money: momo || null,
-        statut: 'actif'
-      });
-      if (userError) throw userError;
-
-      // 4. Config d'entreprise (ville, taille — pas de valeur en dur)
-      const configs = [];
-      if (ville) configs.push({ entreprise_id: entreprise.id, cle: 'ville', valeur: ville });
-      if (taille) configs.push({ entreprise_id: entreprise.id, cle: 'taille_effectif', valeur: taille });
-      if (configs.length) await sb.from('entreprise_config').insert(configs);
-
-      showMsg('signup-msg', 'success', 'Entreprise créée avec succès. Vérifiez votre e-mail pour confirmer votre compte.');
       document.getElementById('form-signup').reset();
       pwFill.style.width = '0%';
 
     } catch (err){
-      showMsg('signup-msg', 'error', traduireErreur(err.message));
+      // Filet de sécurité : toute erreur imprévue (réseau, RPC, config Supabase) s'affiche quand même
+      console.error('Erreur d\'inscription :', err);
+      showMsg('signup-msg', 'error', 'Erreur inattendue : ' + (err.message || 'impossible de contacter le serveur. Vérifiez votre connexion.'));
     } finally {
       btn.disabled = false; btn.textContent = 'Créer mon entreprise';
     }
