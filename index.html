@@ -371,7 +371,7 @@
             await finaliserCreationEntreprise(enAttente);
             effacerInscriptionEnAttente();
             showMsg('login-msg', 'success', 'Entreprise créée avec succès. Redirection...');
-            // window.location.href = '/dashboard-directeur.html';
+            window.location.href = 'dashboard-directeur.html';
           } catch (err){
             showMsg('login-msg', 'error', traduireErreur(err.message));
             return;
@@ -382,7 +382,7 @@
         }
       } else {
         showMsg('login-msg', 'success', 'Connexion réussie. Redirection...');
-        // window.location.href = '/dashboard-directeur.html';
+        window.location.href = 'dashboard-directeur.html';
       }
 
     } catch (err){
@@ -439,7 +439,7 @@
         // Confirmation e-mail désactivée : session active immédiatement → on finalise tout de suite
         await finaliserCreationEntreprise(payload);
         showMsg('signup-msg', 'success', 'Entreprise créée avec succès. Redirection...');
-        // window.location.href = '/dashboard-directeur.html';
+        window.location.href = 'dashboard-directeur.html';
       } else {
         // Confirmation e-mail requise : on garde les infos en attente et on finalise après la 1ère connexion
         sauvegarderInscriptionEnAttente(email, payload);
