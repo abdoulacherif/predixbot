@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHub — Tableau de bord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#14162B; --ink-deep:#1F2447; --ink-soft:#2B315C;
+    --cloud:#F3F4F8; --cloud-dim:#8A93A6; --line:#E1E4EC;
+    --amber:#E7A33E; --amber-soft:#FBEBD1;
+    --mint:#48B892; --mint-soft:#DFF3EA;
+    --danger:#E2685C; --danger-soft:#FBE4E1;
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--body); background:var(--cloud); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:var(--body); cursor:pointer; }
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  .app{ display:flex; min-height:100vh; }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{ width:246px; background:var(--ink); color:#fff; flex-shrink:0; display:flex; flex-direction:column; padding:24px 16px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:1.1rem; padding:0 8px; margin-bottom:8px; }
+  .logo-mark{ width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,var(--amber),var(--mint)); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; color:var(--ink); }
+  .entreprise-name{ font-size:0.78rem; color:#9AA1C0; padding:0 8px; margin-bottom:28px; font-family:var(--mono); }
+
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:8px;
+    font-size:0.9rem; color:#B7BCD9; background:none; border:none; width:100%; text-align:left;
+    transition:background .15s ease, color .15s ease; margin-bottom:2px;
+  }
+  .nav-item .ic{ width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; opacity:0.8; }
+  .nav-item:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .nav-item.active{ background:var(--ink-soft); color:#fff; }
+  .nav-item.active .ic{ color:var(--amber); opacity:1; }
+  .nav-badge{ margin-left:auto; background:var(--amber); color:var(--ink); font-size:0.7rem; font-weight:700; padding:1px 7px; border-radius:100px; font-family:var(--mono); }
+
+  .sidebar-foot{ margin-top:auto; padding:12px 8px 0; border-top:1px solid rgba(255,255,255,0.08); }
+  .user-row{ display:flex; align-items:center; gap:10px; padding:10px 0; }
+  .avatar{ width:34px; height:34px; border-radius:9px; background:var(--ink-soft); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:600; font-size:0.85rem; color:var(--amber); flex-shrink:0; }
+  .user-meta b{ display:block; font-size:0.86rem; }
+  .user-meta span{ font-size:0.74rem; color:#9AA1C0; }
+  .logout-btn{ background:none; border:none; color:#9AA1C0; font-size:0.8rem; margin-top:6px; padding:0; }
+  .logout-btn:hover{ color:#fff; }
+
+  /* ---------- MAIN ---------- */
+  .main{ flex:1; padding:32px 40px; max-width:1180px; }
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+  .page-head h1{ font-family:var(--display); font-size:1.6rem; letter-spacing:-0.01em; }
+  .page-head p{ color:var(--cloud-dim); font-size:0.92rem; margin-top:4px; }
+  .btn-primary{ background:var(--ink); color:#fff; font-weight:600; font-size:0.88rem; padding:11px 18px; border:none; border-radius:8px; transition:background .15s ease; }
+  .btn-primary:hover{ background:var(--ink-soft); }
+  .btn-secondary{ background:#fff; border:1px solid var(--line); color:var(--ink); font-weight:600; font-size:0.85rem; padding:9px 15px; border-radius:8px; }
+  .btn-secondary:hover{ border-color:var(--cloud-dim); }
+  .btn-danger-ghost{ background:none; border:1px solid var(--danger); color:var(--danger); font-weight:600; font-size:0.8rem; padding:7px 12px; border-radius:7px; }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* ---------- STAT CARDS ---------- */
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+  .stat-card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px 22px; }
+  .stat-card .stat-label{ font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--cloud-dim); margin-bottom:10px; }
+  .stat-card .stat-value{ font-family:var(--display); font-size:1.7rem; font-weight:700; }
+  .stat-card .stat-value.amber{ color:#B87A1E; }
+  .stat-card .stat-value.mint{ color:#2E8365; }
+
+  /* ---------- CARD / TABLE ---------- */
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:24px; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line); }
+  .card-head h2{ font-family:var(--display); font-size:1.02rem; }
+  table{ width:100%; border-collapse:collapse; font-size:0.87rem; }
+  th{ text-align:left; padding:12px 22px; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; color:var(--cloud-dim); background:#FAFAFC; border-bottom:1px solid var(--line); }
+  td{ padding:14px 22px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tr:last-child td{ border-bottom:none; }
+  .empty-row td{ text-align:center; color:var(--cloud-dim); padding:34px; font-size:0.88rem; }
+
+  .pill{ font-family:var(--mono); font-size:0.72rem; padding:4px 10px; border-radius:100px; display:inline-block; }
+  .pill.actif, .pill.valide, .pill.verse{ background:var(--mint-soft); color:#1F6E4E; }
+  .pill.en_attente{ background:var(--amber-soft); color:#8A5A16; }
+  .pill.inactif, .pill.refuse, .pill.bloque, .pill.expiree, .pill.annulee{ background:var(--danger-soft); color:#9A2B2B; }
+  .pill.mineur{ background:#E4E9F4; color:#3A4270; }
+  .pill.modere{ background:var(--amber-soft); color:#8A5A16; }
+  .pill.critique{ background:var(--danger-soft); color:#9A2B2B; }
+
+  .row-actions{ display:flex; gap:8px; }
+  .icon-btn{ background:none; border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:0.8rem; color:var(--ink); }
+  .icon-btn:hover{ background:#F4F5F9; }
+  .icon-btn.confirm{ border-color:var(--mint); color:#1F6E4E; }
+  .icon-btn.reject{ border-color:var(--danger); color:#9A2B2B; }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(20,22,43,0.5); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .modal-overlay.active{ display:flex; }
+  .modal{ background:#fff; border-radius:14px; padding:28px; width:100%; max-width:440px; max-height:88vh; overflow-y:auto; }
+  .modal h3{ font-family:var(--display); font-size:1.15rem; margin-bottom:4px; }
+  .modal .modal-desc{ color:var(--cloud-dim); font-size:0.85rem; margin-bottom:20px; }
+  .field-group{ margin-bottom:16px; }
+  label{ display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; }
+  label .opt{ font-weight:400; color:var(--cloud-dim); font-size:0.76rem; }
+  input, select, textarea{ width:100%; padding:11px 13px; border:1px solid #D3D7E2; border-radius:8px; font-family:var(--body); font-size:0.9rem; }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(20,22,43,0.06); }
+  .modal-actions{ display:flex; gap:10px; margin-top:22px; }
+  .modal-actions button{ flex:1; }
+  .msg{ margin-top:14px; padding:11px 13px; border-radius:8px; font-size:0.84rem; display:none; }
+  .msg.error{ background:var(--danger-soft); color:#8A2E23; display:block; }
+  .msg.success{ background:var(--mint-soft); color:#1F6E4E; display:block; }
+
+  .invite-result{ display:none; margin-top:16px; padding:14px; background:#F4F5F9; border-radius:9px; border:1px dashed var(--line); }
+  .invite-result.active{ display:block; }
+  .invite-result code{ font-family:var(--mono); font-size:0.78rem; word-break:break-all; display:block; margin-top:8px; padding:8px; background:#fff; border-radius:6px; border:1px solid var(--line); }
+
+  .loading-state{ padding:40px; text-align:center; color:var(--cloud-dim); font-size:0.88rem; }
+
+  @media (max-width:960px){
+    .sidebar{ display:none; }
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .main{ padding:24px 18px; }
+    table{ display:block; overflow-x:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-mark">RH</span>RHub</div>
+    <div class="entreprise-name" id="sb-entreprise-name">Chargement...</div>
+
+    <button class="nav-item active" data-view="apercu" onclick="switchView('apercu')">
+      <span class="ic">◆</span> Vue d'ensemble
+    </button>
+    <button class="nav-item" data-view="postes" onclick="switchView('postes')">
+      <span class="ic">▤</span> Postes
+    </button>
+    <button class="nav-item" data-view="employes" onclick="switchView('employes')">
+      <span class="ic">◎</span> Employés
+    </button>
+    <button class="nav-item" data-view="conges" onclick="switchView('conges')">
+      <span class="ic">▦</span> Congés
+      <span class="nav-badge" id="badge-conges" style="display:none;">0</span>
+    </button>
+    <button class="nav-item" data-view="securite" onclick="switchView('securite')">
+      <span class="ic">⛊</span> Sécurité
+    </button>
+
+    <div class="sidebar-foot">
+      <div class="user-row">
+        <div class="avatar" id="user-initials">--</div>
+        <div class="user-meta">
+          <b id="user-name">Chargement...</b>
+          <span>Directeur</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="deconnexion()">Se déconnecter</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ================= VUE D'ENSEMBLE ================= -->
+    <div class="view active" id="view-apercu">
+      <div class="page-head">
+        <div>
+          <h1>Vue d'ensemble</h1>
+          <p>L'état de votre entreprise en un coup d'œil.</p>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Employés actifs</div>
+          <div class="stat-value" id="stat-employes">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Postes créés</div>
+          <div class="stat-value" id="stat-postes">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Congés en attente</div>
+          <div class="stat-value amber" id="stat-conges">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Masse salariale / mois</div>
+          <div class="stat-value mint" id="stat-masse">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Congés à traiter</h2></div>
+        <table>
+          <thead><tr><th>Employé</th><th>Type</th><th>Période</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="apercu-conges-body">
+            <tr class="empty-row"><td colspan="5">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Activité de sécurité récente</h2></div>
+        <table>
+          <thead><tr><th>Niveau</th><th>Action</th><th>Quand</th></tr></thead>
+          <tbody id="apercu-logs-body">
+            <tr class="empty-row"><td colspan="3">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= POSTES ================= -->
+    <div class="view" id="view-postes">
+      <div class="page-head">
+        <div>
+          <h1>Postes</h1>
+          <p>Chaque poste porte un salaire de base, hérité automatiquement par les employés qui y sont rattachés.</p>
+        </div>
+        <button class="btn-primary" onclick="ouvrirModal('modal-poste')">+ Nouveau poste</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Poste</th><th>Salaire de base</th><th>Employés</th><th></th></tr></thead>
+          <tbody id="postes-body">
+            <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= EMPLOYÉS ================= -->
+    <div class="view" id="view-employes">
+      <div class="page-head">
+        <div>
+          <h1>Employés</h1>
+          <p>Un employé finalise lui-même son inscription via un lien d'invitation — pour la sécurité de son compte.</p>
+        </div>
+        <button class="btn-primary" onclick="ouvrirModal('modal-invitation')">+ Inviter un employé</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Employés actifs</h2></div>
+        <table>
+          <thead><tr><th>Nom</th><th>Poste</th><th>Salaire</th><th>Statut</th></tr></thead>
+          <tbody id="employes-body">
+            <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Invitations en attente</h2></div>
+        <table>
+          <thead><tr><th>E-mail</th><th>Poste</th><th>Expire le</th><th></th></tr></thead>
+          <tbody id="invitations-body">
+            <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= CONGÉS ================= -->
+    <div class="view" id="view-conges">
+      <div class="page-head">
+        <div>
+          <h1>Congés</h1>
+          <p>Validez ou refusez les demandes de votre équipe.</p>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Employé</th><th>Type</th><th>Période</th><th>Motif</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="conges-body">
+            <tr class="empty-row"><td colspan="6">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= SÉCURITÉ ================= -->
+    <div class="view" id="view-securite">
+      <div class="page-head">
+        <div>
+          <h1>Journal de sécurité</h1>
+          <p>Chaque action sensible de votre entreprise est enregistrée ici, avec son niveau de gravité.</p>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Niveau</th><th>Action</th><th>Ressource</th><th>Quand</th></tr></thead>
+          <tbody id="securite-body">
+            <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============ MODAL: NOUVEAU POSTE ============ -->
+<div class="modal-overlay" id="modal-poste">
+  <div class="modal">
+    <h3>Nouveau poste</h3>
+    <div class="modal-desc">Le salaire de base sera proposé automatiquement à chaque employé rattaché.</div>
+    <form id="form-poste">
+      <div class="field-group">
+        <label>Nom du poste</label>
+        <input type="text" id="poste-nom" required placeholder="Ex. Vendeuse, Comptable, Livreur">
+      </div>
+      <div class="field-group">
+        <label>Salaire de base <span class="opt">FCFA / mois</span></label>
+        <input type="number" id="poste-salaire" required min="0" step="1000">
+      </div>
+      <div class="field-group">
+        <label>Description <span class="opt">optionnel</span></label>
+        <textarea id="poste-description" rows="2"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="fermerModal('modal-poste')">Annuler</button>
+        <button type="submit" class="btn-primary" id="poste-submit-btn">Créer le poste</button>
+      </div>
+      <div class="msg" id="poste-msg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: INVITER EMPLOYÉ ============ -->
+<div class="modal-overlay" id="modal-invitation">
+  <div class="modal">
+    <h3>Inviter un employé</h3>
+    <div class="modal-desc">Un lien sera généré — partagez-le par WhatsApp ou SMS pour qu'il complète son inscription.</div>
+    <form id="form-invitation">
+      <div class="field-group">
+        <label>Poste</label>
+        <select id="inv-poste" required>
+          <option value="">Sélectionner un poste</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>E-mail de l'employé</label>
+        <input type="email" id="inv-email" required>
+      </div>
+      <div class="field-group">
+        <label>Téléphone <span class="opt">optionnel</span></label>
+        <input type="tel" id="inv-telephone">
+      </div>
+      <div class="field-group">
+        <label>Salaire proposé <span class="opt">laisser vide = salaire du poste</span></label>
+        <input type="number" id="inv-salaire" min="0" step="1000">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="fermerModal('modal-invitation')">Annuler</button>
+        <button type="submit" class="btn-primary" id="inv-submit-btn">Générer l'invitation</button>
+      </div>
+      <div class="msg" id="invitation-msg"></div>
+      <div class="invite-result" id="invite-result">
+        Lien à partager avec l'employé :
+        <code id="invite-link"></code>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;   // ligne de la table utilisateurs
+  let entreprise = null;    // ligne de la table entreprises
+  let postesCache = [];
+
+  const fmtFCFA = (n) => (n || 0).toLocaleString('fr-FR') + ' FCFA';
+  const fmtDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+  const fmtDateTime = (d) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+
+  // ---------------- Navigation ----------------
+  function switchView(view){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    document.querySelector(`.nav-item[data-view="${view}"]`).classList.add('active');
+  }
+  function ouvrirModal(id){ document.getElementById(id).classList.add('active'); }
+  function fermerModal(id){
+    document.getElementById(id).classList.remove('active');
+    document.getElementById(id).querySelectorAll('.msg').forEach(m => m.style.display = 'none');
+  }
+
+  async function deconnexion(){
+    await sb.auth.signOut();
+    window.location.href = '/login-signup.html';
+  }
+
+  // ---------------- Init : charger l'utilisateur connecté et son entreprise ----------------
+  async function init(){
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user){
+      window.location.href = '/login-signup.html';
+      return;
+    }
+
+    const { data: userRow, error: userErr } = await sb
+      .from('utilisateurs').select('*').eq('id', user.id).single();
+
+    if (userErr || !userRow){
+      document.body.innerHTML = '<div class="loading-state">Impossible de charger votre profil. Reconnectez-vous.</div>';
+      return;
+    }
+    currentUser = userRow;
+
+    if (currentUser.role !== 'directeur' && currentUser.role !== 'super_admin'){
+      document.body.innerHTML = '<div class="loading-state">Cet espace est réservé aux directeurs d\'entreprise.</div>';
+      return;
+    }
+
+    const { data: entrepriseRow } = await sb
+      .from('entreprises').select('*').eq('id', currentUser.entreprise_id).single();
+    entreprise = entrepriseRow;
+
+    document.getElementById('sb-entreprise-name').textContent = entreprise?.nom || '—';
+    document.getElementById('user-name').textContent = `${currentUser.prenom} ${currentUser.nom}`;
+    document.getElementById('user-initials').textContent =
+      (currentUser.prenom[0] || '') + (currentUser.nom[0] || '');
+
+    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite()]);
+  }
+
+  // ---------------- Vue d'ensemble ----------------
+  async function chargerApercu(){
+    const { data: employes } = await sb.from('utilisateurs')
+      .select('id, salaire_reel, poste_id, statut').eq('entreprise_id', currentUser.entreprise_id).eq('role','employe');
+    const { data: postes } = await sb.from('postes').select('id, salaire_base').eq('entreprise_id', currentUser.entreprise_id);
+    const { data: congesEnAttente } = await sb.from('conges')
+      .select('id, utilisateur_id, type_conge, date_debut, date_fin, statut')
+      .eq('entreprise_id', currentUser.entreprise_id).eq('statut','en_attente')
+      .order('created_at', { ascending:false }).limit(5);
+    const { data: logs } = await sb.from('logs_securite')
+      .select('niveau, action, created_at')
+      .eq('entreprise_id', currentUser.entreprise_id)
+      .order('created_at', { ascending:false }).limit(6);
+
+    const actifs = (employes || []).filter(e => e.statut === 'actif');
+    document.getElementById('stat-employes').textContent = actifs.length;
+    document.getElementById('stat-postes').textContent = (postes || []).length;
+
+    const posteMap = Object.fromEntries((postes || []).map(p => [p.id, p.salaire_base]));
+    const masse = actifs.reduce((sum, e) => sum + Number(e.salaire_reel || posteMap[e.poste_id] || 0), 0);
+    document.getElementById('stat-masse').textContent = fmtFCFA(masse);
+
+    const nbCongesAttente = (congesEnAttente || []).length;
+    document.getElementById('stat-conges').textContent = nbCongesAttente;
+    const badge = document.getElementById('badge-conges');
+    if (nbCongesAttente > 0){ badge.style.display = 'inline-block'; badge.textContent = nbCongesAttente; }
+
+    // Congés à traiter (aperçu)
+    const congesBody = document.getElementById('apercu-conges-body');
+    if (!congesEnAttente || congesEnAttente.length === 0){
+      congesBody.innerHTML = '<tr class="empty-row"><td colspan="5">Aucun congé en attente.</td></tr>';
+    } else {
+      const nomsIds = [...new Set(congesEnAttente.map(c => c.utilisateur_id))];
+      const { data: noms } = await sb.from('utilisateurs').select('id, nom, prenom').in('id', nomsIds);
+      const nomMap = Object.fromEntries((noms || []).map(u => [u.id, `${u.prenom} ${u.nom}`]));
+      congesBody.innerHTML = congesEnAttente.map(c => `
+        <tr>
+          <td>${nomMap[c.utilisateur_id] || '—'}</td>
+          <td>${c.type_conge}</td>
+          <td>${fmtDate(c.date_debut)} → ${fmtDate(c.date_fin)}</td>
+          <td><span class="pill en_attente">En attente</span></td>
+          <td class="row-actions">
+            <button class="icon-btn confirm" onclick="traiterConge('${c.id}','valide')">Valider</button>
+            <button class="icon-btn reject" onclick="traiterConge('${c.id}','refuse')">Refuser</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // Logs récents (aperçu)
+    const logsBody = document.getElementById('apercu-logs-body');
+    if (!logs || logs.length === 0){
+      logsBody.innerHTML = '<tr class="empty-row"><td colspan="3">Aucune activité récente.</td></tr>';
+    } else {
+      logsBody.innerHTML = logs.map(l => `
+        <tr>
+          <td><span class="pill ${l.niveau}">${l.niveau}</span></td>
+          <td>${l.action}</td>
+          <td>${fmtDateTime(l.created_at)}</td>
+        </tr>`).join('');
+    }
+  }
+
+  // ---------------- Postes ----------------
+  async function chargerPostes(){
+    const { data: postes } = await sb.from('postes').select('*')
+      .eq('entreprise_id', currentUser.entreprise_id).order('created_at', { ascending:false });
+    postesCache = postes || [];
+
+    const { data: employes } = await sb.from('utilisateurs').select('poste_id')
+      .eq('entreprise_id', currentUser.entreprise_id).eq('role','employe').eq('statut','actif');
+    const compteParPoste = {};
+    (employes || []).forEach(e => { compteParPoste[e.poste_id] = (compteParPoste[e.poste_id] || 0) + 1; });
+
+    const body = document.getElementById('postes-body');
+    if (postesCache.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucun poste créé pour le moment.</td></tr>';
+    } else {
+      body.innerHTML = postesCache.map(p => `
+        <tr>
+          <td><b>${p.nom_poste}</b></td>
+          <td>${fmtFCFA(p.salaire_base)}</td>
+          <td>${compteParPoste[p.id] || 0}</td>
+          <td></td>
+        </tr>`).join('');
+    }
+
+    // Alimente le select du modal d'invitation
+    const select = document.getElementById('inv-poste');
+    select.innerHTML = '<option value="">Sélectionner un poste</option>' +
+      postesCache.map(p => `<option value="${p.id}">${p.nom_poste} — ${fmtFCFA(p.salaire_base)}</option>`).join('');
+  }
+
+  document.getElementById('form-poste').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('poste-submit-btn');
+    btn.disabled = true; btn.textContent = 'Création...';
+
+    const nom_poste = document.getElementById('poste-nom').value.trim();
+    const salaire_base = Number(document.getElementById('poste-salaire').value);
+    const description = document.getElementById('poste-description').value.trim();
+
+    const { error } = await sb.from('postes').insert({
+      entreprise_id: currentUser.entreprise_id, nom_poste, salaire_base, description: description || null
+    });
+
+    btn.disabled = false; btn.textContent = 'Créer le poste';
+
+    const msg = document.getElementById('poste-msg');
+    if (error){
+      msg.className = 'msg error'; msg.style.display = 'block'; msg.textContent = error.message;
+      return;
+    }
+    document.getElementById('form-poste').reset();
+    fermerModal('modal-poste');
+    await Promise.all([chargerPostes(), chargerApercu()]);
+  });
+
+  // ---------------- Employés ----------------
+  async function chargerEmployes(){
+    const { data: employes } = await sb.from('utilisateurs')
+      .select('id, nom, prenom, salaire_reel, poste_id, statut')
+      .eq('entreprise_id', currentUser.entreprise_id).eq('role','employe')
+      .order('created_at', { ascending:false });
+
+    const { data: postes } = await sb.from('postes').select('id, nom_poste, salaire_base')
+      .eq('entreprise_id', currentUser.entreprise_id);
+    const posteMap = Object.fromEntries((postes || []).map(p => [p.id, p]));
+
+    const body = document.getElementById('employes-body');
+    if (!employes || employes.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucun employé pour le moment. Invitez votre première recrue.</td></tr>';
+    } else {
+      body.innerHTML = employes.map(e => {
+        const poste = posteMap[e.poste_id];
+        const salaire = e.salaire_reel || poste?.salaire_base || 0;
+        return `
+        <tr>
+          <td><b>${e.prenom} ${e.nom}</b></td>
+          <td>${poste?.nom_poste || '—'}</td>
+          <td>${fmtFCFA(salaire)}</td>
+          <td><span class="pill ${e.statut}">${e.statut}</span></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  // ---------------- Invitations ----------------
+  async function chargerInvitations(){
+    const { data: invitations } = await sb.from('invitations')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id)
+      .eq('statut', 'en_attente').order('created_at', { ascending:false });
+
+    const posteMap = Object.fromEntries(postesCache.map(p => [p.id, p.nom_poste]));
+
+    const body = document.getElementById('invitations-body');
+    if (!invitations || invitations.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucune invitation en attente.</td></tr>';
+    } else {
+      body.innerHTML = invitations.map(i => `
+        <tr>
+          <td>${i.email}</td>
+          <td>${posteMap[i.poste_id] || '—'}</td>
+          <td>${fmtDate(i.expire_le)}</td>
+          <td class="row-actions">
+            <button class="icon-btn reject" onclick="annulerInvitation('${i.id}')">Annuler</button>
+          </td>
+        </tr>`).join('');
+    }
+  }
+
+  document.getElementById('form-invitation').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('inv-submit-btn');
+    btn.disabled = true; btn.textContent = 'Génération...';
+    document.getElementById('invite-result').classList.remove('active');
+
+    const poste_id = document.getElementById('inv-poste').value;
+    const email = document.getElementById('inv-email').value.trim();
+    const telephone = document.getElementById('inv-telephone').value.trim();
+    const salaireInput = document.getElementById('inv-salaire').value;
+
+    const { data, error } = await sb.from('invitations').insert({
+      entreprise_id: currentUser.entreprise_id,
+      poste_id,
+      email,
+      telephone: telephone || null,
+      salaire_propose: salaireInput ? Number(salaireInput) : null,
+      cree_par: currentUser.id
+    }).select().single();
+
+    btn.disabled = false; btn.textContent = 'Générer l\'invitation';
+
+    const msg = document.getElementById('invitation-msg');
+    if (error){
+      msg.className = 'msg error'; msg.style.display = 'block'; msg.textContent = error.message;
+      return;
+    }
+
+    const lien = `${window.location.origin}/rejoindre.html?code=${data.code}`;
+    document.getElementById('invite-link').textContent = lien;
+    document.getElementById('invite-result').classList.add('active');
+    msg.className = 'msg success'; msg.style.display = 'block'; msg.textContent = 'Invitation créée. Partagez le lien ci-dessous.';
+
+    await chargerInvitations();
+  });
+
+  async function annulerInvitation(id){
+    await sb.from('invitations').update({ statut: 'annulee' }).eq('id', id);
+    await chargerInvitations();
+  }
+
+  // ---------------- Congés ----------------
+  async function chargerConges(){
+    const { data: conges } = await sb.from('conges').select('*')
+      .eq('entreprise_id', currentUser.entreprise_id).order('created_at', { ascending:false }).limit(30);
+
+    const body = document.getElementById('conges-body');
+    if (!conges || conges.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">Aucune demande de congé pour le moment.</td></tr>';
+      return;
+    }
+
+    const ids = [...new Set(conges.map(c => c.utilisateur_id))];
+    const { data: noms } = await sb.from('utilisateurs').select('id, nom, prenom').in('id', ids);
+    const nomMap = Object.fromEntries((noms || []).map(u => [u.id, `${u.prenom} ${u.nom}`]));
+
+    body.innerHTML = conges.map(c => `
+      <tr>
+        <td>${nomMap[c.utilisateur_id] || '—'}</td>
+        <td>${c.type_conge}</td>
+        <td>${fmtDate(c.date_debut)} → ${fmtDate(c.date_fin)}</td>
+        <td>${c.motif || '—'}</td>
+        <td><span class="pill ${c.statut}">${c.statut.replace('_',' ')}</span></td>
+        <td class="row-actions">
+          ${c.statut === 'en_attente' ? `
+            <button class="icon-btn confirm" onclick="traiterConge('${c.id}','valide')">Valider</button>
+            <button class="icon-btn reject" onclick="traiterConge('${c.id}','refuse')">Refuser</button>
+          ` : ''}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function traiterConge(id, statut){
+    await sb.from('conges').update({ statut, valide_par: currentUser.id }).eq('id', id);
+    await Promise.all([chargerConges(), chargerApercu()]);
+  }
+
+  // ---------------- Sécurité ----------------
+  async function chargerSecurite(){
+    const { data: logs } = await sb.from('logs_securite').select('*')
+      .eq('entreprise_id', currentUser.entreprise_id)
+      .order('created_at', { ascending:false }).limit(50);
+
+    const body = document.getElementById('securite-body');
+    if (!logs || logs.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucun événement enregistré.</td></tr>';
+      return;
+    }
+    body.innerHTML = logs.map(l => `
+      <tr>
+        <td><span class="pill ${l.niveau}">${l.niveau}</span></td>
+        <td>${l.action}</td>
+        <td>${l.ressource || '—'}</td>
+        <td>${fmtDateTime(l.created_at)}</td>
+      </tr>`).join('');
+  }
+
+  init();
+</script>
+
+</body>
+</html>
