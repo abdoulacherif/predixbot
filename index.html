@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHub — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#14162B; --ink-deep:#1F2447; --ink-soft:#2B315C;
+    --cloud:#EDEFF4; --cloud-dim:#8A93A6;
+    --amber:#E7A33E; --amber-soft:#F4CE8E;
+    --mint:#48B892; --danger:#E2685C;
+    --line:rgba(20,22,43,0.12);
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    font-family:var(--body); background:var(--ink); color:var(--ink);
+    min-height:100vh; display:flex; -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; }
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  /* Left brand panel */
+  .brand-panel{
+    flex:0 0 42%; background:linear-gradient(160deg,var(--ink),var(--ink-deep));
+    color:var(--cloud); padding:56px; display:flex; flex-direction:column; justify-content:space-between;
+    position:relative; overflow:hidden;
+  }
+  .brand-panel::before{
+    content:''; position:absolute; top:-30%; right:-20%; width:500px; height:500px;
+    background:radial-gradient(circle, rgba(231,163,62,0.16), transparent 70%);
+  }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:1.2rem; position:relative; }
+  .logo-mark{ width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--amber),var(--mint)); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.72rem; color:var(--ink); }
+  .brand-copy{ position:relative; }
+  .brand-copy h1{ font-family:var(--display); font-size:2rem; line-height:1.2; letter-spacing:-0.01em; margin-bottom:16px; max-width:380px; }
+  .brand-copy p{ color:var(--cloud-dim); line-height:1.6; max-width:360px; font-size:0.98rem; }
+  .brand-chain{ display:flex; flex-direction:column; gap:10px; margin-top:34px; position:relative; }
+  .chain-step{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:0.82rem; color:var(--cloud-dim); }
+  .chain-step .dot{ width:6px; height:6px; border-radius:50%; background:var(--amber); flex:0 0 6px; }
+  .chain-step:last-child .dot{ background:var(--mint); }
+  .brand-foot{ font-size:0.78rem; color:var(--cloud-dim); position:relative; }
+
+  /* Right form panel */
+  .form-panel{ flex:1; background:var(--cloud); display:flex; align-items:center; justify-content:center; padding:48px 24px; }
+  .form-card{ width:100%; max-width:440px; }
+  .tabs{ display:flex; gap:4px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:4px; margin-bottom:32px; }
+  .tab{ flex:1; text-align:center; padding:10px; border-radius:7px; font-size:0.9rem; font-weight:600; color:var(--cloud-dim); cursor:pointer; transition:background .15s ease,color .15s ease; background:none; border:none; font-family:var(--body); }
+  .tab.active{ background:var(--ink); color:#fff; }
+
+  .form-title{ font-family:var(--display); font-size:1.5rem; font-weight:700; letter-spacing:-0.01em; margin-bottom:6px; }
+  .form-desc{ color:#5A6178; font-size:0.9rem; margin-bottom:28px; }
+
+  .field-group{ margin-bottom:18px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  label{ display:block; font-size:0.82rem; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  label .opt{ font-weight:400; color:var(--cloud-dim); font-size:0.78rem; }
+  input, select{
+    width:100%; padding:12px 14px; border:1px solid #D3D7E2; border-radius:8px;
+    font-family:var(--body); font-size:0.92rem; background:#fff; color:var(--ink);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus, select:focus{ border-color:var(--ink); box-shadow:0 0 0 3px rgba(20,22,43,0.06); outline:none; }
+  input.invalid{ border-color:var(--danger); }
+
+  .pw-meter{ height:4px; border-radius:2px; background:#E3E6EE; margin-top:8px; overflow:hidden; }
+  .pw-meter-fill{ height:100%; width:0%; background:var(--danger); transition:width .2s ease, background .2s ease; }
+  .pw-hint{ font-size:0.78rem; color:var(--cloud-dim); margin-top:6px; font-family:var(--mono); }
+  .pw-hint.ok{ color:var(--mint); }
+
+  .section-divider{ font-family:var(--mono); font-size:0.72rem; letter-spacing:0.04em; text-transform:uppercase; color:var(--cloud-dim); margin:26px 0 14px; padding-top:14px; border-top:1px solid var(--line); }
+
+  .submit-btn{
+    width:100%; background:var(--amber); color:var(--ink); font-weight:700; font-size:0.98rem;
+    padding:14px; border:none; border-radius:9px; cursor:pointer; margin-top:8px;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .submit-btn:hover{ background:var(--amber-soft); transform:translateY(-1px); }
+  .submit-btn:disabled{ opacity:0.55; cursor:not-allowed; transform:none; }
+
+  .msg{ margin-top:16px; padding:12px 14px; border-radius:8px; font-size:0.86rem; display:none; }
+  .msg.error{ background:#FBE4E1; color:#8A2E23; display:block; }
+  .msg.success{ background:#E1F3EB; color:#1F6E4E; display:block; }
+
+  .switch-line{ text-align:center; font-size:0.86rem; color:#5A6178; margin-top:22px; }
+  .switch-line button{ background:none; border:none; color:var(--ink); font-weight:600; cursor:pointer; font-family:var(--body); font-size:0.86rem; text-decoration:underline; }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  @media (max-width:900px){
+    .brand-panel{ display:none; }
+    .field-row{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-panel">
+  <div class="logo"><span class="logo-mark">RH</span>RHub</div>
+  <div class="brand-copy">
+    <h1>Une entreprise, ses postes, ses employés — et leur salaire versé au bon endroit.</h1>
+    <p>Chaque compte entreprise est isolé : personne d'autre ne voit vos postes, vos employés ou vos bulletins de paie.</p>
+    <div class="brand-chain">
+      <div class="chain-step"><span class="dot"></span>Créez votre entreprise</div>
+      <div class="chain-step"><span class="dot"></span>Ajoutez vos postes et leurs salaires</div>
+      <div class="chain-step"><span class="dot"></span>Rattachez vos employés</div>
+      <div class="chain-step"><span class="dot"></span>Versez la paie en Mobile Money</div>
+    </div>
+  </div>
+  <div class="brand-foot">RHub — plateforme RH multi-entreprises</div>
+</div>
+
+<div class="form-panel">
+  <div class="form-card">
+    <div class="tabs">
+      <button class="tab active" id="tab-login" onclick="switchView('login')">Connexion</button>
+      <button class="tab" id="tab-signup" onclick="switchView('signup')">Créer mon entreprise</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="view active" id="view-login">
+      <div class="form-title">Content de vous revoir</div>
+      <div class="form-desc">Connectez-vous à l'espace de votre entreprise.</div>
+      <form id="form-login">
+        <div class="field-group">
+          <label for="login-email">Adresse e-mail</label>
+          <input type="email" id="login-email" required autocomplete="email">
+        </div>
+        <div class="field-group">
+          <label for="login-password">Mot de passe</label>
+          <input type="password" id="login-password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="submit-btn" id="login-btn">Se connecter</button>
+        <div class="msg" id="login-msg"></div>
+      </form>
+      <div class="switch-line">Pas encore de compte ? <button onclick="switchView('signup')">Créer mon entreprise</button></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="view" id="view-signup">
+      <div class="form-title">Créer votre entreprise</div>
+      <div class="form-desc">Vous serez enregistré comme directeur de cette entreprise.</div>
+      <form id="form-signup">
+
+        <div class="section-divider" style="margin-top:0; border-top:none; padding-top:0;">Votre entreprise</div>
+        <div class="field-group">
+          <label for="su-entreprise-nom">Nom de l'entreprise</label>
+          <input type="text" id="su-entreprise-nom" required>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="su-secteur">Secteur d'activité</label>
+            <select id="su-secteur" required>
+              <option value="">Sélectionner</option>
+              <option>Commerce / Boutique</option>
+              <option>Restauration</option>
+              <option>Bâtiment / BTP</option>
+              <option>Services</option>
+              <option>Technologie</option>
+              <option>Agriculture</option>
+              <option>Transport</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="su-taille">Nombre d'employés <span class="opt">approx.</span></label>
+            <select id="su-taille">
+              <option value="">Sélectionner</option>
+              <option>1 à 5</option>
+              <option>6 à 20</option>
+              <option>21 à 50</option>
+              <option>51 et plus</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="su-ville">Ville</label>
+          <input type="text" id="su-ville" required>
+        </div>
+
+        <div class="section-divider">Vous, en tant que directeur</div>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="su-prenom">Prénom</label>
+            <input type="text" id="su-prenom" required>
+          </div>
+          <div class="field-group">
+            <label for="su-nom">Nom</label>
+            <input type="text" id="su-nom" required>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="su-email">Adresse e-mail</label>
+          <input type="email" id="su-email" required autocomplete="email">
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="su-telephone">Téléphone</label>
+            <input type="tel" id="su-telephone" required placeholder="6XX XXX XXX">
+          </div>
+          <div class="field-group">
+            <label for="su-momo">Numéro Mobile Money <span class="opt">optionnel</span></label>
+            <input type="tel" id="su-momo" placeholder="6XX XXX XXX">
+          </div>
+        </div>
+
+        <div class="section-divider">Sécurité du compte</div>
+        <div class="field-group">
+          <label for="su-password">Mot de passe <span class="opt">10 caractères minimum</span></label>
+          <input type="password" id="su-password" required minlength="10" autocomplete="new-password">
+          <div class="pw-meter"><div class="pw-meter-fill" id="pw-meter-fill"></div></div>
+          <div class="pw-hint" id="pw-hint">10 caractères minimum</div>
+        </div>
+        <div class="field-group">
+          <label for="su-password2">Confirmer le mot de passe</label>
+          <input type="password" id="su-password2" required minlength="10" autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="submit-btn" id="signup-btn">Créer mon entreprise</button>
+        <div class="msg" id="signup-msg"></div>
+      </form>
+      <div class="switch-line">Déjà un compte ? <button onclick="switchView('login')">Se connecter</button></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ---- Config Supabase ----
+  const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function switchView(view){
+    document.getElementById('view-login').classList.toggle('active', view === 'login');
+    document.getElementById('view-signup').classList.toggle('active', view === 'signup');
+    document.getElementById('tab-login').classList.toggle('active', view === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', view === 'signup');
+  }
+
+  function showMsg(id, type, text){
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.textContent = text;
+  }
+
+  // ---- Password strength meter ----
+  const pwInput = document.getElementById('su-password');
+  const pwFill = document.getElementById('pw-meter-fill');
+  const pwHint = document.getElementById('pw-hint');
+  pwInput.addEventListener('input', () => {
+    const val = pwInput.value;
+    let score = 0;
+    if (val.length >= 10) score += 40;
+    if (/[A-Z]/.test(val)) score += 20;
+    if (/[0-9]/.test(val)) score += 20;
+    if (/[^A-Za-z0-9]/.test(val)) score += 20;
+    pwFill.style.width = Math.min(score,100) + '%';
+    if (val.length < 10){
+      pwFill.style.background = 'var(--danger)';
+      pwHint.textContent = `Encore ${10 - val.length} caractère(s) minimum`;
+      pwHint.className = 'pw-hint';
+    } else if (score < 70){
+      pwFill.style.background = 'var(--amber)';
+      pwHint.textContent = 'Correct — ajoutez une majuscule ou un chiffre pour renforcer';
+      pwHint.className = 'pw-hint';
+    } else {
+      pwFill.style.background = 'var(--mint)';
+      pwHint.textContent = 'Mot de passe solide';
+      pwHint.className = 'pw-hint ok';
+    }
+  });
+
+  // ---- Traduction des erreurs Supabase courantes ----
+  function traduireErreur(msg){
+    if (!msg) return "Une erreur est survenue. Réessayez.";
+    if (msg.includes('already registered') || msg.includes('already exists')) return "Cette adresse e-mail est déjà utilisée.";
+    if (msg.includes('Invalid login credentials')) return "E-mail ou mot de passe incorrect.";
+    if (msg.includes('Password should be at least')) return "Le mot de passe doit contenir au moins 10 caractères.";
+    if (msg.includes('rate limit')) return "Trop de tentatives. Réessayez dans quelques minutes.";
+    return msg;
+  }
+
+  // ---- LOGIN ----
+  document.getElementById('form-login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Connexion...';
+    document.getElementById('login-msg').style.display = 'none';
+
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false; btn.textContent = 'Se connecter';
+
+    if (error){
+      showMsg('login-msg', 'error', traduireErreur(error.message));
+      return;
+    }
+    showMsg('login-msg', 'success', 'Connexion réussie. Redirection...');
+    // window.location.href = '/dashboard.html';
+  });
+
+  // ---- SIGNUP ----
+  document.getElementById('form-signup').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    document.getElementById('signup-msg').style.display = 'none';
+
+    const password = document.getElementById('su-password').value;
+    const password2 = document.getElementById('su-password2').value;
+
+    if (password.length < 10){
+      showMsg('signup-msg', 'error', 'Le mot de passe doit contenir au moins 10 caractères.');
+      return;
+    }
+    if (password !== password2){
+      showMsg('signup-msg', 'error', 'Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true; btn.textContent = 'Création en cours...';
+
+    const email = document.getElementById('su-email').value.trim();
+    const entrepriseNom = document.getElementById('su-entreprise-nom').value.trim();
+    const secteur = document.getElementById('su-secteur').value;
+    const taille = document.getElementById('su-taille').value;
+    const ville = document.getElementById('su-ville').value.trim();
+    const prenom = document.getElementById('su-prenom').value.trim();
+    const nom = document.getElementById('su-nom').value.trim();
+    const telephone = document.getElementById('su-telephone').value.trim();
+    const momo = document.getElementById('su-momo').value.trim();
+
+    try {
+      // 1. Créer le compte d'authentification
+      const { data: authData, error: authError } = await sb.auth.signUp({ email, password });
+      if (authError) throw authError;
+
+      const userId = authData.user?.id;
+      if (!userId) throw new Error("Compte créé — vérifiez votre e-mail pour confirmer avant de continuer.");
+
+      // 2. Créer l'entreprise
+      const { data: entreprise, error: entError } = await sb
+        .from('entreprises')
+        .insert({ nom: entrepriseNom, secteur: secteur, statut: 'actif' })
+        .select()
+        .single();
+      if (entError) throw entError;
+
+      // 3. Créer la fiche utilisateur (rôle directeur)
+      const { error: userError } = await sb.from('utilisateurs').insert({
+        id: userId,
+        entreprise_id: entreprise.id,
+        role: 'directeur',
+        nom, prenom, email, telephone,
+        numero_mobile_money: momo || null,
+        statut: 'actif'
+      });
+      if (userError) throw userError;
+
+      // 4. Config d'entreprise (ville, taille — pas de valeur en dur)
+      const configs = [];
+      if (ville) configs.push({ entreprise_id: entreprise.id, cle: 'ville', valeur: ville });
+      if (taille) configs.push({ entreprise_id: entreprise.id, cle: 'taille_effectif', valeur: taille });
+      if (configs.length) await sb.from('entreprise_config').insert(configs);
+
+      showMsg('signup-msg', 'success', 'Entreprise créée avec succès. Vérifiez votre e-mail pour confirmer votre compte.');
+      document.getElementById('form-signup').reset();
+      pwFill.style.width = '0%';
+
+    } catch (err){
+      showMsg('signup-msg', 'error', traduireErreur(err.message));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Créer mon entreprise';
+    }
+  });
+</script>
+
+</body>
+</html>
