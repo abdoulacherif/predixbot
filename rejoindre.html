@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHub — Rejoindre mon entreprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#14162B; --ink-deep:#1F2447;
+    --cloud:#F3F4F8; --cloud-dim:#8A93A6; --line:#E1E4EC;
+    --amber:#E7A33E; --amber-soft:#FBEBD1;
+    --mint:#48B892; --mint-soft:#DFF3EA;
+    --danger:#E2685C; --danger-soft:#FBE4E1;
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    font-family:var(--body); background:var(--ink); color:var(--ink); min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:24px; -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; }
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  .card{ background:var(--cloud); border-radius:16px; padding:38px; width:100%; max-width:440px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:1.1rem; margin-bottom:22px; }
+  .logo-mark{ width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,var(--amber),var(--mint)); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; color:var(--ink); }
+
+  .invite-banner{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:26px; }
+  .invite-banner .tag{ font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--cloud-dim); margin-bottom:6px; }
+  .invite-banner .entreprise{ font-family:var(--display); font-weight:700; font-size:1.1rem; }
+  .invite-banner .poste{ color:#4A5070; font-size:0.9rem; margin-top:2px; }
+
+  .form-title{ font-family:var(--display); font-size:1.3rem; font-weight:700; margin-bottom:6px; }
+  .form-desc{ color:#5A6178; font-size:0.88rem; margin-bottom:24px; }
+
+  .field-group{ margin-bottom:16px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  label{ display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; }
+  label .opt{ font-weight:400; color:var(--cloud-dim); font-size:0.76rem; }
+  input{ width:100%; padding:12px 14px; border:1px solid #D3D7E2; border-radius:8px; font-family:var(--body); font-size:0.9rem; background:#fff; color:var(--ink); }
+  input:focus{ outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(20,22,43,0.06); }
+  input:disabled{ background:#EDEFF4; color:var(--cloud-dim); }
+
+  .pw-meter{ height:4px; border-radius:2px; background:#E3E6EE; margin-top:8px; overflow:hidden; }
+  .pw-meter-fill{ height:100%; width:0%; background:var(--danger); transition:width .2s ease, background .2s ease; }
+  .pw-hint{ font-size:0.78rem; color:var(--cloud-dim); margin-top:6px; font-family:var(--mono); }
+  .pw-hint.ok{ color:#1F6E4E; }
+
+  .submit-btn{
+    width:100%; background:var(--amber); color:var(--ink); font-weight:700; font-size:0.96rem;
+    padding:14px; border:none; border-radius:9px; cursor:pointer; margin-top:6px;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .submit-btn:hover{ background:#F4CE8E; transform:translateY(-1px); }
+  .submit-btn:disabled{ opacity:0.55; cursor:not-allowed; transform:none; }
+
+  .msg{ margin-top:16px; padding:12px 14px; border-radius:8px; font-size:0.86rem; display:none; }
+  .msg.error{ background:var(--danger-soft); color:#8A2E23; display:block; }
+  .msg.success{ background:var(--mint-soft); color:#1F6E4E; display:block; }
+
+  .state-block{ text-align:center; padding:20px 0; }
+  .state-block p{ color:#5A6178; font-size:0.92rem; line-height:1.5; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo"><span class="logo-mark">RH</span>RHub</div>
+
+  <div id="app-content">
+    <div class="state-block">
+      <p>Vérification de votre invitation...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  window.addEventListener('unhandledrejection', (e) => console.error('Erreur non gérée :', e.reason));
+
+  const CLE_ATTENTE = 'rhub_invitation_en_attente';
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+
+  function afficherEtat(html){
+    document.getElementById('app-content').innerHTML = html;
+  }
+
+  async function init(){
+    if (!code){
+      afficherEtat(`<div class="state-block"><p>Aucun code d'invitation trouvé dans le lien. Demandez un nouveau lien à votre employeur.</p></div>`);
+      return;
+    }
+
+    const { data, error } = await sb.rpc('obtenir_invitation', { p_code: code });
+
+    if (error || !data || data.length === 0){
+      afficherEtat(`<div class="state-block"><p>Ce lien d'invitation est invalide ou a expiré. Demandez un nouveau lien à votre employeur.</p></div>`);
+      return;
+    }
+
+    const invitation = data[0];
+    afficherFormulaire(invitation);
+  }
+
+  function afficherFormulaire(invitation){
+    afficherEtat(`
+      <div class="invite-banner">
+        <div class="tag">Vous rejoignez</div>
+        <div class="entreprise">${invitation.entreprise_nom}</div>
+        <div class="poste">${invitation.poste_nom ? 'Poste : ' + invitation.poste_nom : ''}</div>
+      </div>
+      <div class="form-title">Créer votre compte</div>
+      <div class="form-desc">Ces informations resteront visibles uniquement par vous et votre direction.</div>
+      <form id="form-rejoindre">
+        <div class="field-row">
+          <div class="field-group">
+            <label>Prénom</label>
+            <input type="text" id="rj-prenom" required>
+          </div>
+          <div class="field-group">
+            <label>Nom</label>
+            <input type="text" id="rj-nom" required>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Adresse e-mail</label>
+          <input type="email" id="rj-email" value="${invitation.email}" disabled>
+        </div>
+        <div class="field-group">
+          <label>Téléphone <span class="opt">optionnel</span></label>
+          <input type="tel" id="rj-telephone" placeholder="6XX XXX XXX">
+        </div>
+        <div class="field-group">
+          <label>Mot de passe <span class="opt">10 caractères minimum</span></label>
+          <input type="password" id="rj-password" required minlength="10" autocomplete="new-password">
+          <div class="pw-meter"><div class="pw-meter-fill" id="pw-meter-fill"></div></div>
+          <div class="pw-hint" id="pw-hint">10 caractères minimum</div>
+        </div>
+        <div class="field-group">
+          <label>Confirmer le mot de passe</label>
+          <input type="password" id="rj-password2" required minlength="10" autocomplete="new-password">
+        </div>
+        <button type="submit" class="submit-btn" id="rj-submit">Rejoindre l'entreprise</button>
+        <div class="msg" id="rj-msg"></div>
+      </form>
+    `);
+
+    const pwInput = document.getElementById('rj-password');
+    const pwFill = document.getElementById('pw-meter-fill');
+    const pwHint = document.getElementById('pw-hint');
+    pwInput.addEventListener('input', () => {
+      const val = pwInput.value;
+      let score = 0;
+      if (val.length >= 10) score += 40;
+      if (/[A-Z]/.test(val)) score += 20;
+      if (/[0-9]/.test(val)) score += 20;
+      if (/[^A-Za-z0-9]/.test(val)) score += 20;
+      pwFill.style.width = Math.min(score,100) + '%';
+      if (val.length < 10){
+        pwFill.style.background = 'var(--danger)';
+        pwHint.textContent = `Encore ${10 - val.length} caractère(s) minimum`;
+        pwHint.className = 'pw-hint';
+      } else if (score < 70){
+        pwFill.style.background = 'var(--amber)';
+        pwHint.textContent = 'Correct — ajoutez une majuscule ou un chiffre';
+        pwHint.className = 'pw-hint';
+      } else {
+        pwFill.style.background = 'var(--mint)';
+        pwHint.textContent = 'Mot de passe solide';
+        pwHint.className = 'pw-hint ok';
+      }
+    });
+
+    document.getElementById('form-rejoindre').addEventListener('submit', (e) => soumettreRejoindre(e, invitation));
+  }
+
+  function showMsg(type, text){
+    const el = document.getElementById('rj-msg');
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+    el.textContent = text;
+  }
+
+  async function soumettreRejoindre(e, invitation){
+    e.preventDefault();
+    const btn = document.getElementById('rj-submit');
+    btn.disabled = true; btn.textContent = 'Création en cours...';
+    document.getElementById('rj-msg').style.display = 'none';
+
+    const password = document.getElementById('rj-password').value;
+    const password2 = document.getElementById('rj-password2').value;
+
+    if (password.length < 10){
+      showMsg('error', 'Le mot de passe doit contenir au moins 10 caractères.');
+      btn.disabled = false; btn.textContent = "Rejoindre l'entreprise";
+      return;
+    }
+    if (password !== password2){
+      showMsg('error', 'Les mots de passe ne correspondent pas.');
+      btn.disabled = false; btn.textContent = "Rejoindre l'entreprise";
+      return;
+    }
+
+    const prenom = document.getElementById('rj-prenom').value.trim();
+    const nom = document.getElementById('rj-nom').value.trim();
+    const telephone = document.getElementById('rj-telephone').value.trim();
+
+    try {
+      const { data: authData, error: authError } = await sb.auth.signUp({ email: invitation.email, password });
+      if (authError){ showMsg('error', traduireErreur(authError.message)); return; }
+
+      if (authData.session){
+        // Confirmation e-mail désactivée : on finalise tout de suite
+        const { error: rpcError } = await sb.rpc('rejoindre_invitation', {
+          p_code: code, p_prenom: prenom, p_nom: nom, p_telephone: telephone || null
+        });
+        if (rpcError){ showMsg('error', traduireErreur(rpcError.message)); return; }
+        showMsg('success', 'Bienvenue ! Redirection...');
+        window.location.href = 'dashboard-employe.html';
+      } else {
+        // Confirmation requise : on garde les infos et on finalise après la 1ère connexion
+        sessionStorage.setItem(CLE_ATTENTE, JSON.stringify({ code, prenom, nom, telephone }));
+        showMsg('success', 'Compte créé. Vérifiez votre e-mail pour confirmer, puis connectez-vous pour rejoindre votre entreprise.');
+      }
+    } catch (err){
+      console.error(err);
+      showMsg('error', 'Erreur inattendue : ' + (err.message || 'réessayez.'));
+    } finally {
+      btn.disabled = false; btn.textContent = "Rejoindre l'entreprise";
+    }
+  }
+
+  function traduireErreur(msg){
+    if (!msg) return "Une erreur est survenue. Réessayez.";
+    if (msg.includes('already registered') || msg.includes('already exists')) return "Un compte existe déjà avec cette adresse e-mail. Connectez-vous plutôt.";
+    if (msg.includes('Password should be at least')) return "Le mot de passe doit contenir au moins 10 caractères.";
+    if (msg.includes('rate limit')) return "Trop de tentatives. Réessayez dans quelques minutes.";
+    return msg;
+  }
+
+  init();
+</script>
+
+</body>
+</html>
