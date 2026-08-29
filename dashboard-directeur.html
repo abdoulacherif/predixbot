@@ -152,6 +152,10 @@
     <button class="nav-item" data-view="evaluations-dir" onclick="switchView('evaluations-dir')">
       <span class="ic">★</span> Évaluations
     </button>
+    <button class="nav-item" data-view="recrutement" onclick="switchView('recrutement')">
+      <span class="ic">◍</span> Recrutement
+      <span class="nav-badge" id="badge-candidatures" style="display:none;">0</span>
+    </button>
     <button class="nav-item" data-view="conges" onclick="switchView('conges')">
       <span class="ic">▦</span> Congés
       <span class="nav-badge" id="badge-conges" style="display:none;">0</span>
@@ -395,6 +399,37 @@
       </div>
     </div>
 
+    <!-- ================= RECRUTEMENT ================= -->
+    <div class="view" id="view-recrutement">
+      <div class="page-head">
+        <div>
+          <h1>Recrutement</h1>
+          <p>Publiez une offre — le lien public est partageable directement, sans compte requis pour postuler.</p>
+        </div>
+        <button class="btn-primary" onclick="ouvrirModal('modal-offre')">+ Nouvelle offre</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Offres publiées</h2></div>
+        <table>
+          <thead><tr><th>Titre</th><th>Contrat</th><th>Statut</th><th>Candidatures</th><th></th></tr></thead>
+          <tbody id="offres-body">
+            <tr class="empty-row"><td colspan="5">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Candidatures reçues</h2></div>
+        <table>
+          <thead><tr><th>Candidat</th><th>Offre</th><th>Contact</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="candidatures-body">
+            <tr class="empty-row"><td colspan="5">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ================= SÉCURITÉ ================= -->
     <div class="view" id="view-securite">
       <div class="page-head">
@@ -475,6 +510,58 @@
       <div class="invite-result" id="invite-result">
         Lien à partager avec l'employé :
         <code id="invite-link"></code>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: NOUVELLE OFFRE ============ -->
+<div class="modal-overlay" id="modal-offre">
+  <div class="modal">
+    <h3>Nouvelle offre d'emploi</h3>
+    <div class="modal-desc">Un lien public sera généré pour que les candidats postulent sans compte.</div>
+    <form id="form-offre">
+      <div class="field-group">
+        <label>Titre du poste recherché</label>
+        <input type="text" id="offre-titre" required>
+      </div>
+      <div class="field-group">
+        <label>Rattacher à un poste existant <span class="opt">optionnel — crée automatiquement la fiche employé à l'embauche</span></label>
+        <select id="offre-poste">
+          <option value="">Aucun</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Description</label>
+        <textarea id="offre-description" rows="3" required></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>Type de contrat</label>
+          <select id="offre-contrat">
+            <option value="cdi">CDI</option>
+            <option value="cdd">CDD</option>
+            <option value="stage">Stage</option>
+            <option value="temps_partiel">Temps partiel</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Lieu</label>
+          <input type="text" id="offre-lieu">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Salaire indicatif <span class="opt">FCFA / mois, optionnel</span></label>
+        <input type="number" id="offre-salaire" min="0" step="1000">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="fermerModal('modal-offre')">Annuler</button>
+        <button type="submit" class="btn-primary" id="offre-submit-btn">Publier l'offre</button>
+      </div>
+      <div class="msg" id="offre-msg"></div>
+      <div class="invite-result" id="offre-lien-result">
+        Lien public à partager :
+        <code id="offre-lien" style="font-family:var(--mono); font-size:0.78rem; word-break:break-all; display:block; margin-top:8px; padding:8px; background:#fff; border-radius:6px; border:1px solid var(--line);"></code>
       </div>
     </form>
   </div>
@@ -614,7 +701,7 @@
     document.getElementById('user-initials').textContent =
       (currentUser.prenom[0] || '') + (currentUser.nom[0] || '');
 
-    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite(), chargerTravail(), chargerPresenceEquipe(), chargerEvaluationsDirecteur(), peuplerSelectEvaluation()]);
+    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite(), chargerTravail(), chargerPresenceEquipe(), chargerEvaluationsDirecteur(), peuplerSelectEvaluation(), peuplerSelectOffrePoste(), chargerOffres(), chargerCandidatures()]);
     initSelecteursPaie();
     await chargerPaieDirecteur();
   }
@@ -1233,6 +1320,140 @@
       btn.disabled = false; btn.textContent = "Publier l'évaluation";
     }
   });
+
+  // ---------------- Recrutement ----------------
+  const LIBELLES_CONTRAT = { cdi:'CDI', cdd:'CDD', stage:'Stage', temps_partiel:'Temps partiel' };
+
+  async function peuplerSelectOffrePoste(){
+    document.getElementById('offre-poste').innerHTML = '<option value="">Aucun</option>' +
+      postesCache.map(p => `<option value="${p.id}">${p.nom_poste}</option>`).join('');
+  }
+
+  async function chargerOffres(){
+    const { data: offres } = await sb.from('offres_emploi')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).order('created_at', { ascending:false });
+
+    const { data: candidatures } = await sb.from('candidatures')
+      .select('id, offre_id').eq('entreprise_id', currentUser.entreprise_id);
+    const compteParOffre = {};
+    (candidatures || []).forEach(c => { compteParOffre[c.offre_id] = (compteParOffre[c.offre_id] || 0) + 1; });
+
+    const body = document.getElementById('offres-body');
+    if (!offres || offres.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="5">Aucune offre publiée pour le moment.</td></tr>';
+    } else {
+      body.innerHTML = offres.map(o => `
+        <tr>
+          <td><b>${o.titre}</b></td>
+          <td>${LIBELLES_CONTRAT[o.type_contrat] || '—'}</td>
+          <td><span class="pill ${o.statut === 'ouverte' ? 'actif' : 'inactif'}">${o.statut}</span></td>
+          <td>${compteParOffre[o.id] || 0}</td>
+          <td class="row-actions">
+            <button class="icon-btn" onclick="copierLienOffre('${o.id}')">Copier le lien</button>
+            ${o.statut === 'ouverte' ? `<button class="icon-btn reject" onclick="fermerOffre('${o.id}')">Fermer</button>` : ''}
+          </td>
+        </tr>`).join('');
+    }
+
+    const totalCandidatures = (candidatures || []).length;
+    const badge = document.getElementById('badge-candidatures');
+    const enAttente = (await sb.from('candidatures').select('id', { count:'exact', head:true })
+      .eq('entreprise_id', currentUser.entreprise_id).eq('statut','recue')).count || 0;
+    if (enAttente > 0){ badge.style.display = 'inline-block'; badge.textContent = enAttente; }
+    else { badge.style.display = 'none'; }
+  }
+
+  function copierLienOffre(offreId){
+    const lien = `${window.location.origin}/candidature.html?offre=${offreId}`;
+    navigator.clipboard?.writeText(lien);
+    alert('Lien copié :\n' + lien);
+  }
+
+  async function fermerOffre(offreId){
+    await sb.from('offres_emploi').update({ statut: 'fermee' }).eq('id', offreId);
+    await chargerOffres();
+  }
+
+  document.getElementById('form-offre').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('offre-submit-btn');
+    btn.disabled = true; btn.textContent = 'Publication...';
+    document.getElementById('offre-lien-result').classList.remove('active');
+    const msg = document.getElementById('offre-msg');
+    msg.style.display = 'none';
+
+    try {
+      const titre = document.getElementById('offre-titre').value.trim();
+      const poste_id = document.getElementById('offre-poste').value || null;
+      const description = document.getElementById('offre-description').value.trim();
+      const type_contrat = document.getElementById('offre-contrat').value;
+      const lieu = document.getElementById('offre-lieu').value.trim();
+      const salaireRaw = document.getElementById('offre-salaire').value;
+
+      const { data, error } = await sb.from('offres_emploi').insert({
+        entreprise_id: currentUser.entreprise_id, poste_id, titre, description,
+        type_contrat, lieu: lieu || null,
+        salaire_indicatif: salaireRaw ? Number(salaireRaw) : null,
+        cree_par: currentUser.id
+      }).select().single();
+      if (error) throw error;
+
+      const lien = `${window.location.origin}/candidature.html?offre=${data.id}`;
+      document.getElementById('offre-lien').textContent = lien;
+      document.getElementById('offre-lien-result').classList.add('active');
+      msg.className = 'msg success'; msg.style.display = 'block';
+      msg.textContent = 'Offre publiée. Partagez le lien ci-dessous.';
+
+      document.getElementById('form-offre').reset();
+      await chargerOffres();
+    } catch (err){
+      console.error(err);
+      msg.className = 'msg error'; msg.style.display = 'block';
+      msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+    } finally {
+      btn.disabled = false; btn.textContent = "Publier l'offre";
+    }
+  });
+
+  async function chargerCandidatures(){
+    const { data: candidatures } = await sb.from('candidatures')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).order('created_at', { ascending:false });
+
+    const { data: offres } = await sb.from('offres_emploi').select('id, titre').eq('entreprise_id', currentUser.entreprise_id);
+    const offreMap = Object.fromEntries((offres || []).map(o => [o.id, o.titre]));
+
+    const body = document.getElementById('candidatures-body');
+    if (!candidatures || candidatures.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="5">Aucune candidature reçue pour le moment.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = candidatures.map(c => `
+      <tr>
+        <td><b>${c.prenom} ${c.nom}</b></td>
+        <td>${offreMap[c.offre_id] || '—'}</td>
+        <td style="font-size:0.82rem;">${c.email}${c.telephone ? '<br>' + c.telephone : ''}</td>
+        <td>
+          <select onchange="changerStatutCandidature('${c.id}', this.value)" style="padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:0.82rem;">
+            <option value="recue" ${c.statut==='recue'?'selected':''}>Reçue</option>
+            <option value="en_examen" ${c.statut==='en_examen'?'selected':''}>En examen</option>
+            <option value="entretien" ${c.statut==='entretien'?'selected':''}>Entretien</option>
+            <option value="acceptee" ${c.statut==='acceptee'?'selected':''}>Acceptée</option>
+            <option value="refusee" ${c.statut==='refusee'?'selected':''}>Refusée</option>
+          </select>
+        </td>
+        <td><button class="icon-btn" onclick='afficherCandidature(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Voir</button></td>
+      </tr>`).join('');
+  }
+
+  async function changerStatutCandidature(id, statut){
+    await sb.from('candidatures').update({ statut }).eq('id', id);
+    await chargerOffres();
+  }
+
+  function afficherCandidature(c){
+    alert(`${c.prenom} ${c.nom}\n${c.email} — ${c.telephone || 'pas de téléphone'}\n\nMessage :\n${c.message || '(aucun message)'}`);
+  }
 
   init();
 </script>
