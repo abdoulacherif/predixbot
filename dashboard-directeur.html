@@ -147,6 +147,9 @@
       <span class="ic">▦</span> Congés
       <span class="nav-badge" id="badge-conges" style="display:none;">0</span>
     </button>
+    <button class="nav-item" data-view="paie" onclick="switchView('paie')">
+      <span class="ic">◈</span> Paie
+    </button>
     <button class="nav-item" data-view="securite" onclick="switchView('securite')">
       <span class="ic">⛊</span> Sécurité
     </button>
@@ -278,6 +281,50 @@
           <thead><tr><th>Employé</th><th>Type</th><th>Période</th><th>Motif</th><th>Statut</th><th></th></tr></thead>
           <tbody id="conges-body">
             <tr class="empty-row"><td colspan="6">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PAIE ================= -->
+    <div class="view" id="view-paie">
+      <div class="page-head">
+        <div>
+          <h1>Paie</h1>
+          <p>Générez les bulletins du mois, puis confirmez chaque versement Mobile Money.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Génération mensuelle</h2>
+        </div>
+        <table style="width:auto;"><tbody><tr>
+          <td style="border:none; padding:18px 22px 18px 22px;">
+            <select id="paie-mois" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:var(--body); font-size:0.88rem;"></select>
+          </td>
+          <td style="border:none; padding:18px 8px;">
+            <select id="paie-annee" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:var(--body); font-size:0.88rem;"></select>
+          </td>
+          <td style="border:none; padding:18px 22px;">
+            <button class="btn-primary" onclick="genererBulletins()" id="btn-generer-bulletins">Générer les bulletins</button>
+          </td>
+        </tr></tbody></table>
+        <div class="msg" id="paie-gen-msg" style="margin:0 22px 18px;"></div>
+        <p style="padding:0 22px 20px; font-size:0.78rem; color:var(--cloud-dim); font-family:var(--mono);">
+          Charges sociales estimées à titre indicatif — à ajuster selon le taux CNPS réel avant tout usage en production.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Bulletins du mois sélectionné</h2>
+          <span id="paie-total-mois" style="font-family:var(--mono); font-size:0.82rem; color:var(--cloud-dim);"></span>
+        </div>
+        <table>
+          <thead><tr><th>Employé</th><th>Brut</th><th>Charges</th><th>Net</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="paie-directeur-body">
+            <tr class="empty-row"><td colspan="6">Sélectionnez un mois puis générez les bulletins.</td></tr>
           </tbody>
         </table>
       </div>
@@ -431,6 +478,8 @@
       (currentUser.prenom[0] || '') + (currentUser.nom[0] || '');
 
     await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite()]);
+    initSelecteursPaie();
+    await chargerPaieDirecteur();
   }
 
   // ---------------- Vue d'ensemble ----------------
@@ -698,6 +747,140 @@
         <td>${l.ressource || '—'}</td>
         <td>${fmtDateTime(l.created_at)}</td>
       </tr>`).join('');
+  }
+
+  // ---------------- Paie ----------------
+  const NOMS_MOIS = ['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const TAUX_CHARGES = 0.042; // estimation indicative — à ajuster selon le taux CNPS réel
+
+  function initSelecteursPaie(){
+    const now = new Date();
+    const selMois = document.getElementById('paie-mois');
+    selMois.innerHTML = NOMS_MOIS.slice(1).map((n,i) => `<option value="${i+1}">${n}</option>`).join('');
+    selMois.value = now.getMonth() + 1;
+
+    const selAnnee = document.getElementById('paie-annee');
+    const anneeActuelle = now.getFullYear();
+    selAnnee.innerHTML = [anneeActuelle-1, anneeActuelle, anneeActuelle+1].map(a => `<option value="${a}">${a}</option>`).join('');
+    selAnnee.value = anneeActuelle;
+
+    selMois.addEventListener('change', chargerPaieDirecteur);
+    selAnnee.addEventListener('change', chargerPaieDirecteur);
+  }
+
+  async function genererBulletins(){
+    const btn = document.getElementById('btn-generer-bulletins');
+    btn.disabled = true; btn.textContent = 'Génération...';
+    const msg = document.getElementById('paie-gen-msg');
+    msg.style.display = 'none';
+
+    try {
+      const mois = Number(document.getElementById('paie-mois').value);
+      const annee = Number(document.getElementById('paie-annee').value);
+
+      const { data: employes } = await sb.from('utilisateurs')
+        .select('id, salaire_reel, poste_id').eq('entreprise_id', currentUser.entreprise_id)
+        .eq('role','employe').eq('statut','actif');
+
+      if (!employes || employes.length === 0){
+        msg.className = 'msg error'; msg.style.display = 'block';
+        msg.textContent = 'Aucun employé actif à payer.';
+        return;
+      }
+
+      const posteMap = Object.fromEntries(postesCache.map(p => [p.id, p.salaire_base]));
+      let crees = 0, ignores = 0;
+
+      for (const emp of employes){
+        const brut = Number(emp.salaire_reel || posteMap[emp.poste_id] || 0);
+        if (brut <= 0) { ignores++; continue; }
+        const charges = Math.round(brut * TAUX_CHARGES);
+        const net = brut - charges;
+
+        const { error } = await sb.from('bulletins_paie').insert({
+          entreprise_id: currentUser.entreprise_id,
+          utilisateur_id: emp.id,
+          mois, annee,
+          salaire_brut: brut,
+          charges,
+          salaire_net: net,
+          statut_versement: 'en_attente'
+        });
+        // Contrainte unique (utilisateur_id, mois, annee) : un bulletin déjà généré n'est jamais dupliqué
+        if (error && error.code === '23505') { ignores++; continue; }
+        if (error) throw error;
+        crees++;
+      }
+
+      msg.className = 'msg success'; msg.style.display = 'block';
+      msg.textContent = `${crees} bulletin(s) généré(s)${ignores ? `, ${ignores} déjà existant(s) ou ignoré(s)` : ''}.`;
+      await chargerPaieDirecteur();
+
+    } catch (err){
+      console.error(err);
+      msg.className = 'msg error'; msg.style.display = 'block';
+      msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Générer les bulletins';
+    }
+  }
+
+  async function chargerPaieDirecteur(){
+    const mois = Number(document.getElementById('paie-mois').value);
+    const annee = Number(document.getElementById('paie-annee').value);
+
+    const { data: bulletins } = await sb.from('bulletins_paie')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id)
+      .eq('mois', mois).eq('annee', annee).order('created_at', { ascending:false });
+
+    const body = document.getElementById('paie-directeur-body');
+    const totalEl = document.getElementById('paie-total-mois');
+
+    if (!bulletins || bulletins.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">Aucun bulletin pour cette période. Générez-les ci-dessus.</td></tr>';
+      totalEl.textContent = '';
+      return;
+    }
+
+    const ids = [...new Set(bulletins.map(b => b.utilisateur_id))];
+    const { data: noms } = await sb.from('utilisateurs').select('id, nom, prenom').in('id', ids);
+    const nomMap = Object.fromEntries((noms || []).map(u => [u.id, `${u.prenom} ${u.nom}`]));
+
+    const totalNet = bulletins.reduce((s,b) => s + Number(b.salaire_net), 0);
+    totalEl.textContent = `Total net : ${fmtFCFA(totalNet)}`;
+
+    body.innerHTML = bulletins.map(b => `
+      <tr>
+        <td><b>${nomMap[b.utilisateur_id] || '—'}</b></td>
+        <td>${fmtFCFA(b.salaire_brut)}</td>
+        <td>${fmtFCFA(b.charges)}</td>
+        <td><b>${fmtFCFA(b.salaire_net)}</b></td>
+        <td><span class="pill ${b.statut_versement}">${b.statut_versement.replace('_',' ')}</span></td>
+        <td class="row-actions">
+          ${b.statut_versement === 'en_attente' ? `<button class="icon-btn confirm" onclick="confirmerVersement('${b.id}')">Marquer versé</button>` : ''}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function confirmerVersement(bulletinId){
+    const reference = prompt("Référence de la transaction Mobile Money (ex. reçue d'Orange Money / MTN MoMo) :");
+    if (reference === null) return; // annulé
+
+    try {
+      const idempotencyKey = (crypto.randomUUID ? crypto.randomUUID() : `${bulletinId}-${Date.now()}`);
+      const { error } = await sb.from('bulletins_paie').update({
+        statut_versement: 'verse',
+        date_versement: new Date().toISOString(),
+        reference_transaction_momo: reference || null,
+        idempotency_key: idempotencyKey
+      }).eq('id', bulletinId).eq('statut_versement', 'en_attente'); // ne modifie que si toujours en attente
+
+      if (error) throw error;
+      await chargerPaieDirecteur();
+    } catch (err){
+      console.error(err);
+      alert('Erreur lors de la confirmation du versement : ' + (err.message || 'réessayez.'));
+    }
   }
 
   init();
