@@ -333,6 +333,26 @@
       </div>
     </div>
 
+    <!-- ================= MON ENTREPRISE ================= -->
+    <div class="view" id="view-entreprise">
+      <div class="page-head">
+        <div>
+          <h1>Mon entreprise</h1>
+          <p>Horaires, règlement et documents à connaître.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Horaires d'ouverture</h2></div>
+        <div class="card-body" id="horaires-employe-liste">Chargement...</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Politiques &amp; documents</h2></div>
+        <div id="politiques-employe-liste" class="card-body">Chargement...</div>
+      </div>
+    </div>
+
     <!-- ================= ÉVALUATIONS ================= -->
     <div class="view" id="view-evaluations">
       <div class="page-head">
@@ -415,7 +435,7 @@
       document.getElementById('stat-salaire').textContent = salaire ? fmtFCFA(salaire) + ' / mois' : '';
       document.getElementById('poste-description').textContent = posteActuel?.description || "Aucune description n'a encore été renseignée pour ce poste.";
 
-      await Promise.all([chargerPresence(), chargerConges(), chargerPaie(), chargerEvaluations(), chargerMesTaches(), chargerHistoriqueTaches(), chargerAValider()]);
+      await Promise.all([chargerPresence(), chargerConges(), chargerPaie(), chargerEvaluations(), chargerMesTaches(), chargerHistoriqueTaches(), chargerAValider(), chargerHorairesEmploye(), chargerPolitiquesEmploye()]);
 
     } catch (err){
       console.error(err);
@@ -713,6 +733,95 @@
       });
       if (error) throw error;
       await chargerAValider();
+    } catch (err){
+      console.error(err);
+      alert('Erreur : ' + (err.message || 'réessayez.'));
+    }
+  }
+
+  // ---------------- Mon entreprise : horaires ----------------
+  const JOURS = ['', 'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+  async function chargerHorairesEmploye(){
+    const { data: horaires } = await sb.from('horaires_entreprise')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).order('jour_semaine');
+
+    const conteneur = document.getElementById('horaires-employe-liste');
+    if (!horaires || horaires.length === 0){
+      conteneur.innerHTML = '<p style="color:var(--cloud-dim); font-size:0.88rem;">Les horaires n\'ont pas encore été renseignés.</p>';
+      return;
+    }
+    conteneur.innerHTML = `<table><tbody>${horaires.map(h => `
+      <tr>
+        <td style="font-weight:600;">${JOURS[h.jour_semaine]}</td>
+        <td>${h.ouvert ? `${h.heure_debut?.slice(0,5)} — ${h.heure_fin?.slice(0,5)}` : '<span class="pill inactif">Fermé</span>'}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+
+  // ---------------- Mon entreprise : politiques à accepter ----------------
+  const LIBELLES_TYPE = {
+    reglement_interieur: 'Règlement intérieur', confidentialite: 'Confidentialité',
+    conditions_generales: 'Conditions générales', code_conduite: 'Code de conduite', autre: 'Autre'
+  };
+
+  async function chargerPolitiquesEmploye(){
+    const { data: politiques } = await sb.from('politiques_entreprise')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).eq('active', true)
+      .order('created_at', { ascending:false });
+
+    const { data: acceptations } = await sb.from('politiques_acceptations')
+      .select('politique_id, version_acceptee').eq('utilisateur_id', currentUser.id);
+    const accepteMap = {};
+    (acceptations || []).forEach(a => { accepteMap[a.politique_id] = Math.max(accepteMap[a.politique_id] || 0, a.version_acceptee); });
+
+    const conteneur = document.getElementById('politiques-employe-liste');
+    const badge = document.getElementById('badge-politiques');
+
+    if (!politiques || politiques.length === 0){
+      conteneur.innerHTML = '<p style="color:var(--cloud-dim); font-size:0.88rem;">Aucun document publié pour le moment.</p>';
+      badge.style.display = 'none';
+      return;
+    }
+
+    const enAttente = politiques.filter(p => p.obligatoire && (accepteMap[p.id] || 0) < p.version);
+    if (enAttente.length > 0){ badge.style.display = 'inline-block'; badge.textContent = enAttente.length; }
+    else { badge.style.display = 'none'; }
+
+    conteneur.innerHTML = politiques.map(p => {
+      const dejaAccepte = (accepteMap[p.id] || 0) >= p.version;
+      const idSafe = p.id.replace(/-/g,'');
+      return `
+      <div style="border:1px solid var(--line); border-radius:9px; margin-bottom:12px; overflow:hidden;">
+        <div style="padding:14px 16px; ${!dejaAccepte && p.obligatoire ? 'background:var(--amber-soft);' : ''}">
+          <span style="font-family:var(--mono); font-size:0.7rem; color:var(--cloud-dim); text-transform:uppercase;">${LIBELLES_TYPE[p.type]} · v${p.version}</span>
+          <div style="font-weight:600; font-size:0.94rem; margin-top:2px;">${p.titre}</div>
+          <div id="contenu-${idSafe}" style="display:none; font-size:0.86rem; color:#4A5070; line-height:1.6; white-space:pre-wrap; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">${p.contenu}</div>
+          <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" onclick="toggleContenuPolitique('${idSafe}')">Lire le document</button>
+            ${dejaAccepte
+              ? `<span class="pill valide">Accepté</span>`
+              : (p.obligatoire
+                  ? `<button type="button" class="btn-primary" onclick="accepterPolitique('${p.id}', ${p.version})">J'accepte ce document</button>`
+                  : `<span class="pill en_attente">Non obligatoire</span>`)
+            }
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleContenuPolitique(idSafe){
+    const el = document.getElementById('contenu-' + idSafe);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  async function accepterPolitique(politiqueId, version){
+    try {
+      const { error } = await sb.from('politiques_acceptations').insert({
+        politique_id: politiqueId, utilisateur_id: currentUser.id, version_acceptee: version
+      });
+      if (error) throw error;
+      await chargerPolitiquesEmploye();
     } catch (err){
       console.error(err);
       alert('Erreur : ' + (err.message || 'réessayez.'));
