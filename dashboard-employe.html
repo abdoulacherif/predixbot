@@ -38,6 +38,7 @@
   .nav-item:hover{ background:rgba(255,255,255,0.06); color:#fff; }
   .nav-item.active{ background:var(--ink-soft); color:#fff; }
   .nav-item.active .ic{ color:var(--amber); opacity:1; }
+  .nav-badge{ margin-left:auto; background:var(--amber); color:var(--ink); font-size:0.7rem; font-weight:700; padding:1px 7px; border-radius:100px; font-family:var(--mono); }
 
   .sidebar-foot{ margin-top:auto; padding:12px 8px 0; border-top:1px solid rgba(255,255,255,0.08); }
   .user-row{ display:flex; align-items:center; gap:10px; padding:10px 0; }
@@ -133,6 +134,10 @@
     <button class="nav-item active" data-view="apercu" onclick="switchView('apercu')">
       <span class="ic">◆</span> Vue d'ensemble
     </button>
+    <button class="nav-item" data-view="taches" onclick="switchView('taches')">
+      <span class="ic">⚡</span> Mes tâches
+      <span class="nav-badge" id="badge-validation" style="display:none;">0</span>
+    </button>
     <button class="nav-item" data-view="presence" onclick="switchView('presence')">
       <span class="ic">◷</span> Présence
     </button>
@@ -191,6 +196,34 @@
         <div class="card-body">
           <p id="poste-description" style="color:#4A5070; font-size:0.9rem; line-height:1.6;">—</p>
         </div>
+      </div>
+    </div>
+
+    <!-- ================= MES TÂCHES ================= -->
+    <div class="view" id="view-taches">
+      <div class="page-head">
+        <div>
+          <h1>Mes tâches</h1>
+          <p>Ce que votre poste implique, avec les outils fournis pour le faire.</p>
+        </div>
+      </div>
+
+      <div class="card" id="carte-a-valider" style="display:none;">
+        <div class="card-head"><h2>À valider de votre part</h2></div>
+        <div id="a-valider-liste"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Tâches de mon poste</h2></div>
+        <div id="mes-taches-liste" class="card-body">Chargement...</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Mon historique</h2></div>
+        <table>
+          <thead><tr><th>Tâche</th><th>Statut</th><th>Terminée le</th></tr></thead>
+          <tbody id="historique-taches-body"><tr class="empty-row"><td colspan="3">Chargement...</td></tr></tbody>
+        </table>
       </div>
     </div>
 
@@ -378,7 +411,7 @@
       document.getElementById('stat-salaire').textContent = salaire ? fmtFCFA(salaire) + ' / mois' : '';
       document.getElementById('poste-description').textContent = posteActuel?.description || "Aucune description n'a encore été renseignée pour ce poste.";
 
-      await Promise.all([chargerPresence(), chargerConges(), chargerPaie(), chargerEvaluations()]);
+      await Promise.all([chargerPresence(), chargerConges(), chargerPaie(), chargerEvaluations(), chargerMesTaches(), chargerHistoriqueTaches(), chargerAValider()]);
 
     } catch (err){
       console.error(err);
@@ -567,6 +600,119 @@
         </div>
         <p>${ev.commentaires || 'Aucun commentaire.'}</p>
       </div>`).join('');
+  }
+
+  // ---------------- Mes tâches ----------------
+  async function chargerMesTaches(){
+    if (!currentUser.poste_id){
+      document.getElementById('mes-taches-liste').innerHTML = '<p style="color:var(--cloud-dim); font-size:0.88rem;">Aucun poste ne vous est encore attribué.</p>';
+      return;
+    }
+
+    const { data: taches } = await sb.from('taches_poste')
+      .select('*').eq('poste_id', currentUser.poste_id).eq('actif', true).order('ordre');
+
+    const liste = document.getElementById('mes-taches-liste');
+    if (!taches || taches.length === 0){
+      liste.innerHTML = '<p style="color:var(--cloud-dim); font-size:0.88rem;">Aucune tâche définie pour votre poste pour le moment.</p>';
+      return;
+    }
+
+    liste.innerHTML = taches.map(t => `
+      <div style="border:1px solid var(--line); border-radius:9px; padding:16px 18px; margin-bottom:12px;">
+        <b style="font-size:0.94rem;">${t.titre}</b>
+        ${t.description ? `<p style="font-size:0.85rem; color:#4A5070; margin-top:6px; line-height:1.5;">${t.description}</p>` : ''}
+        ${(t.outils && t.outils.length) ? `
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+            ${t.outils.map(o => o.url
+              ? `<a href="${o.url}" target="_blank" rel="noopener" style="font-size:0.8rem; background:var(--cloud); border:1px solid var(--line); padding:6px 12px; border-radius:100px; color:var(--ink); text-decoration:none;">🔧 ${o.nom}</a>`
+              : `<span style="font-size:0.8rem; background:var(--cloud); border:1px solid var(--line); padding:6px 12px; border-radius:100px;">🔧 ${o.nom}</span>`
+            ).join('')}
+          </div>` : ''}
+        <div style="margin-top:12px;">
+          <button class="btn-primary" onclick="ouvrirRealisationTache('${t.id}','${t.titre.replace(/'/g,"\\'")}')">Marquer comme fait</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function ouvrirRealisationTache(tacheId, titre){
+    const commentaire = prompt(`Terminer « ${titre} »\n\nUn commentaire pour accompagner (optionnel) :`);
+    if (commentaire === null) return; // annulé
+    realiserTache(tacheId, commentaire);
+  }
+
+  async function realiserTache(tachePosteId, commentaire){
+    try {
+      const { error } = await sb.rpc('realiser_tache', {
+        p_tache_poste_id: tachePosteId,
+        p_commentaire: commentaire || null
+      });
+      if (error) throw error;
+      await Promise.all([chargerHistoriqueTaches(), chargerAValider()]);
+    } catch (err){
+      console.error(err);
+      alert('Erreur : ' + (err.message || 'réessayez.'));
+    }
+  }
+
+  async function chargerHistoriqueTaches(){
+    const { data: taches } = await sb.from('taches_travail')
+      .select('*').eq('utilisateur_id', currentUser.id).order('created_at', { ascending:false }).limit(30);
+
+    const body = document.getElementById('historique-taches-body');
+    if (!taches || taches.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="3">Aucune tâche réalisée pour le moment.</td></tr>';
+      return;
+    }
+    body.innerHTML = taches.map(t => `
+      <tr>
+        <td>${t.titre}</td>
+        <td><span class="pill ${t.statut === 'validee' ? 'valide' : (t.statut === 'rejetee' ? 'refuse' : 'en_attente')}">${t.statut.replace(/_/g,' ')}</span></td>
+        <td>${fmtDate(t.date_terminee)}</td>
+      </tr>`).join('');
+  }
+
+  // Tâches en attente DE VOTRE validation (vous occupez le poste "cachet" pour ces tâches)
+  async function chargerAValider(){
+    const { data: taches, error } = await sb.rpc('taches_a_valider');
+    const carte = document.getElementById('carte-a-valider');
+    const badge = document.getElementById('badge-validation');
+
+    if (error || !taches || taches.length === 0){
+      carte.style.display = 'none';
+      badge.style.display = 'none';
+      return;
+    }
+
+    carte.style.display = 'block';
+    badge.style.display = 'inline-block';
+    badge.textContent = taches.length;
+
+    document.getElementById('a-valider-liste').innerHTML = taches.map(t => `
+      <div style="padding:16px 22px; border-bottom:1px solid var(--line);">
+        <b style="font-size:0.92rem;">${t.titre}</b>
+        <p style="font-size:0.84rem; color:var(--cloud-dim); margin-top:2px;">Par ${t.employe_prenom} ${t.employe_nom} — ${fmtDate(t.date_terminee)}</p>
+        ${t.commentaire_employe ? `<p style="font-size:0.85rem; color:#4A5070; margin-top:6px;">« ${t.commentaire_employe} »</p>` : ''}
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn-primary" style="background:var(--mint);" onclick="repondreValidation('${t.id}', true)">Valider</button>
+          <button class="btn-secondary" onclick="repondreValidation('${t.id}', false)">Refuser</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function repondreValidation(tacheId, approuve){
+    const commentaire = prompt(approuve ? 'Commentaire (optionnel) :' : 'Motif du refus (optionnel) :');
+    if (commentaire === null && !confirm('Continuer sans commentaire ?')) return;
+    try {
+      const { error } = await sb.rpc('valider_tache', {
+        p_tache_id: tacheId, p_approuve: approuve, p_commentaire: commentaire || null
+      });
+      if (error) throw error;
+      await chargerAValider();
+    } catch (err){
+      console.error(err);
+      alert('Erreur : ' + (err.message || 'réessayez.'));
+    }
   }
 
   init();
