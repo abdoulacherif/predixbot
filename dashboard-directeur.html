@@ -146,6 +146,12 @@
     <button class="nav-item" data-view="employes" onclick="switchView('employes')">
       <span class="ic">◎</span> Employés
     </button>
+    <button class="nav-item" data-view="presence-eq" onclick="switchView('presence-eq')">
+      <span class="ic">◷</span> Présence
+    </button>
+    <button class="nav-item" data-view="evaluations-dir" onclick="switchView('evaluations-dir')">
+      <span class="ic">★</span> Évaluations
+    </button>
     <button class="nav-item" data-view="conges" onclick="switchView('conges')">
       <span class="ic">▦</span> Congés
       <span class="nav-badge" id="badge-conges" style="display:none;">0</span>
@@ -351,6 +357,44 @@
       </div>
     </div>
 
+    <!-- ================= PRÉSENCE ÉQUIPE ================= -->
+    <div class="view" id="view-presence-eq">
+      <div class="page-head">
+        <div>
+          <h1>Présence</h1>
+          <p>Le pointage de votre équipe, jour par jour.</p>
+        </div>
+        <input type="date" id="presence-date" class="btn-secondary" style="padding:9px 15px;">
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Employé</th><th>Poste</th><th>Arrivée</th><th>Départ</th><th>Statut</th></tr></thead>
+          <tbody id="presence-eq-body">
+            <tr class="empty-row"><td colspan="5">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= ÉVALUATIONS DIRECTEUR ================= -->
+    <div class="view" id="view-evaluations-dir">
+      <div class="page-head">
+        <div>
+          <h1>Évaluations</h1>
+          <p>Notez et commentez la performance de vos employés par période.</p>
+        </div>
+        <button class="btn-primary" onclick="ouvrirModal('modal-evaluation')">+ Nouvelle évaluation</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Employé</th><th>Période</th><th>Note</th><th>Commentaire</th></tr></thead>
+          <tbody id="evaluations-dir-body">
+            <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ================= SÉCURITÉ ================= -->
     <div class="view" id="view-securite">
       <div class="page-head">
@@ -432,6 +476,39 @@
         Lien à partager avec l'employé :
         <code id="invite-link"></code>
       </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: NOUVELLE ÉVALUATION ============ -->
+<div class="modal-overlay" id="modal-evaluation">
+  <div class="modal">
+    <h3>Nouvelle évaluation</h3>
+    <div class="modal-desc">Visible immédiatement par l'employé concerné.</div>
+    <form id="form-evaluation">
+      <div class="field-group">
+        <label>Employé</label>
+        <select id="eval-employe" required>
+          <option value="">Sélectionner un employé</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Période <span class="opt">ex. T1-2026, Janvier 2026</span></label>
+        <input type="text" id="eval-periode" required placeholder="T1-2026">
+      </div>
+      <div class="field-group">
+        <label>Note <span class="opt">sur 20, optionnel</span></label>
+        <input type="number" id="eval-note" min="0" max="20" step="0.5">
+      </div>
+      <div class="field-group">
+        <label>Commentaire</label>
+        <textarea id="eval-commentaire" rows="3" placeholder="Points forts, axes d'amélioration, objectifs pour la période suivante..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="fermerModal('modal-evaluation')">Annuler</button>
+        <button type="submit" class="btn-primary" id="eval-submit-btn">Publier l'évaluation</button>
+      </div>
+      <div class="msg" id="evaluation-msg"></div>
     </form>
   </div>
 </div>
@@ -537,7 +614,7 @@
     document.getElementById('user-initials').textContent =
       (currentUser.prenom[0] || '') + (currentUser.nom[0] || '');
 
-    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite(), chargerTravail()]);
+    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite(), chargerTravail(), chargerPresenceEquipe(), chargerEvaluationsDirecteur(), peuplerSelectEvaluation()]);
     initSelecteursPaie();
     await chargerPaieDirecteur();
   }
@@ -1053,6 +1130,109 @@
         <td>${fmtDateTime(t.date_terminee)}</td>
       </tr>`).join('');
   }
+
+  // ---------------- Présence équipe ----------------
+  document.getElementById('presence-date').valueAsDate = new Date();
+  document.getElementById('presence-date').addEventListener('change', chargerPresenceEquipe);
+
+  async function chargerPresenceEquipe(){
+    const date = document.getElementById('presence-date').value;
+
+    const { data: employes } = await sb.from('utilisateurs')
+      .select('id, nom, prenom, poste_id').eq('entreprise_id', currentUser.entreprise_id)
+      .eq('role','employe').eq('statut','actif');
+
+    const { data: pointages } = await sb.from('presences')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).eq('date', date);
+
+    const posteMap = Object.fromEntries(postesCache.map(p => [p.id, p.nom_poste]));
+    const pointageMap = Object.fromEntries((pointages || []).map(p => [p.utilisateur_id, p]));
+
+    const body = document.getElementById('presence-eq-body');
+    if (!employes || employes.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="5">Aucun employé actif.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = employes.map(e => {
+      const p = pointageMap[e.id];
+      return `
+        <tr>
+          <td><b>${e.prenom} ${e.nom}</b></td>
+          <td>${posteMap[e.poste_id] || '—'}</td>
+          <td>${p?.heure_arrivee ? new Date(p.heure_arrivee).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+          <td>${p?.heure_depart ? new Date(p.heure_depart).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+          <td><span class="pill ${p ? p.statut : 'absent'}">${p ? p.statut.replace('_',' ') : 'non pointé'}</span></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ---------------- Évaluations directeur ----------------
+  async function peuplerSelectEvaluation(){
+    const { data: employes } = await sb.from('utilisateurs')
+      .select('id, nom, prenom').eq('entreprise_id', currentUser.entreprise_id)
+      .eq('role','employe').eq('statut','actif');
+
+    document.getElementById('eval-employe').innerHTML = '<option value="">Sélectionner un employé</option>' +
+      (employes || []).map(e => `<option value="${e.id}">${e.prenom} ${e.nom}</option>`).join('');
+  }
+
+  async function chargerEvaluationsDirecteur(){
+    const { data: evaluations } = await sb.from('evaluations')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).order('created_at', { ascending:false });
+
+    const body = document.getElementById('evaluations-dir-body');
+    if (!evaluations || evaluations.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucune évaluation publiée pour le moment.</td></tr>';
+      return;
+    }
+
+    const ids = [...new Set(evaluations.map(e => e.utilisateur_id))];
+    const { data: noms } = await sb.from('utilisateurs').select('id, nom, prenom').in('id', ids);
+    const nomMap = Object.fromEntries((noms || []).map(u => [u.id, `${u.prenom} ${u.nom}`]));
+
+    body.innerHTML = evaluations.map(e => `
+      <tr>
+        <td><b>${nomMap[e.utilisateur_id] || '—'}</b></td>
+        <td>${e.periode}</td>
+        <td>${e.note ? e.note + '/20' : '—'}</td>
+        <td style="max-width:320px;">${e.commentaires || '—'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('form-evaluation').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('eval-submit-btn');
+    btn.disabled = true; btn.textContent = 'Publication...';
+    const msg = document.getElementById('evaluation-msg');
+    msg.style.display = 'none';
+
+    try {
+      const utilisateur_id = document.getElementById('eval-employe').value;
+      const periode = document.getElementById('eval-periode').value.trim();
+      const noteRaw = document.getElementById('eval-note').value;
+      const commentaires = document.getElementById('eval-commentaire').value.trim();
+
+      const { error } = await sb.from('evaluations').insert({
+        entreprise_id: currentUser.entreprise_id,
+        utilisateur_id, periode,
+        note: noteRaw ? Number(noteRaw) : null,
+        commentaires: commentaires || null,
+        evalue_par: currentUser.id
+      });
+      if (error) throw error;
+
+      document.getElementById('form-evaluation').reset();
+      fermerModal('modal-evaluation');
+      await chargerEvaluationsDirecteur();
+    } catch (err){
+      console.error(err);
+      msg.className = 'msg error'; msg.style.display = 'block';
+      msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+    } finally {
+      btn.disabled = false; btn.textContent = "Publier l'évaluation";
+    }
+  });
 
   init();
 </script>
