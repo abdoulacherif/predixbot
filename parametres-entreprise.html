@@ -203,6 +203,57 @@
       <div class="msg" id="msg-modules" style="margin-top:10px;"></div>
     </div>
 
+    <!-- Horaires d'ouverture -->
+    <div class="card">
+      <div class="card-title">Horaires d'ouverture</div>
+      <div class="card-desc">Visibles par tous vos employés. Décochez un jour pour le marquer fermé.</div>
+      <div id="horaires-liste"></div>
+      <button class="btn-primary" id="btn-horaires" onclick="enregistrerHoraires()" style="margin-top:8px;">Enregistrer les horaires</button>
+      <div class="msg" id="msg-horaires"></div>
+    </div>
+
+    <!-- Politiques & documents -->
+    <div class="card">
+      <div class="card-title">Politiques &amp; documents</div>
+      <div class="card-desc">Règlement intérieur, confidentialité, conditions — vos employés doivent les accepter s'ils sont obligatoires.</div>
+
+      <div id="politiques-liste" style="margin-bottom:22px;"></div>
+
+      <div style="border-top:1px solid var(--line); padding-top:18px;">
+        <div style="font-family:var(--display); font-size:0.95rem; margin-bottom:12px;" id="politique-form-titre">Nouvelle politique</div>
+        <form id="form-politique">
+          <input type="hidden" id="pol-id" value="">
+          <div class="field-row">
+            <div class="field-group">
+              <label>Type de document</label>
+              <select id="pol-type" required>
+                <option value="reglement_interieur">Règlement intérieur</option>
+                <option value="confidentialite">Politique de confidentialité</option>
+                <option value="conditions_generales">Conditions générales</option>
+                <option value="code_conduite">Code de conduite</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Titre</label>
+              <input type="text" id="pol-titre" required>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Contenu</label>
+            <textarea id="pol-contenu" rows="6" required style="width:100%; padding:11px 13px; border:1px solid #D3D7E2; border-radius:8px; font-family:var(--body); font-size:0.88rem; line-height:1.5;"></textarea>
+          </div>
+          <div class="toggle-row" style="border:none; padding:6px 0 16px;">
+            <div class="toggle-copy"><b>Acceptation obligatoire</b><span>L'employé doit explicitement l'accepter pour continuer</span></div>
+            <label class="switch"><input type="checkbox" id="pol-obligatoire" checked><span class="slider"></span></label>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-politique">Publier</button>
+          <button type="button" class="btn-secondary" id="btn-annuler-politique" onclick="annulerEditionPolitique()" style="display:none; margin-left:8px;">Annuler</button>
+          <div class="msg" id="msg-politique"></div>
+        </form>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -357,7 +408,159 @@
   document.getElementById('mod-evaluations').addEventListener('change', () => toggleModule('mod-evaluations', 'module_evaluations_actif'));
   document.getElementById('mod-presence').addEventListener('change', () => toggleModule('mod-presence', 'module_presence_actif'));
 
-  init();
+  // ---------------- Horaires d'ouverture ----------------
+  const JOURS = ['', 'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+  async function chargerHoraires(){
+    const { data: horaires } = await sb.from('horaires_entreprise')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).order('jour_semaine');
+
+    const parJour = Object.fromEntries((horaires || []).map(h => [h.jour_semaine, h]));
+    const conteneur = document.getElementById('horaires-liste');
+
+    conteneur.innerHTML = [1,2,3,4,5,6,7].map(j => {
+      const h = parJour[j] || { ouvert: j <= 5, heure_debut: '08:00', heure_fin: '18:00' };
+      return `
+        <div style="display:grid; grid-template-columns:120px auto 1fr 1fr; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);">
+          <label style="margin:0; font-size:0.88rem;">${JOURS[j]}</label>
+          <label class="switch"><input type="checkbox" class="horaire-ouvert" data-jour="${j}" ${h.ouvert ? 'checked' : ''}><span class="slider"></span></label>
+          <input type="time" class="horaire-debut" data-jour="${j}" value="${h.heure_debut || '08:00'}" ${h.ouvert ? '' : 'disabled'}>
+          <input type="time" class="horaire-fin" data-jour="${j}" value="${h.heure_fin || '18:00'}" ${h.ouvert ? '' : 'disabled'}>
+        </div>`;
+    }).join('');
+
+    conteneur.querySelectorAll('.horaire-ouvert').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const jour = cb.dataset.jour;
+        conteneur.querySelector(`.horaire-debut[data-jour="${jour}"]`).disabled = !cb.checked;
+        conteneur.querySelector(`.horaire-fin[data-jour="${jour}"]`).disabled = !cb.checked;
+      });
+    });
+  }
+
+  async function enregistrerHoraires(){
+    const btn = document.getElementById('btn-horaires');
+    btn.disabled = true; btn.textContent = 'Enregistrement...';
+    try {
+      const lignes = [1,2,3,4,5,6,7].map(j => {
+        const ouvert = document.querySelector(`.horaire-ouvert[data-jour="${j}"]`).checked;
+        const debut = document.querySelector(`.horaire-debut[data-jour="${j}"]`).value;
+        const fin = document.querySelector(`.horaire-fin[data-jour="${j}"]`).value;
+        return {
+          entreprise_id: currentUser.entreprise_id,
+          jour_semaine: j, ouvert,
+          heure_debut: ouvert ? debut : null,
+          heure_fin: ouvert ? fin : null
+        };
+      });
+      const { error } = await sb.from('horaires_entreprise').upsert(lignes, { onConflict: 'entreprise_id,jour_semaine' });
+      if (error) throw error;
+      showMsg('msg-horaires', 'success', 'Horaires enregistrés.');
+    } catch (err){
+      console.error(err);
+      showMsg('msg-horaires', 'error', 'Erreur : ' + (err.message || 'réessayez.'));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enregistrer les horaires';
+    }
+  }
+
+  // ---------------- Politiques & documents ----------------
+  const LIBELLES_TYPE = {
+    reglement_interieur: 'Règlement intérieur', confidentialite: 'Confidentialité',
+    conditions_generales: 'Conditions générales', code_conduite: 'Code de conduite', autre: 'Autre'
+  };
+
+  async function chargerPolitiques(){
+    const { data: politiques } = await sb.from('politiques_entreprise')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id).eq('active', true)
+      .order('created_at', { ascending:false });
+
+    const conteneur = document.getElementById('politiques-liste');
+    if (!politiques || politiques.length === 0){
+      conteneur.innerHTML = '<p style="color:var(--cloud-dim); font-size:0.86rem;">Aucun document publié pour le moment.</p>';
+      return;
+    }
+
+    conteneur.innerHTML = politiques.map(p => `
+      <div style="border:1px solid var(--line); border-radius:9px; padding:14px 16px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+          <div>
+            <span style="font-family:var(--mono); font-size:0.7rem; color:var(--cloud-dim); text-transform:uppercase;">${LIBELLES_TYPE[p.type]} · v${p.version}${p.obligatoire ? ' · obligatoire' : ''}</span>
+            <div style="font-weight:600; font-size:0.92rem; margin-top:2px;">${p.titre}</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-shrink:0;">
+            <button type="button" class="icon-btn" onclick='editerPolitique(${JSON.stringify(p).replace(/'/g,"&#39;")})'>Modifier</button>
+            <button type="button" class="icon-btn reject" onclick="retirerPolitique('${p.id}')">Retirer</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function editerPolitique(p){
+    document.getElementById('pol-id').value = p.id;
+    document.getElementById('pol-type').value = p.type;
+    document.getElementById('pol-titre').value = p.titre;
+    document.getElementById('pol-contenu').value = p.contenu;
+    document.getElementById('pol-obligatoire').checked = p.obligatoire;
+    document.getElementById('politique-form-titre').textContent = 'Modifier — nouvelle version';
+    document.getElementById('btn-politique').textContent = 'Publier une nouvelle version';
+    document.getElementById('btn-annuler-politique').style.display = 'inline-block';
+    document.getElementById('form-politique').scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+
+  function annulerEditionPolitique(){
+    document.getElementById('form-politique').reset();
+    document.getElementById('pol-id').value = '';
+    document.getElementById('politique-form-titre').textContent = 'Nouvelle politique';
+    document.getElementById('btn-politique').textContent = 'Publier';
+    document.getElementById('btn-annuler-politique').style.display = 'none';
+  }
+
+  document.getElementById('form-politique').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-politique');
+    btn.disabled = true; btn.textContent = 'Publication...';
+    try {
+      const id = document.getElementById('pol-id').value;
+      const type = document.getElementById('pol-type').value;
+      const titre = document.getElementById('pol-titre').value.trim();
+      const contenu = document.getElementById('pol-contenu').value.trim();
+      const obligatoire = document.getElementById('pol-obligatoire').checked;
+
+      if (id){
+        // Modification : incrémente la version → invalide les acceptations précédentes
+        const { data: actuelle } = await sb.from('politiques_entreprise').select('version').eq('id', id).single();
+        const { error } = await sb.from('politiques_entreprise').update({
+          type, titre, contenu, obligatoire,
+          version: (actuelle?.version || 1) + 1,
+          modifie_par: currentUser.id, updated_at: new Date().toISOString()
+        }).eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await sb.from('politiques_entreprise').insert({
+          entreprise_id: currentUser.entreprise_id, type, titre, contenu, obligatoire, modifie_par: currentUser.id
+        });
+        if (error) throw error;
+      }
+
+      annulerEditionPolitique();
+      await chargerPolitiques();
+      showMsg('msg-politique', 'success', 'Document publié. Les employés devront l\'accepter à nouveau si sa version a changé.');
+    } catch (err){
+      console.error(err);
+      showMsg('msg-politique', 'error', 'Erreur : ' + (err.message || 'réessayez.'));
+    } finally {
+      btn.disabled = false; btn.textContent = document.getElementById('pol-id').value ? 'Publier une nouvelle version' : 'Publier';
+    }
+  });
+
+  async function retirerPolitique(id){
+    if (!confirm('Retirer ce document ? Il ne sera plus visible par vos employés.')) return;
+    await sb.from('politiques_entreprise').update({ active:false }).eq('id', id);
+    await chargerPolitiques();
+  }
+
+  init().then(() => { chargerHoraires(); chargerPolitiques(); });
 </script>
 
 </body>
