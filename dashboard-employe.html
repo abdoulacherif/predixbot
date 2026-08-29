@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHub — Mon espace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#14162B; --ink-deep:#1F2447; --ink-soft:#2B315C;
+    --cloud:#F3F4F8; --cloud-dim:#8A93A6; --line:#E1E4EC;
+    --amber:#E7A33E; --amber-soft:#FBEBD1;
+    --mint:#48B892; --mint-soft:#DFF3EA;
+    --danger:#E2685C; --danger-soft:#FBE4E1;
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--body); background:var(--cloud); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:var(--body); cursor:pointer; }
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  .app{ display:flex; min-height:100vh; }
+
+  .sidebar{ width:246px; background:var(--ink); color:#fff; flex-shrink:0; display:flex; flex-direction:column; padding:24px 16px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:1.1rem; padding:0 8px; margin-bottom:8px; }
+  .logo-mark{ width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,var(--amber),var(--mint)); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; color:var(--ink); }
+  .entreprise-name{ font-size:0.78rem; color:#9AA1C0; padding:0 8px; margin-bottom:28px; font-family:var(--mono); }
+
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:8px;
+    font-size:0.9rem; color:#B7BCD9; background:none; border:none; width:100%; text-align:left;
+    transition:background .15s ease, color .15s ease; margin-bottom:2px;
+  }
+  .nav-item .ic{ width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; opacity:0.8; }
+  .nav-item:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .nav-item.active{ background:var(--ink-soft); color:#fff; }
+  .nav-item.active .ic{ color:var(--amber); opacity:1; }
+
+  .sidebar-foot{ margin-top:auto; padding:12px 8px 0; border-top:1px solid rgba(255,255,255,0.08); }
+  .user-row{ display:flex; align-items:center; gap:10px; padding:10px 0; }
+  .avatar{ width:34px; height:34px; border-radius:9px; background:var(--ink-soft); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:600; font-size:0.85rem; color:var(--amber); flex-shrink:0; }
+  .user-meta b{ display:block; font-size:0.86rem; }
+  .user-meta span{ font-size:0.74rem; color:#9AA1C0; }
+  .logout-btn{ background:none; border:none; color:#9AA1C0; font-size:0.8rem; margin-top:6px; padding:0; }
+  .logout-btn:hover{ color:#fff; }
+
+  .main{ flex:1; padding:32px 40px; max-width:1080px; }
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+  .page-head h1{ font-family:var(--display); font-size:1.6rem; letter-spacing:-0.01em; }
+  .page-head p{ color:var(--cloud-dim); font-size:0.92rem; margin-top:4px; }
+  .btn-primary{ background:var(--ink); color:#fff; font-weight:600; font-size:0.88rem; padding:11px 18px; border:none; border-radius:8px; transition:background .15s ease; }
+  .btn-primary:hover{ background:var(--ink-soft); }
+  .btn-primary:disabled{ opacity:0.55; cursor:not-allowed; }
+  .btn-secondary{ background:#fff; border:1px solid var(--line); color:var(--ink); font-weight:600; font-size:0.85rem; padding:9px 15px; border-radius:8px; }
+  .btn-secondary:hover{ border-color:var(--cloud-dim); }
+  .btn-amber{ background:var(--amber); color:var(--ink); font-weight:700; font-size:0.9rem; padding:12px 22px; border:none; border-radius:9px; }
+  .btn-amber:hover{ background:#F4CE8E; }
+  .btn-amber:disabled{ opacity:0.55; cursor:not-allowed; }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+  .stat-card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px 22px; }
+  .stat-card .stat-label{ font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--cloud-dim); margin-bottom:10px; }
+  .stat-card .stat-value{ font-family:var(--display); font-size:1.5rem; font-weight:700; }
+  .stat-card .stat-value.amber{ color:#B87A1E; }
+  .stat-card .stat-value.mint{ color:#2E8365; }
+  .stat-card .stat-sub{ font-size:0.78rem; color:var(--cloud-dim); margin-top:4px; }
+
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:24px; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line); flex-wrap:wrap; gap:10px; }
+  .card-head h2{ font-family:var(--display); font-size:1.02rem; }
+  .card-body{ padding:22px; }
+  table{ width:100%; border-collapse:collapse; font-size:0.87rem; }
+  th{ text-align:left; padding:12px 22px; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; color:var(--cloud-dim); background:#FAFAFC; border-bottom:1px solid var(--line); }
+  td{ padding:14px 22px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tr:last-child td{ border-bottom:none; }
+  .empty-row td{ text-align:center; color:var(--cloud-dim); padding:34px; font-size:0.88rem; }
+
+  .pill{ font-family:var(--mono); font-size:0.72rem; padding:4px 10px; border-radius:100px; display:inline-block; }
+  .pill.actif, .pill.valide, .pill.verse, .pill.present{ background:var(--mint-soft); color:#1F6E4E; }
+  .pill.en_attente{ background:var(--amber-soft); color:#8A5A16; }
+  .pill.inactif, .pill.refuse, .pill.absent{ background:var(--danger-soft); color:#9A2B2B; }
+
+  .pointage-box{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+  .pointage-status{ display:flex; align-items:center; gap:12px; }
+  .pointage-dot{ width:10px; height:10px; border-radius:50%; background:var(--cloud-dim); }
+  .pointage-dot.on{ background:var(--mint); }
+  .pointage-copy b{ display:block; font-size:0.98rem; }
+  .pointage-copy span{ font-size:0.82rem; color:var(--cloud-dim); }
+
+  .field-group{ margin-bottom:16px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  label{ display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; }
+  label .opt{ font-weight:400; color:var(--cloud-dim); font-size:0.76rem; }
+  input, select, textarea{ width:100%; padding:11px 13px; border:1px solid #D3D7E2; border-radius:8px; font-family:var(--body); font-size:0.9rem; }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(20,22,43,0.06); }
+
+  .msg{ margin-top:14px; padding:11px 13px; border-radius:8px; font-size:0.84rem; display:none; }
+  .msg.error{ background:var(--danger-soft); color:#8A2E23; display:block; }
+  .msg.success{ background:var(--mint-soft); color:#1F6E4E; display:block; }
+
+  .eval-block{ padding:18px 22px; border-bottom:1px solid var(--line); }
+  .eval-block:last-child{ border-bottom:none; }
+  .eval-block .eval-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .eval-block .eval-periode{ font-family:var(--mono); font-size:0.78rem; color:var(--cloud-dim); }
+  .eval-block .eval-note{ font-family:var(--display); font-weight:700; font-size:1.1rem; color:#2E8365; }
+  .eval-block p{ font-size:0.88rem; color:#4A5070; line-height:1.5; }
+
+  .loading-state{ padding:60px; text-align:center; color:var(--cloud-dim); font-size:0.9rem; }
+
+  @media (max-width:960px){
+    .sidebar{ display:none; }
+    .stat-grid{ grid-template-columns:1fr; }
+    .main{ padding:24px 18px; }
+    .field-row{ grid-template-columns:1fr; }
+    table{ display:block; overflow-x:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-mark">RH</span>RHub</div>
+    <div class="entreprise-name" id="sb-entreprise-name">Chargement...</div>
+
+    <button class="nav-item active" data-view="apercu" onclick="switchView('apercu')">
+      <span class="ic">◆</span> Vue d'ensemble
+    </button>
+    <button class="nav-item" data-view="presence" onclick="switchView('presence')">
+      <span class="ic">◷</span> Présence
+    </button>
+    <button class="nav-item" data-view="conges" onclick="switchView('conges')">
+      <span class="ic">▦</span> Mes congés
+    </button>
+    <button class="nav-item" data-view="paie" onclick="switchView('paie')">
+      <span class="ic">◈</span> Mes bulletins
+    </button>
+    <button class="nav-item" data-view="evaluations" onclick="switchView('evaluations')">
+      <span class="ic">★</span> Mes évaluations
+    </button>
+
+    <div class="sidebar-foot">
+      <div class="user-row">
+        <div class="avatar" id="user-initials">--</div>
+        <div class="user-meta">
+          <b id="user-name">Chargement...</b>
+          <span id="user-poste">—</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="deconnexion()">Se déconnecter</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main-content">
+
+    <!-- ================= VUE D'ENSEMBLE ================= -->
+    <div class="view active" id="view-apercu">
+      <div class="page-head">
+        <div>
+          <h1 id="apercu-titre">Bonjour</h1>
+          <p id="apercu-sous-titre">Voici votre espace de travail.</p>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Mon poste</div>
+          <div class="stat-value" id="stat-poste">—</div>
+          <div class="stat-sub" id="stat-salaire"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Aujourd'hui</div>
+          <div class="stat-value mint" id="stat-pointage">—</div>
+          <div class="stat-sub" id="stat-pointage-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Congés en attente</div>
+          <div class="stat-value amber" id="stat-conges">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Description du poste</h2></div>
+        <div class="card-body">
+          <p id="poste-description" style="color:#4A5070; font-size:0.9rem; line-height:1.6;">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PRÉSENCE ================= -->
+    <div class="view" id="view-presence">
+      <div class="page-head">
+        <div>
+          <h1>Présence</h1>
+          <p>Pointez votre arrivée et votre départ chaque jour.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body pointage-box">
+          <div class="pointage-status">
+            <span class="pointage-dot" id="pointage-dot"></span>
+            <div class="pointage-copy">
+              <b id="pointage-label">Chargement...</b>
+              <span id="pointage-heures"></span>
+            </div>
+          </div>
+          <button class="btn-amber" id="btn-pointer" onclick="pointer()">—</button>
+        </div>
+        <div class="msg" id="pointage-msg" style="margin:0 22px 18px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Historique</h2></div>
+        <table>
+          <thead><tr><th>Date</th><th>Arrivée</th><th>Départ</th><th>Statut</th></tr></thead>
+          <tbody id="presence-body"><tr class="empty-row"><td colspan="4">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= CONGÉS ================= -->
+    <div class="view" id="view-conges">
+      <div class="page-head">
+        <div>
+          <h1>Mes congés</h1>
+          <p>Faites votre demande — elle sera transmise à votre directeur.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Nouvelle demande</h2></div>
+        <div class="card-body">
+          <form id="form-conge">
+            <div class="field-row">
+              <div class="field-group">
+                <label>Type de congé</label>
+                <select id="conge-type" required>
+                  <option value="paye">Congé payé</option>
+                  <option value="maladie">Maladie</option>
+                  <option value="exceptionnel">Exceptionnel</option>
+                  <option value="sans_solde">Sans solde</option>
+                </select>
+              </div>
+              <div class="field-group"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Date de début</label>
+                <input type="date" id="conge-debut" required>
+              </div>
+              <div class="field-group">
+                <label>Date de fin</label>
+                <input type="date" id="conge-fin" required>
+              </div>
+            </div>
+            <div class="field-group">
+              <label>Motif <span class="opt">optionnel</span></label>
+              <textarea id="conge-motif" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn-primary" id="conge-submit-btn">Envoyer la demande</button>
+            <div class="msg" id="conge-msg"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Historique de mes demandes</h2></div>
+        <table>
+          <thead><tr><th>Type</th><th>Période</th><th>Statut</th></tr></thead>
+          <tbody id="conges-body"><tr class="empty-row"><td colspan="3">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PAIE ================= -->
+    <div class="view" id="view-paie">
+      <div class="page-head">
+        <div>
+          <h1>Mes bulletins de paie</h1>
+          <p>L'historique de vos versements.</p>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Période</th><th>Salaire net</th><th>Statut</th><th>Versé le</th></tr></thead>
+          <tbody id="paie-body"><tr class="empty-row"><td colspan="4">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= ÉVALUATIONS ================= -->
+    <div class="view" id="view-evaluations">
+      <div class="page-head">
+        <div>
+          <h1>Mes évaluations</h1>
+          <p>Vos objectifs et retours reçus.</p>
+        </div>
+      </div>
+      <div class="card" id="evaluations-card">
+        <div class="loading-state">Chargement...</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  window.addEventListener('unhandledrejection', (e) => console.error('Erreur non gérée :', e.reason));
+
+  let currentUser = null;
+  let entreprise = null;
+  let posteActuel = null;
+  let pointageDuJour = null;
+
+  const fmtFCFA = (n) => (n || 0).toLocaleString('fr-FR') + ' FCFA';
+  const fmtDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+  const fmtHeure = (d) => d ? new Date(d).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '—';
+  const todayISO = () => new Date().toISOString().slice(0,10);
+
+  function switchView(view){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    document.querySelector(`.nav-item[data-view="${view}"]`).classList.add('active');
+  }
+
+  async function deconnexion(){
+    await sb.auth.signOut();
+    window.location.href = 'login-signup.html';
+  }
+
+  async function init(){
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user){ window.location.href = 'login-signup.html'; return; }
+
+      const { data: userRow, error: userErr } = await sb.from('utilisateurs').select('*').eq('id', user.id).single();
+      if (userErr || !userRow){
+        document.getElementById('main-content').innerHTML = '<div class="loading-state">Impossible de charger votre profil. Reconnectez-vous.</div>';
+        return;
+      }
+      currentUser = userRow;
+
+      if (currentUser.role === 'directeur' || currentUser.role === 'super_admin'){
+        window.location.href = 'dashboard-directeur.html';
+        return;
+      }
+
+      const { data: entrepriseRow } = await sb.from('entreprises').select('*').eq('id', currentUser.entreprise_id).single();
+      entreprise = entrepriseRow;
+
+      if (currentUser.poste_id){
+        const { data: posteRow } = await sb.from('postes').select('*').eq('id', currentUser.poste_id).single();
+        posteActuel = posteRow;
+      }
+
+      document.getElementById('sb-entreprise-name').textContent = entreprise?.nom || '—';
+      document.getElementById('user-name').textContent = `${currentUser.prenom} ${currentUser.nom}`;
+      document.getElementById('user-poste').textContent = posteActuel?.nom_poste || 'Aucun poste';
+      document.getElementById('user-initials').textContent = (currentUser.prenom[0]||'') + (currentUser.nom[0]||'');
+      document.getElementById('apercu-titre').textContent = `Bonjour, ${currentUser.prenom}`;
+      document.getElementById('apercu-sous-titre').textContent = `Bienvenue chez ${entreprise?.nom || 'votre entreprise'}.`;
+
+      document.getElementById('stat-poste').textContent = posteActuel?.nom_poste || '—';
+      const salaire = currentUser.salaire_reel || posteActuel?.salaire_base || 0;
+      document.getElementById('stat-salaire').textContent = salaire ? fmtFCFA(salaire) + ' / mois' : '';
+      document.getElementById('poste-description').textContent = posteActuel?.description || "Aucune description n'a encore été renseignée pour ce poste.";
+
+      await Promise.all([chargerPresence(), chargerConges(), chargerPaie(), chargerEvaluations()]);
+
+    } catch (err){
+      console.error(err);
+      document.getElementById('main-content').innerHTML = '<div class="loading-state">Erreur de chargement : ' + (err.message || 'réessayez.') + '</div>';
+    }
+  }
+
+  // ---------------- Présence ----------------
+  async function chargerPresence(){
+    const { data: pointages } = await sb.from('presences')
+      .select('*').eq('utilisateur_id', currentUser.id)
+      .order('date', { ascending:false }).limit(15);
+
+    pointageDuJour = (pointages || []).find(p => p.date === todayISO()) || null;
+    majBoutonPointage();
+
+    const body = document.getElementById('presence-body');
+    if (!pointages || pointages.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucun pointage enregistré.</td></tr>';
+    } else {
+      body.innerHTML = pointages.map(p => `
+        <tr>
+          <td>${fmtDate(p.date)}</td>
+          <td>${fmtHeure(p.heure_arrivee)}</td>
+          <td>${fmtHeure(p.heure_depart)}</td>
+          <td><span class="pill ${p.statut}">${p.statut.replace('_',' ')}</span></td>
+        </tr>`).join('');
+    }
+
+    const nb = (pointages || []).length;
+    document.getElementById('stat-pointage').textContent = pointageDuJour?.heure_arrivee ? (pointageDuJour.heure_depart ? 'Terminé' : 'En cours') : 'Non pointé';
+    document.getElementById('stat-pointage-sub').textContent = pointageDuJour?.heure_arrivee ? 'Arrivé à ' + fmtHeure(pointageDuJour.heure_arrivee) : "Vous n'avez pas encore pointé";
+  }
+
+  function majBoutonPointage(){
+    const btn = document.getElementById('btn-pointer');
+    const dot = document.getElementById('pointage-dot');
+    const label = document.getElementById('pointage-label');
+    const heures = document.getElementById('pointage-heures');
+
+    if (!pointageDuJour || !pointageDuJour.heure_arrivee){
+      dot.classList.remove('on');
+      label.textContent = "Vous n'avez pas pointé aujourd'hui";
+      heures.textContent = '';
+      btn.textContent = "Pointer l'arrivée";
+      btn.disabled = false;
+    } else if (!pointageDuJour.heure_depart){
+      dot.classList.add('on');
+      label.textContent = 'Présent depuis ' + fmtHeure(pointageDuJour.heure_arrivee);
+      heures.textContent = "N'oubliez pas de pointer votre départ.";
+      btn.textContent = 'Pointer le départ';
+      btn.disabled = false;
+    } else {
+      dot.classList.add('on');
+      label.textContent = 'Journée terminée';
+      heures.textContent = `${fmtHeure(pointageDuJour.heure_arrivee)} → ${fmtHeure(pointageDuJour.heure_depart)}`;
+      btn.textContent = 'Journée déjà pointée';
+      btn.disabled = true;
+    }
+  }
+
+  async function pointer(){
+    const btn = document.getElementById('btn-pointer');
+    btn.disabled = true;
+    const msg = document.getElementById('pointage-msg');
+    msg.style.display = 'none';
+
+    try {
+      if (!pointageDuJour || !pointageDuJour.heure_arrivee){
+        const { error } = await sb.from('presences').upsert({
+          entreprise_id: currentUser.entreprise_id,
+          utilisateur_id: currentUser.id,
+          date: todayISO(),
+          heure_arrivee: new Date().toISOString(),
+          statut: 'present'
+        }, { onConflict: 'utilisateur_id,date' });
+        if (error) throw error;
+      } else if (!pointageDuJour.heure_depart){
+        const { error } = await sb.from('presences')
+          .update({ heure_depart: new Date().toISOString() })
+          .eq('utilisateur_id', currentUser.id).eq('date', todayISO());
+        if (error) throw error;
+      }
+      await chargerPresence();
+    } catch (err){
+      console.error(err);
+      msg.className = 'msg error'; msg.style.display = 'block';
+      msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+      btn.disabled = false;
+    }
+  }
+
+  // ---------------- Congés ----------------
+  async function chargerConges(){
+    const { data: conges } = await sb.from('conges')
+      .select('*').eq('utilisateur_id', currentUser.id).order('created_at', { ascending:false });
+
+    document.getElementById('stat-conges').textContent = (conges || []).filter(c => c.statut === 'en_attente').length;
+
+    const body = document.getElementById('conges-body');
+    if (!conges || conges.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="3">Aucune demande envoyée.</td></tr>';
+    } else {
+      body.innerHTML = conges.map(c => `
+        <tr>
+          <td>${c.type_conge}</td>
+          <td>${fmtDate(c.date_debut)} → ${fmtDate(c.date_fin)}</td>
+          <td><span class="pill ${c.statut}">${c.statut.replace('_',' ')}</span></td>
+        </tr>`).join('');
+    }
+  }
+
+  document.getElementById('form-conge').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('conge-submit-btn');
+    btn.disabled = true; btn.textContent = 'Envoi...';
+    const msg = document.getElementById('conge-msg');
+    msg.style.display = 'none';
+
+    try {
+      const type_conge = document.getElementById('conge-type').value;
+      const date_debut = document.getElementById('conge-debut').value;
+      const date_fin = document.getElementById('conge-fin').value;
+      const motif = document.getElementById('conge-motif').value.trim();
+
+      if (new Date(date_fin) < new Date(date_debut)){
+        throw new Error('La date de fin doit être après la date de début.');
+      }
+
+      const { error } = await sb.from('conges').insert({
+        entreprise_id: currentUser.entreprise_id,
+        utilisateur_id: currentUser.id,
+        type_conge, date_debut, date_fin, motif: motif || null
+      });
+      if (error) throw error;
+
+      msg.className = 'msg success'; msg.style.display = 'block';
+      msg.textContent = 'Demande envoyée à votre directeur.';
+      document.getElementById('form-conge').reset();
+      await chargerConges();
+    } catch (err){
+      console.error(err);
+      msg.className = 'msg error'; msg.style.display = 'block';
+      msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Envoyer la demande';
+    }
+  });
+
+  // ---------------- Paie ----------------
+  async function chargerPaie(){
+    const { data: bulletins } = await sb.from('bulletins_paie')
+      .select('*').eq('utilisateur_id', currentUser.id)
+      .order('annee', { ascending:false }).order('mois', { ascending:false });
+
+    const body = document.getElementById('paie-body');
+    if (!bulletins || bulletins.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucun bulletin pour le moment.</td></tr>';
+    } else {
+      const mois = ['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+      body.innerHTML = bulletins.map(b => `
+        <tr>
+          <td>${mois[b.mois]} ${b.annee}</td>
+          <td>${fmtFCFA(b.salaire_net)}</td>
+          <td><span class="pill ${b.statut_versement}">${b.statut_versement.replace('_',' ')}</span></td>
+          <td>${b.date_versement ? fmtDate(b.date_versement) : '—'}</td>
+        </tr>`).join('');
+    }
+  }
+
+  // ---------------- Évaluations ----------------
+  async function chargerEvaluations(){
+    const { data: evaluations } = await sb.from('evaluations')
+      .select('*').eq('utilisateur_id', currentUser.id).order('created_at', { ascending:false });
+
+    const card = document.getElementById('evaluations-card');
+    if (!evaluations || evaluations.length === 0){
+      card.innerHTML = '<div class="loading-state">Aucune évaluation pour le moment.</div>';
+      return;
+    }
+    card.innerHTML = evaluations.map(ev => `
+      <div class="eval-block">
+        <div class="eval-head">
+          <span class="eval-periode">${ev.periode}</span>
+          ${ev.note ? `<span class="eval-note">${ev.note}/20</span>` : ''}
+        </div>
+        <p>${ev.commentaires || 'Aucun commentaire.'}</p>
+      </div>`).join('');
+  }
+
+  init();
+</script>
+
+</body>
+</html>
