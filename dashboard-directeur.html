@@ -140,6 +140,9 @@
     <button class="nav-item" data-view="postes" onclick="switchView('postes')">
       <span class="ic">▤</span> Postes
     </button>
+    <button class="nav-item" data-view="travail" onclick="switchView('travail')">
+      <span class="ic">⚡</span> Travail
+    </button>
     <button class="nav-item" data-view="employes" onclick="switchView('employes')">
       <span class="ic">◎</span> Employés
     </button>
@@ -233,6 +236,24 @@
         <table>
           <thead><tr><th>Poste</th><th>Salaire de base</th><th>Employés</th><th></th></tr></thead>
           <tbody id="postes-body">
+            <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= TRAVAIL ================= -->
+    <div class="view" id="view-travail">
+      <div class="page-head">
+        <div>
+          <h1>Travail</h1>
+          <p>Tout ce que vos employés terminent apparaît ici automatiquement — validé ou en attente de cachet.</p>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Tâche</th><th>Réalisée par</th><th>Statut</th><th>Terminée le</th></tr></thead>
+          <tbody id="travail-body">
             <tr class="empty-row"><td colspan="4">Chargement...</td></tr>
           </tbody>
         </table>
@@ -415,6 +436,45 @@
   </div>
 </div>
 
+<!-- ============ MODAL: TÂCHES D'UN POSTE ============ -->
+<div class="modal-overlay" id="modal-taches-poste">
+  <div class="modal" style="max-width:560px;">
+    <h3>Tâches du poste — <span id="taches-poste-nom"></span></h3>
+    <div class="modal-desc">Ce que ce poste doit accomplir, avec les outils fournis à l'employé pour le faire.</div>
+
+    <div id="taches-poste-liste" style="margin-bottom:22px;"></div>
+
+    <div class="section-divider-taches" style="border-top:1px solid var(--line); padding-top:16px; margin-bottom:16px;">
+      <div style="font-family:var(--display); font-size:0.95rem; margin-bottom:12px;">Ajouter une tâche</div>
+      <form id="form-tache-poste">
+        <div class="field-group">
+          <label>Titre de la tâche</label>
+          <input type="text" id="tp-titre" required placeholder="Ex. Faire l'inventaire du stock">
+        </div>
+        <div class="field-group">
+          <label>Description <span class="opt">optionnel</span></label>
+          <textarea id="tp-description" rows="2" placeholder="Ce que l'employé doit faire précisément"></textarea>
+        </div>
+        <div class="field-group">
+          <label>Outils <span class="opt">un par ligne, format : Nom - URL</span></label>
+          <textarea id="tp-outils" rows="2" placeholder="Registre de stock - https://...&#10;Modèle de rapport - https://..."></textarea>
+        </div>
+        <div class="field-group">
+          <label>Envoyer ensuite à ce poste pour validation <span class="opt">optionnel — ex. cachet</span></label>
+          <select id="tp-validateur">
+            <option value="">Aucun — terminé directement</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="fermerModal('modal-taches-poste')">Fermer</button>
+          <button type="submit" class="btn-primary" id="tp-submit-btn">Ajouter la tâche</button>
+        </div>
+        <div class="msg" id="tache-poste-msg"></div>
+      </form>
+    </div>
+  </div>
+</div>
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
 <script>
   const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
@@ -477,7 +537,7 @@
     document.getElementById('user-initials').textContent =
       (currentUser.prenom[0] || '') + (currentUser.nom[0] || '');
 
-    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite()]);
+    await Promise.all([chargerApercu(), chargerPostes(), chargerEmployes(), chargerInvitations(), chargerConges(), chargerSecurite(), chargerTravail()]);
     initSelecteursPaie();
     await chargerPaieDirecteur();
   }
@@ -564,7 +624,7 @@
           <td><b>${p.nom_poste}</b></td>
           <td>${fmtFCFA(p.salaire_base)}</td>
           <td>${compteParPoste[p.id] || 0}</td>
-          <td></td>
+          <td><button class="icon-btn" onclick="ouvrirTachesPoste('${p.id}')">Gérer les tâches</button></td>
         </tr>`).join('');
     }
 
@@ -881,6 +941,117 @@
       console.error(err);
       alert('Erreur lors de la confirmation du versement : ' + (err.message || 'réessayez.'));
     }
+  }
+
+  // ---------------- Tâches de poste ----------------
+  let posteEnCoursId = null;
+
+  async function ouvrirTachesPoste(posteId){
+    posteEnCoursId = posteId;
+    const poste = postesCache.find(p => p.id === posteId);
+    document.getElementById('taches-poste-nom').textContent = poste?.nom_poste || '';
+
+    const selectValidateur = document.getElementById('tp-validateur');
+    selectValidateur.innerHTML = '<option value="">Aucun — terminé directement</option>' +
+      postesCache.filter(p => p.id !== posteId).map(p => `<option value="${p.id}">${p.nom_poste}</option>`).join('');
+
+    await chargerTachesPoste();
+    ouvrirModal('modal-taches-poste');
+  }
+
+  async function chargerTachesPoste(){
+    const { data: taches } = await sb.from('taches_poste')
+      .select('*').eq('poste_id', posteEnCoursId).eq('actif', true).order('ordre');
+
+    const posteNomMap = Object.fromEntries(postesCache.map(p => [p.id, p.nom_poste]));
+    const liste = document.getElementById('taches-poste-liste');
+
+    if (!taches || taches.length === 0){
+      liste.innerHTML = '<p style="color:var(--cloud-dim); font-size:0.86rem;">Aucune tâche définie pour ce poste pour le moment.</p>';
+      return;
+    }
+
+    liste.innerHTML = taches.map(t => `
+      <div style="border:1px solid var(--line); border-radius:9px; padding:14px 16px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+          <div>
+            <b style="font-size:0.9rem;">${t.titre}</b>
+            ${t.description ? `<p style="font-size:0.82rem; color:var(--cloud-dim); margin-top:4px;">${t.description}</p>` : ''}
+            ${t.poste_validateur_id ? `<p style="font-size:0.78rem; color:#B87A1E; margin-top:6px; font-family:var(--mono);">→ Envoyée ensuite à : ${posteNomMap[t.poste_validateur_id] || '—'}</p>` : ''}
+            ${(t.outils && t.outils.length) ? `<p style="font-size:0.78rem; color:var(--cloud-dim); margin-top:6px;">Outils : ${t.outils.map(o => o.nom).join(', ')}</p>` : ''}
+          </div>
+          <button class="icon-btn reject" onclick="supprimerTachePoste('${t.id}')">Retirer</button>
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('form-tache-poste').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('tp-submit-btn');
+    btn.disabled = true; btn.textContent = 'Ajout...';
+    const msg = document.getElementById('tache-poste-msg');
+    msg.style.display = 'none';
+
+    try {
+      const titre = document.getElementById('tp-titre').value.trim();
+      const description = document.getElementById('tp-description').value.trim();
+      const validateurId = document.getElementById('tp-validateur').value || null;
+      const outilsRaw = document.getElementById('tp-outils').value.trim();
+
+      const outils = outilsRaw ? outilsRaw.split('\n').filter(l => l.trim()).map(l => {
+        const [nom, url] = l.split(' - ').map(s => s.trim());
+        return url ? { nom, url } : { nom: l.trim() };
+      }) : [];
+
+      const { error } = await sb.from('taches_poste').insert({
+        entreprise_id: currentUser.entreprise_id,
+        poste_id: posteEnCoursId,
+        titre, description: description || null,
+        outils, poste_validateur_id: validateurId
+      });
+      if (error) throw error;
+
+      document.getElementById('form-tache-poste').reset();
+      await chargerTachesPoste();
+      msg.className = 'msg success'; msg.style.display = 'block';
+      msg.textContent = 'Tâche ajoutée.';
+    } catch (err){
+      console.error(err);
+      msg.className = 'msg error'; msg.style.display = 'block';
+      msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Ajouter la tâche';
+    }
+  });
+
+  async function supprimerTachePoste(id){
+    await sb.from('taches_poste').update({ actif: false }).eq('id', id);
+    await chargerTachesPoste();
+  }
+
+  // ---------------- Travail (vue directeur — remontée automatique) ----------------
+  async function chargerTravail(){
+    const { data: taches } = await sb.from('taches_travail')
+      .select('*').eq('entreprise_id', currentUser.entreprise_id)
+      .order('created_at', { ascending:false }).limit(60);
+
+    const body = document.getElementById('travail-body');
+    if (!taches || taches.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Aucune tâche réalisée pour le moment.</td></tr>';
+      return;
+    }
+
+    const ids = [...new Set(taches.map(t => t.utilisateur_id))];
+    const { data: noms } = await sb.from('utilisateurs').select('id, nom, prenom').in('id', ids);
+    const nomMap = Object.fromEntries((noms || []).map(u => [u.id, `${u.prenom} ${u.nom}`]));
+
+    body.innerHTML = taches.map(t => `
+      <tr>
+        <td><b>${t.titre}</b></td>
+        <td>${nomMap[t.utilisateur_id] || '—'}</td>
+        <td><span class="pill ${t.statut === 'validee' ? 'valide' : (t.statut === 'rejetee' ? 'refuse' : 'en_attente')}">${t.statut.replace(/_/g,' ')}</span></td>
+        <td>${fmtDateTime(t.date_terminee)}</td>
+      </tr>`).join('');
   }
 
   init();
