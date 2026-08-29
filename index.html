@@ -356,7 +356,7 @@
 
       // Ce compte a-t-il déjà une entreprise créée ?
       const { data: userRow, error: userErr } = await sb
-        .from('utilisateurs').select('id').eq('id', signInData.user.id).maybeSingle();
+        .from('utilisateurs').select('id, role').eq('id', signInData.user.id).maybeSingle();
 
       if (userErr){
         showMsg('login-msg', 'error', traduireErreur(userErr.message));
@@ -364,11 +364,17 @@
       }
 
       if (!userRow){
-        // Pas encore de fiche utilisateur : on finalise la création de l'entreprise maintenant
-        const enAttente = lireInscriptionEnAttente(email);
-        if (enAttente){
+        // Pas encore de fiche utilisateur : on finalise soit une création d'entreprise, soit une invitation employé
+        const enAttenteEntreprise = lireInscriptionEnAttente(email);
+        const enAttenteInvitation = (() => {
+          const raw = sessionStorage.getItem('rhub_invitation_en_attente');
+          if (!raw) return null;
+          try { return JSON.parse(raw); } catch { return null; }
+        })();
+
+        if (enAttenteEntreprise){
           try {
-            await finaliserCreationEntreprise(enAttente);
+            await finaliserCreationEntreprise(enAttenteEntreprise);
             effacerInscriptionEnAttente();
             showMsg('login-msg', 'success', 'Entreprise créée avec succès. Redirection...');
             window.location.href = 'dashboard-directeur.html';
@@ -376,13 +382,30 @@
             showMsg('login-msg', 'error', traduireErreur(err.message));
             return;
           }
+        } else if (enAttenteInvitation){
+          try {
+            const { error: rpcError } = await sb.rpc('rejoindre_invitation', {
+              p_code: enAttenteInvitation.code,
+              p_prenom: enAttenteInvitation.prenom,
+              p_nom: enAttenteInvitation.nom,
+              p_telephone: enAttenteInvitation.telephone || null
+            });
+            if (rpcError) throw rpcError;
+            sessionStorage.removeItem('rhub_invitation_en_attente');
+            showMsg('login-msg', 'success', 'Bienvenue dans votre entreprise. Redirection...');
+            window.location.href = 'dashboard-employe.html';
+          } catch (err){
+            showMsg('login-msg', 'error', traduireErreur(err.message));
+            return;
+          }
         } else {
-          showMsg('login-msg', 'error', "Votre e-mail est confirmé mais aucune entreprise n'a été trouvée pour ce compte. Cliquez sur « Créer mon entreprise » pour recommencer.");
+          showMsg('login-msg', 'error', "Votre e-mail est confirmé mais aucune entreprise n'a été trouvée pour ce compte. Cliquez sur « Créer mon entreprise » pour recommencer, ou utilisez votre lien d'invitation.");
           return;
         }
       } else {
         showMsg('login-msg', 'success', 'Connexion réussie. Redirection...');
-        window.location.href = 'dashboard-directeur.html';
+        window.location.href = (userRow.role === 'directeur' || userRow.role === 'super_admin')
+          ? 'dashboard-directeur.html' : 'dashboard-employe.html';
       }
 
     } catch (err){
