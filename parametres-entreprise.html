@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHub — Paramètres de l'entreprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#14162B; --ink-deep:#1F2447; --ink-soft:#2B315C;
+    --cloud:#F3F4F8; --cloud-dim:#8A93A6; --line:#E1E4EC;
+    --amber:#E7A33E; --amber-soft:#FBEBD1;
+    --mint:#48B892; --mint-soft:#DFF3EA;
+    --danger:#E2685C; --danger-soft:#FBE4E1;
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--body); background:var(--cloud); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:var(--body); cursor:pointer; }
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  .app{ display:flex; min-height:100vh; }
+
+  .sidebar{ width:246px; background:var(--ink); color:#fff; flex-shrink:0; display:flex; flex-direction:column; padding:24px 16px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:1.1rem; padding:0 8px; margin-bottom:8px; }
+  .logo-mark{ width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,var(--amber),var(--mint)); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; color:var(--ink); }
+  .entreprise-name{ font-size:0.78rem; color:#9AA1C0; padding:0 8px; margin-bottom:28px; font-family:var(--mono); }
+
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:8px;
+    font-size:0.9rem; color:#B7BCD9; background:none; border:none; width:100%; text-align:left;
+    transition:background .15s ease, color .15s ease; margin-bottom:2px;
+  }
+  .nav-item .ic{ width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; opacity:0.8; }
+  .nav-item:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .nav-item.active{ background:var(--ink-soft); color:#fff; }
+  .nav-item.active .ic{ color:var(--amber); opacity:1; }
+
+  .sidebar-foot{ margin-top:auto; padding:12px 8px 0; border-top:1px solid rgba(255,255,255,0.08); }
+  .user-row{ display:flex; align-items:center; gap:10px; padding:10px 0; }
+  .avatar{ width:34px; height:34px; border-radius:9px; background:var(--ink-soft); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:600; font-size:0.85rem; color:var(--amber); flex-shrink:0; }
+  .user-meta b{ display:block; font-size:0.86rem; }
+  .user-meta span{ font-size:0.74rem; color:#9AA1C0; }
+  .logout-btn{ background:none; border:none; color:#9AA1C0; font-size:0.8rem; margin-top:6px; padding:0; }
+  .logout-btn:hover{ color:#fff; }
+
+  .main{ flex:1; padding:32px 40px; max-width:840px; }
+  .page-head{ margin-bottom:28px; }
+  .page-head h1{ font-family:var(--display); font-size:1.6rem; letter-spacing:-0.01em; }
+  .page-head p{ color:var(--cloud-dim); font-size:0.92rem; margin-top:4px; }
+
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:26px; margin-bottom:22px; }
+  .card-title{ font-family:var(--display); font-size:1.02rem; margin-bottom:4px; }
+  .card-desc{ color:var(--cloud-dim); font-size:0.85rem; margin-bottom:20px; }
+
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field-group{ margin-bottom:16px; }
+  label{ display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; }
+  label .opt{ font-weight:400; color:var(--cloud-dim); font-size:0.76rem; }
+  input, select{ width:100%; padding:11px 13px; border:1px solid #D3D7E2; border-radius:8px; font-family:var(--body); font-size:0.9rem; color:var(--ink); }
+  input:focus, select:focus{ outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(20,22,43,0.06); }
+  input[type="color"]{ padding:4px; height:42px; cursor:pointer; }
+
+  .logo-preview{ width:52px; height:52px; border-radius:10px; object-fit:cover; border:1px solid var(--line); background:var(--cloud); flex-shrink:0; }
+  .logo-row{ display:flex; align-items:center; gap:14px; }
+
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line); gap:20px; }
+  .toggle-row:last-child{ border-bottom:none; }
+  .toggle-copy b{ display:block; font-size:0.92rem; }
+  .toggle-copy span{ font-size:0.82rem; color:var(--cloud-dim); }
+  .switch{ position:relative; width:44px; height:25px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; inset:0; background:#D3D7E2; border-radius:100px; cursor:pointer; transition:background .15s ease; }
+  .slider::before{ content:''; position:absolute; width:19px; height:19px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .15s ease; }
+  .switch input:checked + .slider{ background:var(--mint); }
+  .switch input:checked + .slider::before{ transform:translateX(19px); }
+
+  .btn-primary{ background:var(--ink); color:#fff; font-weight:600; font-size:0.9rem; padding:12px 22px; border:none; border-radius:8px; transition:background .15s ease; }
+  .btn-primary:hover{ background:var(--ink-soft); }
+  .btn-primary:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  .msg{ margin-top:16px; padding:12px 14px; border-radius:8px; font-size:0.86rem; display:none; }
+  .msg.error{ background:var(--danger-soft); color:#8A2E23; display:block; }
+  .msg.success{ background:var(--mint-soft); color:#1F6E4E; display:block; }
+
+  .loading-state{ padding:60px; text-align:center; color:var(--cloud-dim); font-size:0.9rem; }
+
+  @media (max-width:960px){
+    .sidebar{ display:none; }
+    .main{ padding:24px 18px; }
+    .field-row{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-mark">RH</span>RHub</div>
+    <div class="entreprise-name" id="sb-entreprise-name">Chargement...</div>
+
+    <a class="nav-item" href="dashboard-directeur.html"><span class="ic">◆</span> Vue d'ensemble</a>
+    <button class="nav-item active"><span class="ic">⚙</span> Paramètres</button>
+
+    <div class="sidebar-foot">
+      <div class="user-row">
+        <div class="avatar" id="user-initials">--</div>
+        <div class="user-meta">
+          <b id="user-name">Chargement...</b>
+          <span>Directeur</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="deconnexion()">Se déconnecter</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main-content">
+
+    <div class="page-head">
+      <h1>Paramètres de l'entreprise</h1>
+      <p>Ces réglages s'appliquent uniquement à votre entreprise — sans jamais toucher au code de la plateforme.</p>
+    </div>
+
+    <!-- Infos générales -->
+    <div class="card">
+      <div class="card-title">Informations générales</div>
+      <div class="card-desc">Le nom légal de votre entreprise, utilisé dans les documents et bulletins de paie.</div>
+      <form id="form-general">
+        <div class="field-group">
+          <label>Nom de l'entreprise</label>
+          <input type="text" id="cfg-nom" required>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Secteur d'activité</label>
+            <select id="cfg-secteur">
+              <option value="">Sélectionner</option>
+              <option>Commerce / Boutique</option>
+              <option>Restauration</option>
+              <option>Bâtiment / BTP</option>
+              <option>Services</option>
+              <option>Technologie</option>
+              <option>Agriculture</option>
+              <option>Transport</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Ville</label>
+            <input type="text" id="cfg-ville">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-general">Enregistrer</button>
+        <div class="msg" id="msg-general"></div>
+      </form>
+    </div>
+
+    <!-- Apparence / marque blanche -->
+    <div class="card">
+      <div class="card-title">Apparence</div>
+      <div class="card-desc">Personnalisez comment votre espace s'affiche pour vos employés — rien n'est fixé dans le code.</div>
+      <form id="form-apparence">
+        <div class="field-group">
+          <label>Nom affiché <span class="opt">visible par vos employés, à la place de « RHub » si renseigné</span></label>
+          <input type="text" id="cfg-nom-affiche" placeholder="Ex. RH — Atelier Kamga">
+        </div>
+        <div class="field-group">
+          <label>Logo <span class="opt">URL d'une image</span></label>
+          <div class="logo-row">
+            <img class="logo-preview" id="logo-preview" src="" alt="" style="display:none;">
+            <input type="url" id="cfg-logo" placeholder="https://...">
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Couleur principale</label>
+          <input type="color" id="cfg-couleur" value="#2563eb">
+        </div>
+        <button type="submit" class="btn-primary" id="btn-apparence">Enregistrer</button>
+        <div class="msg" id="msg-apparence"></div>
+      </form>
+    </div>
+
+    <!-- Modules -->
+    <div class="card">
+      <div class="card-title">Modules actifs</div>
+      <div class="card-desc">Désactivez ce que vous n'utilisez pas — les employés ne le verront simplement plus.</div>
+      <div class="toggle-row">
+        <div class="toggle-copy"><b>Recrutement</b><span>Publier des offres et suivre les candidatures</span></div>
+        <label class="switch"><input type="checkbox" id="mod-recrutement"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-copy"><b>Évaluations</b><span>Objectifs par période et notation des employés</span></div>
+        <label class="switch"><input type="checkbox" id="mod-evaluations"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-copy"><b>Présence / pointage</b><span>Arrivée, départ, retards</span></div>
+        <label class="switch"><input type="checkbox" id="mod-presence"><span class="slider"></span></label>
+      </div>
+      <div class="msg" id="msg-modules" style="margin-top:10px;"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  window.addEventListener('unhandledrejection', (e) => {
+    console.error('Promesse rejetée non gérée :', e.reason);
+  });
+
+  let currentUser = null;
+  let entreprise = null;
+
+  async function deconnexion(){
+    await sb.auth.signOut();
+    window.location.href = 'login-signup.html';
+  }
+
+  async function init(){
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user){ window.location.href = 'login-signup.html'; return; }
+
+      const { data: userRow, error: userErr } = await sb.from('utilisateurs').select('*').eq('id', user.id).single();
+      if (userErr || !userRow){
+        document.getElementById('main-content').innerHTML = '<div class="loading-state">Impossible de charger votre profil. Reconnectez-vous.</div>';
+        return;
+      }
+      currentUser = userRow;
+
+      if (currentUser.role !== 'directeur' && currentUser.role !== 'super_admin'){
+        document.getElementById('main-content').innerHTML = '<div class="loading-state">Cette page est réservée aux directeurs d\'entreprise.</div>';
+        return;
+      }
+
+      const { data: entrepriseRow, error: entErr } = await sb.from('entreprises').select('*').eq('id', currentUser.entreprise_id).single();
+      if (entErr){
+        document.getElementById('main-content').innerHTML = '<div class="loading-state">Impossible de charger votre entreprise.</div>';
+        return;
+      }
+      entreprise = entrepriseRow;
+
+      document.getElementById('sb-entreprise-name').textContent = entreprise.nom;
+      document.getElementById('user-name').textContent = `${currentUser.prenom} ${currentUser.nom}`;
+      document.getElementById('user-initials').textContent = (currentUser.prenom[0]||'') + (currentUser.nom[0]||'');
+
+      document.getElementById('cfg-nom').value = entreprise.nom || '';
+      document.getElementById('cfg-secteur').value = entreprise.secteur || '';
+
+      const { data: configs } = await sb.from('entreprise_config').select('cle, valeur').eq('entreprise_id', currentUser.entreprise_id);
+      const cfgMap = Object.fromEntries((configs || []).map(c => [c.cle, c.valeur]));
+
+      document.getElementById('cfg-ville').value = cfgMap.ville || '';
+      document.getElementById('cfg-nom-affiche').value = cfgMap.nom_affiche || '';
+      document.getElementById('cfg-logo').value = cfgMap.logo_url || '';
+      if (cfgMap.logo_url){
+        const preview = document.getElementById('logo-preview');
+        preview.src = cfgMap.logo_url; preview.style.display = 'block';
+      }
+      document.getElementById('cfg-couleur').value = cfgMap.couleur_principale || '#2563eb';
+      document.getElementById('mod-recrutement').checked = cfgMap.module_recrutement_actif !== 'false';
+      document.getElementById('mod-evaluations').checked = cfgMap.module_evaluations_actif !== 'false';
+      document.getElementById('mod-presence').checked = cfgMap.module_presence_actif !== 'false';
+
+    } catch (err){
+      console.error(err);
+      document.getElementById('main-content').innerHTML = '<div class="loading-state">Erreur de chargement : ' + (err.message || 'réessayez.') + '</div>';
+    }
+  }
+
+  function showMsg(id, type, text){
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+    el.textContent = text;
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
+  }
+
+  // Upsert simple d'une entrée de config
+  async function upsertConfig(cle, valeur){
+    const { error } = await sb.from('entreprise_config')
+      .upsert({ entreprise_id: currentUser.entreprise_id, cle, valeur, modifie_par: currentUser.id }, { onConflict: 'entreprise_id,cle' });
+    if (error) throw error;
+  }
+
+  document.getElementById('form-general').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-general');
+    btn.disabled = true; btn.textContent = 'Enregistrement...';
+    try {
+      const nom = document.getElementById('cfg-nom').value.trim();
+      const secteur = document.getElementById('cfg-secteur').value;
+      const ville = document.getElementById('cfg-ville').value.trim();
+
+      const { error } = await sb.from('entreprises').update({ nom, secteur }).eq('id', currentUser.entreprise_id);
+      if (error) throw error;
+      await upsertConfig('ville', ville);
+
+      document.getElementById('sb-entreprise-name').textContent = nom;
+      showMsg('msg-general', 'success', 'Informations enregistrées.');
+    } catch (err){
+      console.error(err);
+      showMsg('msg-general', 'error', 'Erreur : ' + (err.message || 'réessayez.'));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enregistrer';
+    }
+  });
+
+  document.getElementById('cfg-logo').addEventListener('input', (e) => {
+    const preview = document.getElementById('logo-preview');
+    if (e.target.value){ preview.src = e.target.value; preview.style.display = 'block'; }
+    else { preview.style.display = 'none'; }
+  });
+
+  document.getElementById('form-apparence').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-apparence');
+    btn.disabled = true; btn.textContent = 'Enregistrement...';
+    try {
+      const nomAffiche = document.getElementById('cfg-nom-affiche').value.trim();
+      const logo = document.getElementById('cfg-logo').value.trim();
+      const couleur = document.getElementById('cfg-couleur').value;
+
+      await upsertConfig('nom_affiche', nomAffiche);
+      await upsertConfig('logo_url', logo);
+      await upsertConfig('couleur_principale', couleur);
+
+      showMsg('msg-apparence', 'success', 'Apparence mise à jour.');
+    } catch (err){
+      console.error(err);
+      showMsg('msg-apparence', 'error', 'Erreur : ' + (err.message || 'réessayez.'));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enregistrer';
+    }
+  });
+
+  async function toggleModule(id, cle){
+    const checkbox = document.getElementById(id);
+    try {
+      await upsertConfig(cle, checkbox.checked ? 'true' : 'false');
+      showMsg('msg-modules', 'success', 'Préférence enregistrée.');
+    } catch (err){
+      console.error(err);
+      checkbox.checked = !checkbox.checked; // on annule le changement visuel si l'enregistrement échoue
+      showMsg('msg-modules', 'error', 'Erreur : ' + (err.message || 'réessayez.'));
+    }
+  }
+
+  document.getElementById('mod-recrutement').addEventListener('change', () => toggleModule('mod-recrutement', 'module_recrutement_actif'));
+  document.getElementById('mod-evaluations').addEventListener('change', () => toggleModule('mod-evaluations', 'module_evaluations_actif'));
+  document.getElementById('mod-presence').addEventListener('change', () => toggleModule('mod-presence', 'module_presence_actif'));
+
+  init();
+</script>
+
+</body>
+</html>
