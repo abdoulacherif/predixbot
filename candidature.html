@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHub — Postuler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#14162B; --cloud:#F3F4F8; --cloud-dim:#8A93A6; --line:#E1E4EC;
+    --amber:#E7A33E; --mint:#48B892; --mint-soft:#DFF3EA;
+    --danger:#E2685C; --danger-soft:#FBE4E1;
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--body); background:var(--ink); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; -webkit-font-smoothing:antialiased; }
+  .card{ background:var(--cloud); border-radius:16px; padding:38px; width:100%; max-width:460px; color:var(--ink); }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:1.1rem; margin-bottom:22px; }
+  .logo-mark{ width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,var(--amber),var(--mint)); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.7rem; color:var(--ink); }
+  .offre-box{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:24px; }
+  .offre-tag{ font-family:var(--mono); font-size:0.7rem; color:var(--cloud-dim); text-transform:uppercase; }
+  .offre-titre{ font-family:var(--display); font-weight:700; font-size:1.15rem; margin:4px 0; }
+  .offre-meta{ font-size:0.85rem; color:#5A6178; }
+  .offre-desc{ font-size:0.86rem; color:#4A5070; line-height:1.6; margin-top:10px; }
+  .field-group{ margin-bottom:16px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  label{ display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; }
+  label .opt{ font-weight:400; color:var(--cloud-dim); font-size:0.76rem; }
+  input, textarea{ width:100%; padding:12px 14px; border:1px solid #D3D7E2; border-radius:8px; font-family:var(--body); font-size:0.9rem; background:#fff; color:var(--ink); }
+  input:focus, textarea:focus{ outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(20,22,43,0.06); }
+  .submit-btn{ width:100%; background:var(--amber); color:var(--ink); font-weight:700; font-size:0.96rem; padding:14px; border:none; border-radius:9px; cursor:pointer; margin-top:6px; }
+  .submit-btn:hover{ background:#F4CE8E; }
+  .submit-btn:disabled{ opacity:0.55; cursor:not-allowed; }
+  .msg{ margin-top:16px; padding:12px 14px; border-radius:8px; font-size:0.86rem; display:none; }
+  .msg.error{ background:var(--danger-soft); color:#8A2E23; display:block; }
+  .msg.success{ background:var(--mint-soft); color:#1F6E4E; display:block; }
+  .state-block{ text-align:center; padding:20px 0; color:#5A6178; font-size:0.92rem; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo"><span class="logo-mark">RH</span>RHub</div>
+  <div id="app-content">
+    <div class="state-block">Chargement de l'offre...</div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://veihgdzozylysfzmvjvi.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhnZHpvenlseXNmem12anZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzYyNDQsImV4cCI6MjEwMzUxMjI0NH0.OgmmACC1_nFVyEDh4dA1ek5N3JlQUJmiRmACq-w2yao";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  window.addEventListener('unhandledrejection', (e) => console.error('Erreur non gérée :', e.reason));
+
+  const params = new URLSearchParams(window.location.search);
+  const offreId = params.get('offre');
+
+  const LIBELLES_CONTRAT = { cdi:'CDI', cdd:'CDD', stage:'Stage', temps_partiel:'Temps partiel' };
+  const fmtFCFA = (n) => n ? n.toLocaleString('fr-FR') + ' FCFA / mois' : '';
+
+  function afficherEtat(html){ document.getElementById('app-content').innerHTML = html; }
+
+  async function init(){
+    if (!offreId){
+      afficherEtat('<div class="state-block">Aucune offre spécifiée dans le lien.</div>');
+      return;
+    }
+
+    const { data: offre, error } = await sb.from('offres_emploi')
+      .select('*').eq('id', offreId).eq('statut', 'ouverte').maybeSingle();
+
+    if (error || !offre){
+      afficherEtat('<div class="state-block">Cette offre n\'est plus disponible.</div>');
+      return;
+    }
+
+    const { data: entreprise } = await sb.from('entreprises').select('nom').eq('id', offre.entreprise_id).single();
+
+    afficherEtat(`
+      <div class="offre-box">
+        <div class="offre-tag">${entreprise?.nom || ''} · ${LIBELLES_CONTRAT[offre.type_contrat] || ''}</div>
+        <div class="offre-titre">${offre.titre}</div>
+        <div class="offre-meta">${offre.lieu || ''}${offre.salaire_indicatif ? ' · ' + fmtFCFA(offre.salaire_indicatif) : ''}</div>
+        <div class="offre-desc">${offre.description}</div>
+      </div>
+      <form id="form-candidature">
+        <div class="field-row">
+          <div class="field-group"><label>Prénom</label><input type="text" id="c-prenom" required></div>
+          <div class="field-group"><label>Nom</label><input type="text" id="c-nom" required></div>
+        </div>
+        <div class="field-group"><label>E-mail</label><input type="email" id="c-email" required></div>
+        <div class="field-group"><label>Téléphone <span class="opt">optionnel</span></label><input type="tel" id="c-telephone"></div>
+        <div class="field-group"><label>Message / motivation <span class="opt">optionnel</span></label><textarea id="c-message" rows="4"></textarea></div>
+        <button type="submit" class="submit-btn" id="c-submit">Envoyer ma candidature</button>
+        <div class="msg" id="c-msg"></div>
+      </form>
+    `);
+
+    document.getElementById('form-candidature').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('c-submit');
+      btn.disabled = true; btn.textContent = 'Envoi...';
+      const msg = document.getElementById('c-msg');
+      msg.style.display = 'none';
+
+      try {
+        const { error } = await sb.rpc('deposer_candidature', {
+          p_offre_id: offreId,
+          p_nom: document.getElementById('c-nom').value.trim(),
+          p_prenom: document.getElementById('c-prenom').value.trim(),
+          p_email: document.getElementById('c-email').value.trim(),
+          p_telephone: document.getElementById('c-telephone').value.trim() || null,
+          p_message: document.getElementById('c-message').value.trim() || null
+        });
+        if (error) throw error;
+
+        msg.className = 'msg success'; msg.style.display = 'block';
+        msg.textContent = 'Candidature envoyée. Vous serez contacté si votre profil est retenu.';
+        document.getElementById('form-candidature').reset();
+        btn.textContent = 'Candidature envoyée';
+      } catch (err){
+        console.error(err);
+        msg.className = 'msg error'; msg.style.display = 'block';
+        msg.textContent = 'Erreur : ' + (err.message || 'réessayez.');
+        btn.disabled = false; btn.textContent = 'Envoyer ma candidature';
+      }
+    });
+  }
+
+  init();
+</script>
+
+</body>
+</html>
