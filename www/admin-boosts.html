@@ -34,6 +34,7 @@ tr:hover td{background:var(--bg-soft);}
 .badge.expired{background:#FBE9EA;color:var(--err);}
 .empty{padding:60px 20px;text-align:center;color:var(--muted);}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
@@ -84,7 +85,7 @@ const BOOST_PRICE_FCFA = 500;
 
 (async ()=>{
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 const isAdmin = !!(data.user && data.user.isAdmin);
 if(!data.user || !isAdmin){
@@ -100,7 +101,7 @@ document.getElementById('gateMsg').style.display = '';
 
 async function loadBoosts(){
   try{
-    const res = await fetch('/api/admin/members?resource=boosts', { credentials: 'include' });
+    const res = await fetch(window.API_BASE + '/api/admin/members?resource=boosts', { credentials: 'include' });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Erreur');
 

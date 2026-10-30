@@ -81,6 +81,7 @@ body{padding-bottom:74px;}
 .dash-header,.dash-body{padding-left:20px;padding-right:20px;}
 }
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <div class="dash-topbar">
@@ -194,7 +195,7 @@ let CURRENT_PROFILE = null;
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 CURRENT_USER = data.user || null;
 CURRENT_PROFILE = CURRENT_USER ? CURRENT_USER.profile : null;
@@ -210,7 +211,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch('/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
 window.location.href = 'index';
 }
 
@@ -243,7 +244,7 @@ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`;
 
 async function loadNavItems(){
 try{
-const res = await fetch('/api/nav-items');
+const res = await fetch(window.API_BASE + '/api/nav-items');
 if(!res.ok) throw new Error('nav-items indisponible');
 const data = await res.json();
 return data.items || [];

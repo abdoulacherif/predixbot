@@ -83,6 +83,7 @@ body{padding-bottom:74px;}
 .group-tile .g-join{width:100%;background:var(--green);color:#fff;border:none;padding:8px;border-radius:9px;font-weight:700;font-size:11.5px;cursor:pointer;font-family:'Sora',sans-serif;margin-top:2px;}
 .empty-groups{grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--muted);}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <div class="dash-topbar">
@@ -169,7 +170,7 @@ let CURRENT_PROFILE = null;
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 CURRENT_USER = data.user || null;
 CURRENT_PROFILE = CURRENT_USER ? CURRENT_USER.profile : null;
@@ -185,7 +186,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch('/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
 window.location.href = 'index';
 }
 
@@ -218,7 +219,7 @@ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`;
 
 async function loadNavItems(){
 try{
-const res = await fetch('/api/nav-items');
+const res = await fetch(window.API_BASE + '/api/nav-items');
 if(!res.ok) throw new Error('nav-items indisponible');
 const data = await res.json();
 return data.items || [];
@@ -270,7 +271,7 @@ setTimeout(()=> window.location.href = 'connexion', 1300);
 return false;
 }
 try{
-const res = await fetch('/api/directory/list', {
+const res = await fetch(window.API_BASE + '/api/directory/list', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -307,7 +308,7 @@ const debouncedGroupSearch = debounce(()=> loadGroups(true), 350);
 
 async function loadGroupThemes(){
 try{
-const res = await fetch('/api/directory/list?type=group-themes');
+const res = await fetch(window.API_BASE + '/api/directory/list?type=group-themes');
 if(!res.ok) throw new Error();
 const data = await res.json();
 groupThemes = ['Tous', ...(data.themes || [])];

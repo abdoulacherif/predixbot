@@ -59,6 +59,7 @@ table.admin-table tr:hover td{background:var(--bg-soft);}
 .admin-tab{flex-shrink:0;padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);font-size:13px;color:var(--muted);background:#fff;cursor:pointer;font-family:'Sora',sans-serif;text-decoration:none;white-space:nowrap;font-weight:600;}
 .admin-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
@@ -162,7 +163,7 @@ function hideErr(id){ const e=document.getElementById(id); if(e) e.classList.rem
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 return { user: data.user, isAdmin: !!(data.user && data.user.isAdmin) };
 }catch(e){
@@ -174,7 +175,7 @@ let navItems = [];
 
 async function loadNavAdmin(){
 try{
-const res = await fetch('/api/admin/members?resource=nav-items', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=nav-items', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 navItems = data.items || [];

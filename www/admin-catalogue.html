@@ -58,6 +58,7 @@ table.admin-table tr:hover td{background:var(--bg-soft);}
 @media(min-width:640px){.modal-overlay{align-items:center;}.modal{border-radius:20px;}}
 .close-x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
@@ -185,7 +186,7 @@ function hideErr(id){ const e=document.getElementById(id); if(e) e.classList.rem
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 return { user: data.user, isAdmin: !!(data.user && data.user.isAdmin) };
 }catch(e){ return { user: null, isAdmin: false }; }
@@ -201,7 +202,7 @@ let serverOffers = [];
 
 async function loadServerOffers(){
 try{
-const res = await fetch('/api/admin/members?resource=server-offers', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=server-offers', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 serverOffers = data.items || [];
@@ -315,7 +316,7 @@ let bizServices = [];
 
 async function loadBizServices(){
 try{
-const res = await fetch('/api/admin/members?resource=biz-services', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=biz-services', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 bizServices = data.items || [];
@@ -425,7 +426,7 @@ let bizServices = [];
 
 async function loadBizServices(){
 try{
-const res = await fetch('/api/admin/members?resource=biz-services', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=biz-services', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 bizServices = data.items || [];

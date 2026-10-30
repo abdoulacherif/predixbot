@@ -45,6 +45,7 @@ header{padding:18px 24px;display:flex;justify-content:space-between;align-items:
 .not-found h1{font-size:22px;margin-bottom:10px;}
 .not-found p{color:var(--muted);font-size:14.5px;}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 
@@ -148,7 +149,7 @@ async function loadProfile() {
     
     waBtn.addEventListener('click', () => {
       // ENREGISTREMENT DU CLIC (Analytics)
-      fetch('/api/profiles?action=track-click', {
+      fetch(window.API_BASE + '/api/profiles?action=track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: p.user_id })

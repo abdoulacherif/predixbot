@@ -75,6 +75,7 @@ a{color:inherit;}
 .entry-badge.verified{background:var(--bg-soft);color:var(--green-dark);}
 .entry-badge.none{background:rgba(14,42,27,0.06);color:var(--muted);}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
@@ -170,7 +171,7 @@ function hideErr(id){ const e=document.getElementById(id); if(e) e.classList.rem
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 return { user: data.user, isAdmin: !!(data.user && data.user.isAdmin) };
 }catch(e){ return { user: null, isAdmin: false }; }
@@ -180,7 +181,7 @@ let campaigns = [];
 
 async function loadCampaigns(){
 try{
-const res = await fetch('/api/admin/members?resource=cagnottes', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 campaigns = data.items || [];
@@ -273,7 +274,7 @@ prize_tiers: tiers,
 };
 
 try{
-const res = await fetch('/api/admin/members?resource=cagnottes', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -297,7 +298,7 @@ if(verifiedCount === 0){ showToast('Aucun participant vérifié à tirer au sort
 if(!confirm(`Lancer le tirage pour cette cagnotte (${verifiedCount} participant(s) vérifié(s)) ? Cette action est définitive.`)) return;
 
 try{
-const res = await fetch('/api/admin/members?resource=cagnottes', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -372,7 +373,7 @@ ${!e.is_winner && e.proof_url ? `
 
  async function verifyEntry(entryId, verified){
 try{
-const res = await fetch('/api/admin/members?resource=cagnottes', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

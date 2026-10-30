@@ -100,6 +100,7 @@ header{padding:18px 24px;display:flex;justify-content:space-between;align-items:
 .cta-band .hero-actions{justify-content:center;margin-top:22px;}
 .cta-band .btn-line{border-color:rgba(255,255,255,0.3);color:#fff;}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header>
@@ -220,7 +221,7 @@ let CURRENT_PROFILE = null;
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 CURRENT_USER = data.user || null;
 CURRENT_PROFILE = CURRENT_USER ? CURRENT_USER.profile : null;
@@ -236,7 +237,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch('/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
 window.location.href = 'index.html';
 }
 
@@ -249,7 +250,7 @@ logout();
 
 async function loadHomeData(){
 try{
-const res = await fetch('/api/directory/list?limit=3');
+const res = await fetch(window.API_BASE + '/api/directory/list?limit=3');
 const data = await res.json();
 const total = data.total ?? 0;
 document.getElementById('statMembers').textContent = total.toLocaleString('fr-FR');

@@ -44,6 +44,7 @@ table.admin-table tr:hover td{background:var(--bg-soft);}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:100px;font-size:13.5px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:90%;text-align:center;}
 .toast.show{opacity:1;}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
@@ -111,7 +112,7 @@ setTimeout(()=>t.classList.remove('show'), 3200);
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 return { user: data.user, isAdmin: !!(data.user && data.user.isAdmin) };
 }catch(e){ return { user: null, isAdmin: false }; }
@@ -126,7 +127,7 @@ document.querySelectorAll('.page-tab-content').forEach(c=> c.classList.toggle('a
 async function loadServerOrders(){
 const tbody = document.getElementById('serverOrderRows');
 try{
-const res = await fetch('/api/admin/members?resource=server-orders', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=server-orders', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 const list = data.items || [];
@@ -181,7 +182,7 @@ loadServerOrders();
 async function loadBizOrders(){
 const tbody = document.getElementById('bizOrderRows');
 try{
-const res = await fetch('/api/admin/members?resource=biz-orders', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=biz-orders', { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 const list = data.items || [];

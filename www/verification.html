@@ -30,6 +30,7 @@ header{padding:20px 24px;border-bottom:1px solid var(--line);}
 .confirm-icon.loading svg{animation:spin 1s linear infinite;}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header>
@@ -100,7 +101,7 @@ return;
 }
 
 try{
-const res = await fetch('/api/auth/session', {
+const res = await fetch(window.API_BASE + '/api/auth/session', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

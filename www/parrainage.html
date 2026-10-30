@@ -94,6 +94,7 @@ body{padding-bottom:74px;}
 .campaign-meta{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:2px;}
 .recipient-empty{padding:20px;text-align:center;color:var(--muted);font-size:13px;}
 </style>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <div class="dash-topbar">
@@ -236,7 +237,7 @@ let CURRENT_PROFILE = null;
 
 async function initNav(){
 try{
-const res = await fetch('/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
 const data = await res.json();
 CURRENT_USER = data.user || null;
 CURRENT_PROFILE = CURRENT_USER ? CURRENT_USER.profile : null;
@@ -252,7 +253,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch('/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
 window.location.href = 'index';
 }
 
@@ -284,7 +285,7 @@ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`;
 
 async function loadNavItems(){
 try{
-const res = await fetch('/api/nav-items');
+const res = await fetch(window.API_BASE + '/api/nav-items');
 if(!res.ok) throw new Error('nav-items indisponible');
 const data = await res.json();
 return data.items || [];
@@ -394,7 +395,7 @@ document.getElementById('statCode').textContent = profile.referral_code || '—'
 document.getElementById('statSoldeGains').textContent = (profile.solde ?? 0).toLocaleString('fr-FR');
 
 try{
-const res = await fetch('/api/profiles', { credentials: 'include' });
+const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include' });
 const data = await res.json();
 renderReferrals(data.referrals || [], data.referralsCount);
 renderGains(data.earnings || []);
