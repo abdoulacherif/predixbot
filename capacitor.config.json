@@ -3,7 +3,8 @@
   "appName": "Kontak",
   "webDir": "www",
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "cleartext": true
   },
   "plugins": {
     "SplashScreen": {
@@ -11,5 +12,8 @@
       "backgroundColor": "#25D366",
       "showSpinner": false
     }
+  },
+  "android": {
+    "allowMixedContent": true
   }
 }
