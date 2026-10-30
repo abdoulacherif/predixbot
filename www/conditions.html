@@ -205,7 +205,7 @@ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`;
 
 async function loadNavItems(){
 try{
-const res = await fetch(window.API_BASE + '/api/nav-items');
+const res = await fetch(window.API_BASE + '/api/nav-items', { credentials: 'include' });
 if(!res.ok) throw new Error('nav-items indisponible');
 const data = await res.json();
 return data.items || [];

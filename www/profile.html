@@ -231,7 +231,7 @@ const ICONS = {
 };
 function icon(key, cls){ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`; }
 
-async function loadNavItems(){ try{ const res = await fetch(window.API_BASE + '/api/nav-items'); if(!res.ok) throw new Error(); const data = await res.json(); return data.items || []; }catch(e){ return []; } }
+async function loadNavItems(){ try{ const res = await fetch(window.API_BASE + '/api/nav-items', { credentials: 'include' }); if(!res.ok) throw new Error(); const data = await res.json(); return data.items || []; }catch(e){ return []; } }
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); }
 function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
 document.getElementById('icOverview').innerHTML = ICONS.home;
