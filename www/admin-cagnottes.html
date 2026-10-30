@@ -274,7 +274,7 @@ prize_tiers: tiers,
 };
 
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -298,7 +298,7 @@ if(verifiedCount === 0){ showToast('Aucun participant vérifié à tirer au sort
 if(!confirm(`Lancer le tirage pour cette cagnotte (${verifiedCount} participant(s) vérifié(s)) ? Cette action est définitive.`)) return;
 
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -335,7 +335,7 @@ currentEntriesCampaign = campaignId;
 document.getElementById('entriesList').innerHTML = 'Chargement…';
 document.getElementById('entriesOverlay').classList.add('open');
 try{
-const res = await fetch(`/api/admin/members?resource=cagnottes&campaignId=${campaignId}`, { credentials: 'include' });
+const res = await fetch(`/api/admin/members?resource=cagnottes&campaignId=${campaignId}`);
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 renderEntries(data.entries || []);
@@ -373,7 +373,7 @@ ${!e.is_winner && e.proof_url ? `
 
  async function verifyEntry(entryId, verified){
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

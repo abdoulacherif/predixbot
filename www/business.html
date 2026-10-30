@@ -186,7 +186,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
 window.location.href = 'index';
 }
 
@@ -271,7 +271,7 @@ setTimeout(()=> window.location.href = 'connexion', 1300);
 return false;
 }
 try{
-const res = await fetch(window.API_BASE + '/api/directory/list', {
+const res = await fetch(window.API_BASE + '/api/directory/list', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

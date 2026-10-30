@@ -149,7 +149,7 @@ async function loadProfile() {
     
     waBtn.addEventListener('click', () => {
       // ENREGISTREMENT DU CLIC (Analytics)
-      fetch(window.API_BASE + '/api/profiles?action=track-click', {
+      fetch(window.API_BASE + '/api/profiles?action=track-click', { credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: p.user_id })

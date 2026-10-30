@@ -101,7 +101,7 @@ return;
 }
 
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', {
+const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

@@ -267,7 +267,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
 window.location.href = 'index';
 }
 
@@ -426,7 +426,7 @@ const btn = document.getElementById('sendCampaignBtn');
 btn.disabled = true; btn.textContent = CURRENT_METHOD==='manuel' ? 'Préparation…' : 'Envoi en cours…';
 
 try{
-const res = await fetch(window.API_BASE + '/api/mail', {
+const res = await fetch(window.API_BASE + '/api/mail', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

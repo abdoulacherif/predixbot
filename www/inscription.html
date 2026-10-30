@@ -231,7 +231,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
 window.location.href = 'index';
 }
 
@@ -328,7 +328,7 @@ const params = new URLSearchParams(window.location.search);
 const referredBy = params.get('ref') || null;
 
 try{
-const res = await fetch(window.API_BASE + '/api/auth/signup', {
+const res = await fetch(window.API_BASE + '/api/auth/signup', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

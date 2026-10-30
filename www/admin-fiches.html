@@ -205,7 +205,7 @@ const q = document.getElementById('adminSearch').value.trim();
 try{
 const params = new URLSearchParams({ resource: 'profiles', offset: adminOffset, limit: ADMIN_PAGE_SIZE });
 if(q) params.set('q', q);
-const res = await fetch(`/api/admin/members?${params.toString()}`, { credentials: 'include' });
+const res = await fetch(`/api/admin/members?${params.toString()}`);
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 if(myToken !== adminLoadToken) return;
@@ -290,7 +290,7 @@ const amount = parseFloat(document.getElementById('commission-amount').value);
 if(!amount || amount <= 0){ showToast('Indique un montant valide.'); return; }
 
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=profiles', {
+const res = await fetch(window.API_BASE + '/api/admin/members?resource=profiles', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

@@ -183,7 +183,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
 window.location.href = 'index';
 }
 

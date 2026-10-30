@@ -169,7 +169,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
 window.location.href = 'index';
 }
 
@@ -282,7 +282,7 @@ return;
 }
 try{
 showToast('Redirection vers le paiement…');
-const resp = await fetch(window.API_BASE + '/api/create-checkout', {
+const resp = await fetch(window.API_BASE + '/api/create-checkout', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -343,7 +343,7 @@ const url = input.value.trim();
 if(!url){ showToast('Colle le lien de ta publication.'); return; }
 
 try{
-const res = await fetch(window.API_BASE + '/api/profiles', {
+const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include',
 method: 'PATCH',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',

@@ -209,7 +209,7 @@ async function initNav(){
   return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
-async function logout(){ await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' }); window.location.href = 'index'; }
+async function logout(){ await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  }); window.location.href = 'index'; }
 document.addEventListener('click', (e)=>{ if(e.target && e.target.matches('[data-action="logout"]')){ e.preventDefault(); logout(); } });
 
 const ICONS = {
@@ -298,7 +298,7 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
   reader.readAsDataURL(file);
   const base64 = await new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
   try {
-    const res = await fetch(window.API_BASE + '/api/profiles?action=upload-avatar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ base64Image: base64, mimeType: file.type }) });
+    const res = await fetch(window.API_BASE + '/api/profiles?action=upload-avatar', { credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, , body: JSON.stringify({ base64Image: base64, mimeType: file.type }) });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Erreur d'upload.");
     if (CURRENT_PROFILE) CURRENT_PROFILE.avatar_url = data.avatar_url;
@@ -309,7 +309,7 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
 async function buyBoost() {
   if (!confirm("Dépenser 500 crédits pour booster ta fiche 7 jours ?")) return;
   try {
-    const res = await fetch(window.API_BASE + '/api/profiles?action=buy-boost', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ credits: 500, days: 7 }) });
+    const res = await fetch(window.API_BASE + '/api/profiles?action=buy-boost', { credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, , body: JSON.stringify({ credits: 500, days: 7 }) });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Erreur lors de l'achat.");
     showToast('Fiche boostée pour 7 jours ! ⭐');
@@ -324,7 +324,7 @@ document.getElementById('pwForm').addEventListener('submit', async (e)=>{
   if(pw !== pw2){ showErr('errPw','Les mots de passe ne correspondent pas.'); return; }
   hideErr('errPw'); const btn = document.getElementById('pwSaveBtn'); btn.disabled = true; btn.textContent = 'Mise à jour…';
   try{
-    const res = await fetch(window.API_BASE + '/api/profiles', {method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ password: pw })});
+    const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include',method: 'PUT', headers: { 'Content-Type': 'application/json' }, , body: JSON.stringify({ password: pw })});
     const data = await res.json(); if(!res.ok) throw new Error(data.error || "Erreur.");
     document.getElementById('pwForm').reset(); showToast('Mot de passe mis à jour ✓');
   }catch(err){ showErr('errPw', err.message); }
@@ -335,7 +335,7 @@ document.getElementById('dashForm').addEventListener('submit', async (e)=>{
   e.preventDefault(); const btn = document.getElementById('dashSaveBtn'); btn.disabled = true; btn.textContent = 'Enregistrement…';
   const updated = { nom: document.getElementById('d-name').value.trim(), whatsapp: document.getElementById('d-phone').value.trim(), pays: document.getElementById('d-country').value.trim(), ville: document.getElementById('d-city').value.trim(), business: document.getElementById('d-business').value.trim(), secteur: document.getElementById('d-sector').value };
   try{
-    const res = await fetch(window.API_BASE + '/api/profiles', {method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(updated) });
+    const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include',method: 'PATCH', headers: { 'Content-Type': 'application/json' }, , body: JSON.stringify(updated) });
     const data = await res.json(); if(!res.ok) throw new Error(data.error || "Erreur.");
     hideErr('errDash'); CURRENT_PROFILE = {...CURRENT_PROFILE, ...updated}; fillDashboard(CURRENT_PROFILE); showToast('Profil mis à jour ✓');
   }catch(err){ showErr('errDash', err.message); }
@@ -345,8 +345,8 @@ document.getElementById('dashForm').addEventListener('submit', async (e)=>{
 async function deleteMyProfile(){
   if(!confirm("Supprimer définitivement ta fiche de l'annuaire ?")) return;
   try{
-    const res = await fetch(window.API_BASE + '/api/profiles', { method: 'DELETE', credentials: 'include' }); const data = await res.json(); if(!res.ok) throw new Error(data.error || "Erreur.");
-    showToast('Fiche supprimée'); await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' }); window.location.href = 'index';
+    const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include', method: 'DELETE',  }); const data = await res.json(); if(!res.ok) throw new Error(data.error || "Erreur.");
+    showToast('Fiche supprimée'); await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  }); window.location.href = 'index';
   }catch(err){ showErr('errDash', err.message); }
 }
 
@@ -354,7 +354,7 @@ document.getElementById('completeForm').addEventListener('submit', async (e)=>{
   e.preventDefault(); const btn = document.getElementById('completeSaveBtn'); btn.disabled = true; btn.textContent = 'Création…';
   const payload = { nom: document.getElementById('c-name').value.trim(), whatsapp: document.getElementById('c-phone').value.trim(), pays: document.getElementById('c-country').value.trim(), ville: document.getElementById('c-city').value.trim(), business: document.getElementById('c-business').value.trim(), secteur: document.getElementById('c-sector').value };
   try{
-    const res = await fetch(window.API_BASE + '/api/profiles', {method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
+    const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include',method: 'POST', headers: { 'Content-Type': 'application/json' }, , body: JSON.stringify(payload) });
     const data = await res.json(); if(!res.ok) throw new Error(data.error || "Erreur.");
     hideErr('errComplete'); CURRENT_PROFILE = data.profile; document.getElementById('completeContent').style.display = 'none'; document.getElementById('dashContent').style.display = ''; fillDashboard(data.profile); showToast('Fiche créée ✓');
   }catch(err){ showErr('errComplete', err.message); }

@@ -447,7 +447,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
 window.location.href = 'index';
 }
 
@@ -600,7 +600,7 @@ const btn = document.getElementById('withdrawBtn');
 btn.disabled = true; btn.textContent = 'Envoi…';
 
 try{
-const res = await fetch(window.API_BASE + '/api/withdrawals/create', {
+const res = await fetch(window.API_BASE + '/api/withdrawals/create', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -641,7 +641,7 @@ secteur: document.getElementById('c-sector').value
 };
 
 try{
-const res = await fetch(window.API_BASE + '/api/profiles', {
+const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include',
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
