@@ -4,12 +4,12 @@ import android.os.Bundle;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.community.contacts.ContactsPlugin;
+import ch.byrds.capacitor.contacts.Contacts;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(ContactsPlugin.class);
+        registerPlugin(Contacts.class);
         super.onCreate(savedInstanceState);
 
         WebView webView = getBridge().getWebView();
