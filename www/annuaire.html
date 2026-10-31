@@ -58,6 +58,19 @@ a{color:inherit;text-decoration:none;}
 
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 24px;border-radius:100px;font-size:14px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
+
+/* --- MODAL ENREGISTREMENT --- */
+.overlay{position:fixed;inset:0;background:rgba(14,42,27,0.5);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:200;}
+.overlay.open{display:flex;}
+.modal{background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px 20px 30px;max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-header h2{font-size:20px;}
+.close-btn{background:var(--bg);border:none;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;}
+.dl-option{display:flex;align-items:center;gap:14px;padding:16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;margin-bottom:10px;width:100%;text-align:left;font-family:'Sora',sans-serif;transition:border-color 0.2s;}
+.dl-option:hover{border-color:var(--green);}
+.dl-option svg{width:22px;height:22px;color:var(--green-dark);flex-shrink:0;}
+.dl-option .dl-title{font-weight:700;font-size:14px;color:var(--ink);}
+.dl-option .dl-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 </style>
 </head>
 <body>
@@ -165,7 +178,7 @@ async function loadProfiles(){
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.553 4.12 1.52 5.855L.012 24l6.317-1.652A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.826 0-3.542-.5-5.02-1.372l-.36-.212-3.75.98.999-3.65-.234-.375A9.94 9.94 0 012 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10z"/></svg>
             WhatsApp
           </button>
-          <button class="btn-action btn-save" onclick="saveContact('${escapeHtml(c.business || c.nom)}', '${escapeHtml(c.whatsapp)}', '${escapeHtml(c.ville || '')}', '${escapeHtml(c.pays || '')}', '${escapeHtml(c.secteur || '')}', '${escapeHtml(c.user_id || '')}')">
+          <button class="btn-action btn-save" onclick="openSaveMenu('${escapeHtml(c.business || c.nom)}', '${escapeHtml(c.whatsapp)}', '${escapeHtml(c.ville || '')}', '${escapeHtml(c.pays || '')}', '${escapeHtml(c.secteur || '')}', '${escapeHtml(c.user_id || '')}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Enregistrer
           </button>
@@ -186,36 +199,164 @@ function contactWhatsapp(phone, business){
 }
 
 // Enregistrement DIRECT dans le carnet d'adresses
-async function saveContact(business, phone, ville, pays, secteur) {
-  const cleanPhone = (phone || '').replace(/\D/g, '');
-  if (!cleanPhone) return showToast('Numéro invalide.');
 
-  const vcard = [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-    `FN:${business}`,
-    `ORG:Kontak`,
-    `TITLE:${secteur}`,
-    `TEL;TYPE=CELL:${cleanPhone}`,
-    `ADR:;;${ville};;;${pays}`,
-    `NOTE:Via l'annuaire Kontak`,
-    'END:VCARD'
-  ].join('\r\n');
+let ACTIVE_CONTACT = null;
 
-  const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  
-  // Déclenche directement l'ouverture (Android proposera "Ajouter au contact")
-  window.location.href = url;
-  
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
-  showToast('Choisis "Ajouter aux contacts" ✓');
+function openSaveMenu(business, phone, ville, pays, secteur, targetUserId) {
+  ACTIVE_CONTACT = { business, phone, ville, pays, secteur, targetUserId };
+  document.getElementById('saveContactName').textContent = business;
+  document.getElementById('saveOverlay').classList.add('open');
 }
+
+function closeSaveMenu() {
+  document.getElementById('saveOverlay').classList.remove('open');
+}
+
+async function saveToPhoneBook() {
+  const { business, phone, ville, pays, secteur, targetUserId } = ACTIVE_CONTACT;
+  const cleanPhone = (phone || '').replace(/\D/g, '');
+
+  try {
+    // Vérifier la réciprocité côté API
+    let mutual = false;
+    if (targetUserId) {
+      try {
+        const res = await fetch(window.API_BASE + '/api/directory/save-contact', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetUserId })
+        });
+        const data = await res.json();
+        if (res.ok && data.mutual) mutual = true;
+      } catch(e) { console.error(e); }
+    }
+
+    // Essayer d'utiliser le plugin natif
+    if (window.Contacts) {
+      const perm = await window.Contacts.checkPermissions();
+      if (perm.contacts !== 'granted') {
+        const req = await window.Contacts.requestPermissions();
+        if (req.contacts !== 'granted') {
+          return showToast('Permission refusée. Active l accès aux contacts dans les paramètres.', 'error');
+        }
+      }
+
+      await window.Contacts.createContact({
+        contact: {
+          name: { given: business, family: '' },
+          organization: { company: 'Kontak', title: secteur || '' },
+          phones: [{ label: 'mobile', number: cleanPhone }],
+          addresses: [{ label: 'home', street: '', city: ville || '', country: pays || '', postalCode: '', region: '', type: 'home' }],
+          note: 'Via l annuaire Kontak'
+        }
+      });
+
+      if (mutual) showToast('🤝 Vous vous êtes enregistrés mutuellement !', 'info');
+      else showToast('Contact enregistré dans ton téléphone ✓', 'success');
+      closeSaveMenu();
+      return;
+    }
+
+    // Fallback : VCF qui s'ouvre directement dans le carnet
+    const vcard = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      'FN:' + business,
+      'ORG:Kontak',
+      'TITLE:' + (secteur || ''),
+      'TEL;TYPE=CELL:' + cleanPhone,
+      'ADR:;;' + (ville || '') + ';;;' + (pays || ''),
+      'NOTE:Via l annuaire Kontak',
+      'END:VCARD'
+    ].join('
+');
+
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    if (mutual) showToast('🤝 Vous vous êtes enregistrés mutuellement !', 'info');
+    else showToast('Choisis Ajouter aux contacts ✓', 'success');
+
+    setTimeout(() => {
+      window.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }, mutual ? 1200 : 600);
+
+    closeSaveMenu();
+  } catch (error) {
+    console.error('Save contact error:', error);
+    showToast('Erreur : ' + (error.message || 'impossible d enregistrer'), 'error');
+  }
+}
+
+async function downloadCSV() {
+  const { business, phone, ville, pays, secteur } = ACTIVE_CONTACT;
+  const cleanPhone = (phone || '').replace(/\D/g, '');
+
+  const csv = 'Nom,Business,WhatsApp,Ville,Pays,Secteur,Source
+' +
+    '"' + (business || '') + '","' + (business || '') + '","' + cleanPhone + '","' + (ville || '') + '","' + (pays || '') + '","' + (secteur || '') + '",Kontak';
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kontak-' + (business || 'contact').replace(/\s+/g, '-').toLowerCase() + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+  showToast('Fichier CSV téléchargé ✓', 'success');
+  closeSaveMenu();
+}
+
 
 // Initialisation
 renderFilters();
 loadProfiles();
 renderFixedNavbar();
+
+// Demander la permission de manière persistante (au cas où elle a été refusée)
+async function requestContactPermission() {
+  try {
+    const perm = await window.Contacts.checkPermissions();
+    if (perm.contacts !== 'granted') {
+      await window.Contacts.requestPermissions();
+    }
+  } catch(e) { console.log('Permission check:', e); }
+}
+
+// Petite pause pour laisser Capacitor charger le plugin
+setTimeout(() => { requestContactPermission(); }, 1500);
 </script>
+
+<div class="overlay" id="saveOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Enregistrer ce contact</h2>
+      <button class="close-btn" onclick="closeSaveMenu()">✕</button>
+    </div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px;" id="saveContactName">—</p>
+    
+    <button class="dl-option" onclick="saveToPhoneBook()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <div>
+        <div class="dl-title">Enregistrer dans le répertoire</div>
+        <div class="dl-sub">Ajout automatique à tes contacts</div>
+      </div>
+    </button>
+    
+    <button class="dl-option" onclick="downloadCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      <div>
+        <div class="dl-title">Télécharger en CSV</div>
+        <div class="dl-sub">Compatible Excel, Google Sheets</div>
+      </div>
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
