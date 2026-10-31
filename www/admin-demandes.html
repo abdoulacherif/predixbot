@@ -157,7 +157,7 @@ tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;col
 }
 async function markWithdrawDone(id){
 try{
-const res = await fetch(`/api/admin/members?resource=withdrawals&id=${id}`, {
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=withdrawals&id=${id}`, {
 method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include',
 body: JSON.stringify({ status: 'traité' })
 });
@@ -170,7 +170,7 @@ loadWithdrawals();
 async function deleteWithdraw(id){
 if(!confirm('Supprimer cette demande ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=withdrawals&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=withdrawals&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Demande supprimée');
@@ -211,7 +211,7 @@ tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;col
 }
 async function markSubDone(id){
 try{
-const res = await fetch(`/api/admin/members?resource=subscriptions&id=${id}`, {
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=subscriptions&id=${id}`, {
 method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include',
 body: JSON.stringify({ status: 'payé' })
 });
@@ -224,7 +224,7 @@ loadSubRequests();
 async function deleteSub(id){
 if(!confirm('Supprimer cette demande ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=subscriptions&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=subscriptions&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Demande supprimée');

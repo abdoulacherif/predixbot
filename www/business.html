@@ -186,7 +186,7 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  });
+await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE' });
 window.location.href = './index.html';
 }
 
@@ -336,7 +336,7 @@ if(q) params.set('q', q);
 params.set('offset', groupOffset);
 params.set('limit', GROUP_PAGE_SIZE);
 
-const res = await fetch(`/api/directory/list?${params.toString()}`);
+const res = await fetch(window.API_BASE + `/api/directory/list?${params.toString()}`, { credentials: "include" });
 if(!res.ok) throw new Error();
 const data = await res.json();
 

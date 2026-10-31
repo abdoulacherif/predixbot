@@ -298,7 +298,7 @@ btn.disabled = false; btn.textContent = 'Enregistrer';
 async function deleteServerOffer(id){
 if(!confirm('Supprimer cette offre ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=server-offers&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=server-offers&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Offre supprimée');
@@ -408,7 +408,7 @@ btn.disabled = false; btn.textContent = 'Enregistrer';
 async function deleteBizService(id){
 if(!confirm('Supprimer ce service ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=server-offers&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=server-offers&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Offre supprimée');
@@ -518,7 +518,7 @@ btn.disabled = false; btn.textContent = 'Enregistrer';
 async function deleteBizService(id){
 if(!confirm('Supprimer ce service ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=biz-services&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=biz-services&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Service supprimé');

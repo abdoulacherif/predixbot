@@ -240,7 +240,7 @@ btn.disabled = false; btn.textContent = 'Enregistrer';
 async function deletePlan(id){
 if(!confirm('Supprimer ce forfait ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=plans&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=plans&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Forfait supprimé');

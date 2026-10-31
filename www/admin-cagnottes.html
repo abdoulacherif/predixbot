@@ -270,8 +270,7 @@ name: document.getElementById('cp-name').value.trim(),
 entry_price: parseInt(document.getElementById('cp-price').value, 10) || 0,
 credits_reward: parseInt(document.getElementById('cp-credits').value, 10) || 0,
 promo_instructions: document.getElementById('cp-promo').value.trim(),
-prize_tiers: tiers,
-};
+prize_tiers: tiers };
 
 try{
 const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
@@ -317,7 +316,7 @@ showToast(err.message || 'Erreur lors du tirage.');
 async function deleteCampaign(id){
 if(!confirm('Supprimer cette cagnotte ?')) return;
 try{
-const res = await fetch(`/api/admin/members?resource=cagnottes&id=${id}`, { method:'DELETE', credentials:'include' });
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=cagnottes&id=${id}`, { method:'DELETE', credentials:'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 showToast('Cagnotte supprimée');
@@ -335,7 +334,7 @@ currentEntriesCampaign = campaignId;
 document.getElementById('entriesList').innerHTML = 'Chargement…';
 document.getElementById('entriesOverlay').classList.add('open');
 try{
-const res = await fetch(`/api/admin/members?resource=cagnottes&campaignId=${campaignId}`);
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=cagnottes&campaignId=${campaignId}`);
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 renderEntries(data.entries || []);
