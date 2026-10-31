@@ -93,7 +93,7 @@ const ICONS = {
 function icon(key, cls){ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.user}</span>`; }
 function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function initials(name){ return (name||'').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
-function showToast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000); }
+function showToast(msg, type='success'){ const t = document.getElementById('toast'); t.textContent = msg; t.style.background = type === 'error' ? '#D9534F' : (type === 'info' ? '#128C4A' : '#0E2A1B'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3500); }
 
 let activeFilter = 'Tous';
 let loadToken = 0;
@@ -165,7 +165,7 @@ async function loadProfiles(){
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.553 4.12 1.52 5.855L.012 24l6.317-1.652A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.826 0-3.542-.5-5.02-1.372l-.36-.212-3.75.98.999-3.65-.234-.375A9.94 9.94 0 012 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10z"/></svg>
             WhatsApp
           </button>
-          <button class="btn-action btn-save" onclick="saveContact('${escapeHtml(c.business || c.nom)}', '${escapeHtml(c.whatsapp)}', '${escapeHtml(c.ville || '')}', '${escapeHtml(c.pays || '')}', '${escapeHtml(c.secteur || '')}')">
+          <button class="btn-action btn-save" onclick="saveContact('${escapeHtml(c.business || c.nom)}', '${escapeHtml(c.whatsapp)}', '${escapeHtml(c.ville || '')}', '${escapeHtml(c.pays || '')}', '${escapeHtml(c.secteur || '')}', '${escapeHtml(c.user_id || '')}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Enregistrer
           </button>

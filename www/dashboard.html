@@ -32,7 +32,7 @@ a{color:inherit;text-decoration:none;}
 .greeting p{color:var(--muted);font-size:14px;margin:0;}
 
 /* CARTE SOLDE */
-.balance-card{background:linear-gradient(135deg, var(--ink) 0%, var(--green-dark) 100%);border-radius:24px;padding:24px;color:#fff;margin-bottom:20px;box-shadow:0 12px 24px -8px rgba(18,140,74,0.4);position:relative;overflow:hidden;}
+.balance-card{background:linear-gradient(135deg, var(--ink) 0%, var(--green-dark) 100%);border-radius:24px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 12px 24px -8px rgba(18,140,74,0.4);position:relative;overflow:hidden;}
 .balance-card::after{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:rgba(255,255,255,0.1);border-radius:50%;}
 .balance-label{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;font-family:'Space Mono',monospace;}
 .balance-amount{font-family:'Fraunces',serif;font-size:38px;display:flex;align-items:baseline;gap:6px;}
@@ -40,6 +40,14 @@ a{color:inherit;text-decoration:none;}
 .balance-actions{display:flex;gap:12px;margin-top:20px;position:relative;z-index:1;}
 .btn-card{flex:1;background:rgba(255,255,255,0.2);border:none;padding:12px;border-radius:14px;color:#fff;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;backdrop-filter:blur(10px);cursor:pointer;}
 .btn-card.dark{background:#fff;color:var(--ink);}
+
+/* CARTE CRÉDITS */
+.credits-card{background:var(--card);border-radius:20px;padding:20px;margin-bottom:20px;border:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.credits-left{display:flex;flex-direction:column;gap:4px;}
+.credits-label{font-size:12px;color:var(--muted);text-transform:uppercase;font-family:'Space Mono',monospace;letter-spacing:1px;}
+.credits-amount{font-size:24px;font-weight:700;font-family:'Fraunces',serif;color:var(--ink);}
+.credits-icon{width:48px;height:48px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+.credits-icon svg{width:24px;height:24px;color:var(--green-dark);}
 
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
@@ -59,7 +67,7 @@ a{color:inherit;text-decoration:none;}
 .action-title{font-weight:600;font-size:15px;}
 .action-sub{font-size:12px;color:var(--muted);}
 
-/* NAVBAR BAS (DYNAMIQUE) */
+/* NAVBAR BAS */
 .fixed-navbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;gap:2px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(14,42,27,0.06);}
 .fnav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 10px;border-radius:12px;background:transparent;color:var(--muted);text-decoration:none;font-size:11px;font-weight:600;white-space:nowrap;flex:1;text-align:center;}
 .fnav-btn .ic-svg{width:20px;height:20px;color:var(--muted);}
@@ -97,6 +105,7 @@ a{color:inherit;text-decoration:none;}
     <p id="subGreeting">Voici un résumé de ton activité.</p>
   </div>
 
+  <!-- CARTE SOLDE -->
   <div class="balance-card">
     <div class="balance-label">Solde disponible</div>
     <div class="balance-amount">
@@ -106,6 +115,17 @@ a{color:inherit;text-decoration:none;}
     <div class="balance-actions">
       <button class="btn-card dark" onclick="openWithdraw()">Retirer</button>
       <a class="btn-card" href="./abonnement.html">Crédits</a>
+    </div>
+  </div>
+
+  <!-- CARTE CRÉDITS -->
+  <div class="credits-card">
+    <div class="credits-left">
+      <div class="credits-label">Crédits disponibles</div>
+      <div class="credits-amount" id="creditsAmount">0</div>
+    </div>
+    <div class="credits-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3"/><path d="M3 7v11a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-5a2 2 0 0 0 0 4h5.5"/></svg>
     </div>
   </div>
 
@@ -174,13 +194,16 @@ const ICONS = {
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>'
 };
 function icon(key, cls){ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.user}</span>`; }
+function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
 let CURRENT_PROFILE = null;
 
-function showToast(msg){
+function showToast(msg, type='success'){
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 3000);
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#D9534F' : (type === 'info' ? '#128C4A' : '#0E2A1B');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
 async function renderFixedNavbar(){
@@ -190,16 +213,9 @@ async function renderFixedNavbar(){
     const items = data.items || [];
     const bar = document.getElementById('fixedNavbar');
     if(items.length === 0){ bar.style.display='none'; return; }
-    bar.innerHTML = items.map(it=>`
-      <a class="fnav-btn" href="./${escapeHtml(it.url)}">${icon(it.icon)}<span>${escapeHtml(it.label)}</span></a>
-    `).join('');
-  }catch(e){
-    console.error(e);
-    document.getElementById('fixedNavbar').style.display = 'none';
-  }
+    bar.innerHTML = items.map(it=>`<a class="fnav-btn" href="./${escapeHtml(it.url)}">${icon(it.icon)}<span>${escapeHtml(it.label)}</span></a>`).join('');
+  }catch(e){ document.getElementById('fixedNavbar').style.display = 'none'; }
 }
-
-function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
 async function loadDashboard(){
   try{
@@ -210,10 +226,17 @@ async function loadDashboard(){
     CURRENT_PROFILE = dataSession.user.profile;
     if(!CURRENT_PROFILE){ window.location.href = './profile.html'; return; }
 
+    // Infos de base
     document.getElementById('greetingText').textContent = 'Bonjour ' + (CURRENT_PROFILE.nom || '👋');
     document.getElementById('headerAvatar').textContent = (CURRENT_PROFILE.nom || '?')[0].toUpperCase();
+    
+    // Affichage SOLDE
     document.getElementById('soldeAmount').textContent = (CURRENT_PROFILE.solde || 0).toLocaleString('fr-FR');
 
+    // Affichage CRÉDITS
+    document.getElementById('creditsAmount').textContent = (CURRENT_PROFILE.credits || 0).toLocaleString('fr-FR');
+
+    // Stats
     const resStats = await fetch(window.API_BASE + '/api/profiles?action=stats', { credentials: 'include' });
     const stats = await resStats.json();
     document.getElementById('statViews').textContent = stats.weekly_views || 0;
@@ -239,7 +262,7 @@ document.getElementById('withdrawForm').addEventListener('submit', async (e)=>{
     showToast('Demande envoyée ✓');
     closeWithdraw();
     loadDashboard();
-  }catch(err){ showToast(err.message); }
+  }catch(err){ showToast(err.message, 'error'); }
   finally{ btn.disabled = false; btn.textContent = 'Envoyer la demande'; }
 });
 
