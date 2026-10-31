@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Boosts</title>
@@ -34,11 +35,10 @@ tr:hover td{background:var(--bg-soft);}
 .badge.expired{background:#FBE9EA;color:var(--err);}
 .empty{padding:60px 20px;text-align:center;color:var(--muted);}
 </style>
-<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-<a class="logo" href="./index.html" style="font-size:19px;">Kon<span>tak</span></a>
+<a class="logo" href="index" style="font-size:19px;">Kon<span>tak</span></a>
 <a class="btn-ghost" href="./admin.html">← Retour admin</a>
 </header>
 
@@ -46,7 +46,7 @@ tr:hover td{background:var(--bg-soft);}
 <h2>Accès refusé</h2>
 <p>Cette page est réservée à l'administrateur.</p>
 <br>
-<a class="btn-fill" href="./index.html">Retour à l'accueil</a>
+<a class="btn-fill" href="index">Retour à l'accueil</a>
 </div>
 
 <div id="adminContent" style="display:none;">
@@ -85,7 +85,7 @@ const BOOST_PRICE_FCFA = 500;
 
 (async ()=>{
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 const isAdmin = !!(data.user && data.user.isAdmin);
 if(!data.user || !isAdmin){
@@ -101,7 +101,7 @@ document.getElementById('gateMsg').style.display = '';
 
 async function loadBoosts(){
   try{
-    const res = await fetch(window.API_BASE + '/api/admin/members?resource=boosts', { credentials: 'include' });
+    const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Erreur');
 
@@ -142,17 +142,5 @@ function escapeHtml(s){
   return d.innerHTML;
 }
 </script>
-
-<script>
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a');
-  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
-    e.preventDefault();
-    var page = link.getAttribute('href').replace('./', '');
-    if (page) { window.location.href = page; }
-  }
-});
-</script>
-
 </body>
 </html>

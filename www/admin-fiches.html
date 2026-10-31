@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Fiches — Kontak</title>
@@ -65,18 +66,17 @@ table.admin-table tr:hover td{background:var(--bg-soft);}
 .admin-tab{flex-shrink:0;padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);font-size:13px;color:var(--muted);background:#fff;cursor:pointer;font-family:'Sora',sans-serif;text-decoration:none;white-space:nowrap;font-weight:600;}
 .admin-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 </style>
-<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-<a class="logo" href="./index.html" style="font-size:19px;">Kon<span>tak</span></a>
+<a class="logo" href="index" style="font-size:19px;">Kon<span>tak</span></a>
 <a class="btn-ghost" href="./dashboard.html" style="text-decoration:none;padding:8px 14px;font-size:13px;">Quitter l'admin</a>
 </header>
 <div id="gateMsg" class="gate" style="display:none;">
 <h2>Accès refusé</h2>
 <p>Cette page est réservée à l'administrateur.</p>
 <br>
-<a class="btn-fill" href="./index.html">Retour à l'accueil</a>
+<a class="btn-fill" href="index">Retour à l'accueil</a>
 </div>
 <div id="adminContent" style="display:none;">
 <div class="hero">
@@ -175,7 +175,7 @@ function hideErr(id){ const e=document.getElementById(id); if(e) e.classList.rem
 
 async function initNav(){
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 return { user: data.user, isAdmin: !!(data.user && data.user.isAdmin) };
 }catch(e){
@@ -205,7 +205,7 @@ const q = document.getElementById('adminSearch').value.trim();
 try{
 const params = new URLSearchParams({ resource: 'profiles', offset: adminOffset, limit: ADMIN_PAGE_SIZE });
 if(q) params.set('q', q);
-const res = await fetch(window.API_BASE + `/api/admin/members?${params.toString()}`);
+const res = await fetch(window.API_BASE + `/api/admin/members?${params.toString()}`, { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 if(myToken !== adminLoadToken) return;
@@ -290,7 +290,7 @@ const amount = parseFloat(document.getElementById('commission-amount').value);
 if(!amount || amount <= 0){ showToast('Indique un montant valide.'); return; }
 
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=profiles', { credentials: 'include',
+const res = await fetch('/api/admin/members?resource=profiles', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -380,17 +380,5 @@ document.getElementById('adminContent').style.display = '';
 loadAll(true);
 })();
 </script>
-
-<script>
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a');
-  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
-    e.preventDefault();
-    var page = link.getAttribute('href').replace('./', '');
-    if (page) { window.location.href = page; }
-  }
-});
-</script>
-
 </body>
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Confirmation — Kontak</title>
@@ -30,11 +31,10 @@ header{padding:20px 24px;border-bottom:1px solid var(--line);}
 .confirm-icon.loading svg{animation:spin 1s linear infinite;}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 </style>
-<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header>
-<a class="logo" href="./index.html">Kon<span>tak</span></a>
+<a class="logo" href="index">Kon<span>tak</span></a>
 </header>
 <div class="confirm-wrap">
 <div class="confirm-card">
@@ -101,7 +101,7 @@ return;
 }
 
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include',
+const res = await fetch('/api/auth/session', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -116,17 +116,5 @@ setState('error', 'Erreur', err.message || 'Impossible de finaliser la confirmat
 }
 })();
 </script>
-
-<script>
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a');
-  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
-    e.preventDefault();
-    var page = link.getAttribute('href').replace('./', '');
-    if (page) { window.location.href = page; }
-  }
-});
-</script>
-
 </body>
 </html>

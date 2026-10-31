@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Cagnottes — Kontak</title>
@@ -75,18 +76,17 @@ a{color:inherit;}
 .entry-badge.verified{background:var(--bg-soft);color:var(--green-dark);}
 .entry-badge.none{background:rgba(14,42,27,0.06);color:var(--muted);}
 </style>
-<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-<a class="logo" href="./index.html" style="font-size:19px;">Kon<span>tak</span></a>
+<a class="logo" href="index" style="font-size:19px;">Kon<span>tak</span></a>
 <a class="btn-ghost" href="./dashboard.html">Quitter l'admin</a>
 </header>
 <div id="gateMsg" class="gate" style="display:none;">
 <h2>Accès refusé</h2>
 <p>Cette page est réservée à l'administrateur.</p>
 <br>
-<a class="btn-fill" href="./index.html">Retour à l'accueil</a>
+<a class="btn-fill" href="index">Retour à l'accueil</a>
 </div>
 <div id="adminContent" style="display:none;">
 <div class="hero">
@@ -171,7 +171,7 @@ function hideErr(id){ const e=document.getElementById(id); if(e) e.classList.rem
 
 async function initNav(){
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 return { user: data.user, isAdmin: !!(data.user && data.user.isAdmin) };
 }catch(e){ return { user: null, isAdmin: false }; }
@@ -181,7 +181,7 @@ let campaigns = [];
 
 async function loadCampaigns(){
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 campaigns = data.items || [];
@@ -270,10 +270,11 @@ name: document.getElementById('cp-name').value.trim(),
 entry_price: parseInt(document.getElementById('cp-price').value, 10) || 0,
 credits_reward: parseInt(document.getElementById('cp-credits').value, 10) || 0,
 promo_instructions: document.getElementById('cp-promo').value.trim(),
-prize_tiers: tiers };
+prize_tiers: tiers,
+};
 
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
+const res = await fetch('/api/admin/members?resource=cagnottes', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -297,7 +298,7 @@ if(verifiedCount === 0){ showToast('Aucun participant vérifié à tirer au sort
 if(!confirm(`Lancer le tirage pour cette cagnotte (${verifiedCount} participant(s) vérifié(s)) ? Cette action est définitive.`)) return;
 
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
+const res = await fetch('/api/admin/members?resource=cagnottes', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -334,7 +335,7 @@ currentEntriesCampaign = campaignId;
 document.getElementById('entriesList').innerHTML = 'Chargement…';
 document.getElementById('entriesOverlay').classList.add('open');
 try{
-const res = await fetch(window.API_BASE + `/api/admin/members?resource=cagnottes&campaignId=${campaignId}`);
+const res = await fetch(window.API_BASE + `/api/admin/members?resource=cagnottes&campaignId=${campaignId}`, { credentials: 'include' });
 const data = await res.json();
 if(!res.ok) throw new Error(data.error);
 renderEntries(data.entries || []);
@@ -372,7 +373,7 @@ ${!e.is_winner && e.proof_url ? `
 
  async function verifyEntry(entryId, verified){
 try{
-const res = await fetch(window.API_BASE + '/api/admin/members?resource=cagnottes', { credentials: 'include',
+const res = await fetch('/api/admin/members?resource=cagnottes', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -402,17 +403,5 @@ document.getElementById('adminContent').style.display = '';
 loadCampaigns();
 })();
 </script>
-
-<script>
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a');
-  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
-    e.preventDefault();
-    var page = link.getAttribute('href').replace('./', '');
-    if (page) { window.location.href = page; }
-  }
-});
-</script>
-
 </body>
 </html>

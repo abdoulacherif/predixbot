@@ -12,7 +12,7 @@
 --orange:#FF8A3D;--gold:#E8A33D;--line:rgba(14,42,27,0.10);--muted:rgba(14,42,27,0.55);--err:#D9534F;
 }
 *{box-sizing:border-box;}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;}
+body{padding-bottom:80px;margin:0;background:var(--bg);color:var(--ink);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;}
 h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
 .mono{font-family:'Space Mono',monospace;}
 a{color:inherit;}
@@ -79,19 +79,18 @@ body{padding-bottom:74px;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:100px;font-size:13.5px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:90%;text-align:center;}
 .toast.show{opacity:1;}
 </style>
-<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <div class="dash-topbar">
 <button class="burger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-<a class="logo" href="./index.html" style="font-size:19px;">Kon<span>tak</span></a>
+<a class="logo" href="index" style="font-size:19px;">Kon<span>tak</span></a>
 <div style="width:38px;"></div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <nav class="fixed-navbar" id="fixedNavbar"></nav>
 <div class="dash-shell">
 <aside class="sidebar" id="sidebar">
-<a class="logo" href="./index.html">Kon<span>tak</span></a>
+<a class="logo" href="index">Kon<span>tak</span></a>
 <div class="side-section">
 <div class="side-label">Mon compte</div>
 <a class="side-link" href="./dashboard.html"><span class="ic-svg" id="icOverview"></span> Vue d'ensemble</a>
@@ -153,7 +152,7 @@ let CURRENT_PROFILE = null;
 
 async function initNav(){
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 CURRENT_USER = data.user || null;
 CURRENT_PROFILE = CURRENT_USER ? CURRENT_USER.profile : null;
@@ -169,8 +168,8 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE' });
-window.location.href = './index.html';
+await fetch(window.API_BASE + ', , { method: 'DELETE', credentials: 'include' };
+window.location.href = 'index';
 }
 
 document.addEventListener('click', (e)=>{
@@ -199,7 +198,7 @@ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`;
 
 async function loadNavItems(){
 try{
-const res = await fetch(window.API_BASE + '/api/nav-items', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', { credentials: 'include' });
 if(!res.ok) throw new Error('nav-items indisponible');
 const data = await res.json();
 return data.items || [];
@@ -243,7 +242,7 @@ renderFixedNavbar();
 async function loadCampaigns(){
 const grid = document.getElementById('campaignGrid');
 try{
-const res = await fetch(window.API_BASE + '/api/directory/list?type=cagnottes');
+const res = await fetch(window.API_BASE + ', { credentials: 'include' });
 const data = await res.json();
 const campaigns = data.campaigns || [];
 if(campaigns.length===0){
@@ -256,7 +255,7 @@ return `
 <div class="campaign-card">
 <div class="campaign-name">${escapeHtml(c.name)}</div>
 <div class="campaign-meta">
-<div class="meta-item"><div class="v">${(c.entry_price||0).toLocaleString('fr-FR', { credentials: 'include' })}</div><div class="l">FCFA</div></div>
+<div class="meta-item"><div class="v">${(c.entry_price||0).toLocaleString('fr-FR')}</div><div class="l">FCFA</div></div>
 <div class="meta-item"><div class="v">${c.credits_reward||0}</div><div class="l">crédits offerts</div></div>
 <div class="meta-item"><div class="v">${tiers.length}</div><div class="l">gagnants</div></div>
 </div>
@@ -282,7 +281,7 @@ return;
 }
 try{
 showToast('Redirection vers le paiement…');
-const resp = await fetch(window.API_BASE + '/api/create-checkout', { credentials: 'include',
+const resp = await fetch('/api/create-checkout', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -304,7 +303,7 @@ showToast('Erreur : ' + (err.message || 'impossible de lancer le paiement'));
 async function loadMyTickets(){
 if(!CURRENT_USER) return;
 try{
-const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 const tickets = data.cagnotteEntries || [];
 if(tickets.length===0) return;
@@ -343,7 +342,7 @@ const url = input.value.trim();
 if(!url){ showToast('Colle le lien de ta publication.'); return; }
 
 try{
-const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include',
+const res = await fetch('/api/profiles', {
 method: 'PATCH',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -368,7 +367,7 @@ const maxTries = 6;
 const poll = async ()=>{
 tries++;
 try{
-const res = await fetch(window.API_BASE + '/api/create-checkout', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 if(data.status === 'paid'){
 showToast('Participation confirmée ✓ Crédits ajoutés !');
@@ -394,19 +393,31 @@ checkPendingPayment();
 })();
 </script>
 
+<nav class="mobile-bottom-nav" style="position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid rgba(14,42,27,0.1);display:flex;justify-content:space-around;align-items:center;padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(14,42,27,0.06);">
+  <a href="./dashboard.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:#0E2A1B;font-size:11px;font-weight:600;flex:1;text-align:center;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#128C4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
+    Accueil
+  </a>
+  <a href="./annuaire.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:#0E2A1B;font-size:11px;font-weight:600;flex:1;text-align:center;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#128C4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    Annuaire
+  </a>
+  <a href="./profile.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:#0E2A1B;font-size:11px;font-weight:600;flex:1;text-align:center;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#128C4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+    Profil
+  </a>
+  <a href="#" onclick="logoutApp();return false;" style="display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:#D9534F;font-size:11px;font-weight:600;flex:1;text-align:center;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D9534F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Quitter
+  </a>
+</nav>
+
 <script>
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a');
-  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
-    e.preventDefault();
-    var page = link.getAttribute('href').replace('./', '');
-    if (page) { window.location.href = page; }
-  }
-});
+async function logoutApp() {
+  await fetch(window.API_BASE + '/api/auth/session', { method: 'DELETE', credentials: 'include' });
+  window.location.href = './index.html';
+}
 </script>
-
-
-
 
 </body>
 </html>

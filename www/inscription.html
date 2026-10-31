@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>S'inscrire — Kontak</title>
@@ -118,11 +119,10 @@ table.admin-table tr:hover td{background:var(--bg-soft);}
 .fnav-btn:hover{border-color:var(--green);}
 .fnav-btn .ic-svg{width:17px;height:17px;color:var(--green-dark);}
 </style>
-<script>window.API_BASE = 'https://kontaks.vercel.app';</script>
 </head>
 <body>
 <header>
-<a class="logo" href="./index.html" style="display:flex; align-items:center; gap:8px; text-decoration:none;"><img src="logo.png" style="width:32px; height:32px; border-radius:8px;" alt="Kontak">Kon<span>tak</span></a>
+<a class="logo" href="index">Kon<span>tak</span></a>
 <div class="header-actions">
 <a class="btn-line" href="./annuaire.html">← Annuaire</a>
 </div>
@@ -146,7 +146,7 @@ table.admin-table tr:hover td{background:var(--bg-soft);}
 <div class="field"><label>Email</label><input type="email" id="s-email" required placeholder="Ex: aicha@email.com"></div>
 <div class="err-msg" id="err1"></div>
 <div class="form-actions">
-<a class="btn-ghost" href="./index.html" style="text-align:center;text-decoration:none;">Annuler</a>
+<a class="btn-ghost" href="index" style="text-align:center;text-decoration:none;">Annuler</a>
 <button type="button" class="btn-primary" onclick="goToStep(2)">Suivant</button>
 </div>
 </div>
@@ -215,7 +215,7 @@ let CURRENT_PROFILE = null;
 
 async function initNav(){
 try{
-const res = await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include' });
+const res = await fetch(window.API_BASE + ', , { credentials: 'include' };
 const data = await res.json();
 CURRENT_USER = data.user || null;
 CURRENT_PROFILE = CURRENT_USER ? CURRENT_USER.profile : null;
@@ -231,8 +231,8 @@ return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
 async function logout(){
-await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE' });
-window.location.href = './index.html';
+await fetch(window.API_BASE + ', , { method: 'DELETE', credentials: 'include' };
+window.location.href = 'index';
 }
 
 document.addEventListener('click', (e)=>{
@@ -274,7 +274,7 @@ return `<span class="ic-svg ${cls||''}">${ICONS[key] || ICONS.grid}</span>`;
 // ---- Barre de navigation dynamique (gérée par l'admin) ----
 async function loadNavItems(){
 try{
-const res = await fetch(window.API_BASE + '/api/nav-items');
+const res = await fetch(window.API_BASE + ', { credentials: 'include' });
 if(!res.ok) throw new Error('nav-items indisponible');
 const data = await res.json();
 return data.items || [];
@@ -289,7 +289,7 @@ if(n===2){
 const name = document.getElementById('s-name').value.trim();
 const phone = document.getElementById('s-phone').value.trim();
 const email = document.getElementById('s-email').value.trim();
-if(!name || !phone || !email, { credentials: 'include' }){ showErr('err1','Merci de remplir tous les champs.'); return; }
+if(!name || !phone || !email){ showErr('err1','Merci de remplir tous les champs.'); return; }
 hideErr('err1');
 }
 if(n===3){
@@ -328,7 +328,7 @@ const params = new URLSearchParams(window.location.search);
 const referredBy = params.get('ref') || null;
 
 try{
-const res = await fetch(window.API_BASE + '/api/auth/signup', { credentials: 'include',
+const res = await fetch('/api/auth/signup', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 credentials: 'include',
@@ -354,17 +354,5 @@ btn.disabled = false; btn.textContent = "S'inscrire";
 }
 });
 </script>
-
-<script>
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a');
-  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
-    e.preventDefault();
-    var page = link.getAttribute('href').replace('./', '');
-    if (page) { window.location.href = page; }
-  }
-});
-</script>
-
 </body>
 </html>
