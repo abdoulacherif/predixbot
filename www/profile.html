@@ -209,7 +209,7 @@ async function initNav(){
   return { user: CURRENT_USER, profile: CURRENT_PROFILE, isAdmin };
 }
 
-async function logout(){ await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  }); window.location.href = 'index'; }
+async function logout(){ await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  }); window.location.href = './index.html'; }
 document.addEventListener('click', (e)=>{ if(e.target && e.target.matches('[data-action="logout"]')){ e.preventDefault(); logout(); } });
 
 const ICONS = {
@@ -346,7 +346,7 @@ async function deleteMyProfile(){
   if(!confirm("Supprimer définitivement ta fiche de l'annuaire ?")) return;
   try{
     const res = await fetch(window.API_BASE + '/api/profiles', { credentials: 'include', method: 'DELETE',  }); const data = await res.json(); if(!res.ok) throw new Error(data.error || "Erreur.");
-    showToast('Fiche supprimée'); await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  }); window.location.href = 'index';
+    showToast('Fiche supprimée'); await fetch(window.API_BASE + '/api/auth/session', { credentials: 'include', method: 'DELETE',  }); window.location.href = './index.html';
   }catch(err){ showErr('errDash', err.message); }
 }
 
