@@ -169,5 +169,17 @@ async function loadProfile() {
 
 loadProfile();
 </script>
+
+<script>
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a');
+  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
+    e.preventDefault();
+    var page = link.getAttribute('href').replace('./', '');
+    if (page) { window.location.href = page; }
+  }
+});
+</script>
+
 </body>
 </html>

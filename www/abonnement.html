@@ -335,7 +335,7 @@ ${p.trial_days ? `<span class="plan-trial">Essai gratuit ${p.trial_days} jours</
 <ul class="plan-features">
 ${features.map(f=>`<li>${icon('gain')}${escapeHtml(f)}</li>`).join('')}
 </ul>
-<button class="btn-primary" onclick='subscribeToPlan(${JSON.stringify(p).replace(/'/g,"&apos;")})'>S'abonner</button>
+<button class="btn-primary" onclick='subscribeToPlan(${JSON.stringify(p, { credentials: 'include' }).replace(/'/g,"&apos;")})'>S'abonner</button>
 </div>
 `;}).join('');
 }
@@ -400,5 +400,17 @@ renderPacks();
 loadPlans();
 })();
 </script>
+
+<script>
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a');
+  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
+    e.preventDefault();
+    var page = link.getAttribute('href').replace('./', '');
+    if (page) { window.location.href = page; }
+  }
+});
+</script>
+
 </body>
 </html>

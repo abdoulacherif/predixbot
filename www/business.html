@@ -310,7 +310,7 @@ async function loadGroupThemes(){
 try{
 const res = await fetch(window.API_BASE + '/api/directory/list?type=group-themes');
 if(!res.ok) throw new Error();
-const data = await res.json();
+const data = await res.json(, { credentials: 'include' });
 groupThemes = ['Tous', ...(data.themes || [])];
 }catch(e){ groupThemes = ['Tous']; }
 renderGroupFilters();
@@ -384,5 +384,17 @@ initNav();
 loadGroupThemes();
 loadGroups(true);
 </script>
+
+<script>
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a');
+  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
+    e.preventDefault();
+    var page = link.getAttribute('href').replace('./', '');
+    if (page) { window.location.href = page; }
+  }
+});
+</script>
+
 </body>
 </html>

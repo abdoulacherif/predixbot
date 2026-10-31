@@ -289,7 +289,7 @@ if(n===2){
 const name = document.getElementById('s-name').value.trim();
 const phone = document.getElementById('s-phone').value.trim();
 const email = document.getElementById('s-email').value.trim();
-if(!name || !phone || !email){ showErr('err1','Merci de remplir tous les champs.'); return; }
+if(!name || !phone || !email, { credentials: 'include' }){ showErr('err1','Merci de remplir tous les champs.'); return; }
 hideErr('err1');
 }
 if(n===3){
@@ -354,5 +354,17 @@ btn.disabled = false; btn.textContent = "S'inscrire";
 }
 });
 </script>
+
+<script>
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a');
+  if (link && link.href && !link.href.startsWith('http') && !link.href.startsWith('mailto') && !link.href.startsWith('tel') && !link.href.startsWith('#')) {
+    e.preventDefault();
+    var page = link.getAttribute('href').replace('./', '');
+    if (page) { window.location.href = page; }
+  }
+});
+</script>
+
 </body>
 </html>
